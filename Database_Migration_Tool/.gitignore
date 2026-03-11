@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual Environment
+dmt/
+venv/
+ENV/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+migration_logs/
+Migration_Logs/
+
+# Test databases
+*.db
+*.db-shm
+*.db-wal
+tests/sample_databases/*.db
+!tests/sample_databases/test_v1_dataflow.db
+
+# Backups
+backups/
+Old_Databases_Archive/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Reports
+migration_reports/
+*.json
+*.txt
