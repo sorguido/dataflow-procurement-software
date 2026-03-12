@@ -1,0 +1,795 @@
+[H1]Guida Utente DataFlow Procurement Software
+[INFO]Documentazione versione: Novembre 2025
+
+Questa guida ti accompagnerà nell'utilizzo di DataFlow, il software per la gestione delle Richieste di Offerta.
+
+[H1]0. Primi Passi
+
+[H2]Benvenuto in DataFlow
+DataFlow è un'applicazione desktop progettata per semplificare la gestione delle Richieste di Offerta (RdO) nel tuo processo di approvvigionamento.
+
+Con DataFlow puoi:
+[LIST] • Creare e gestire le RdO con facilità
+[LIST] • Confrontare preventivi di più fornitori simultaneamente
+[LIST] • Allegare documenti e offerte a ciascuna richiesta
+[LIST] • Mantenere una traccia completa della cronologia delle RdO
+[LIST] • Esportare dati in Excel per ulteriori analisi
+
+[H2]Primo Avvio
+Al primo avvio, ti verrà chiesto di inserire il tuo [BOLD]Nome [NORMAL]e [BOLD]Cognome[NORMAL].
+[LIST] • Inserisci il tuo nome e cognome negli appositi campi
+[LIST] • Il sistema genererà automaticamente il tuo username personale (prima lettera del nome + cognome, tutto in minuscolo e senza accenti)
+[LIST] • Questo username verrà associato alle RdO che creerai e potrà essere utilizzato per filtrare le richieste
+
+Successivamente, ti verrà mostrata la finestra della Licenza d'Uso.
+[LIST] • Leggi attentamente i termini della licenza Freeware
+[LIST] • Clicca 'Accetto' per continuare o 'Esci' per chiudere il programma
+
+Il programma creerà automaticamente un database specifico per il tuo utente nella cartella:
+C:\Users\[nome_utente]\Documents\DataFlow_[username]\Database\dataflow_db_[username].db
+
+Non devi fare nulla, tutto è configurato automaticamente. Tutti i documenti (database ed eventuali allegati) li troverai nella tua cartella DataFlow personalizzata.
+
+[H2]Prima RdO di Prova
+Per familiarizzare con DataFlow, segui questi passi per creare la tua prima RdO:
+
+[BOLD]1. [NORMAL]Clicca sul pulsante '[CODE]➕ Nuova RdO' nella schermata principale
+[BOLD]2. [NORMAL]Seleziona il tipo di RdO (es. 'Fornitura piena')
+[BOLD]3. [NORMAL]Compila i campi obbligatori:
+[LIST]   • Riferimento: usa un codice identificativo (es. TEST-001)
+[LIST]   • Data Emissione: clicca sul calendario e scegli oggi
+[LIST]   • Data Scadenza: scegli una data futura
+
+[BOLD]4. [NORMAL]Aggiungi un articolo di prova:
+[LIST]   • Codice: ART-001
+[LIST]   • Descrizione: Articolo di test
+[LIST]   • Quantità: 1
+[LIST]   • Clicca '[CODE]➕ Aggiungi Articolo'
+
+[BOLD]5. [NORMAL]Clicca '[CODE]💾 Salva Richiesta Completa' per salvare
+
+Congratulazioni! Hai creato la tua prima RdO. Puoi fare doppio click su di essa per aprirla e esplorare tutte le funzionalità.
+
+[H1]1. Schermata Principale
+È la finestra da cui hai una visione d'insieme di tutte le Richieste di Offerta (RdO). Le richieste sono divise in due schede principali: 'RdO Attive' e 'RdO Archiviate'.
+
+Le RdO nella scheda 'Attive' la cui data di scadenza è passata vengono evidenziate in [WARNING]rosso[WARNING] per una facile identificazione.
+
+[H2]La Tabella Principale
+
+La tabella principale di DataFlow visualizza l'elenco completo delle tue Richieste di Offerta.
+
+[BOLD]Funzionalità principali:
+[LIST] • [BOLD]Doppio click [NORMAL]su una riga per aprire la RdO
+[LIST] • [BOLD]Click semplice [NORMAL]per selezionare (abilita pulsanti Elimina/Duplica/Archivia)
+[LIST] • [BOLD]Click sull'intestazione colonna [NORMAL]per ordinare crescente/decrescente
+[LIST] • [BOLD]Selezione multipla[NORMAL]: tieni premuto Ctrl e clicca su più righe per eliminarle/archiviarle insieme
+[LIST] • [BOLD]Righe colorate[NORMAL]: le RdO con data scadenza passata appaiono in rosso
+
+[H2]Menù Contestuale (Tasto Destro)
+
+[WARNING_RED]IMPORTANTE: Operazioni Temporanee vs Permanenti
+
+Cliccando con il [BOLD]tasto destro del mouse [NORMAL]su qualsiasi tabella di DataFlow (schermata principale o griglia articoli/prezzi), appare un menù contestuale con voci come "Inserisci riga", "Elimina riga", "Inserisci colonna", "Elimina colonna".
+
+[WARNING]Queste operazioni hanno [BOLD]solo effetto visivo temporaneo [NORMAL]e [BOLD]NON modificano il database[NORMAL].
+
+[BOLD]Cosa fanno le voci del menù contestuale:[BOLD]
+[LIST] • [BOLD]"Elimina riga"[NORMAL]: nasconde temporaneamente una riga dalla vista (utile per concentrarsi su dati specifici ed escludere temporaneamente altri elementi dall'analisi)
+[LIST] • [BOLD]"Elimina colonna"[NORMAL]: nasconde temporaneamente una colonna dalla vista (utile per nascondere campi o fornitori che non servono durante l'analisi)
+[LIST] • [BOLD]"Inserisci riga/colonna"[NORMAL]: aggiunge righe/colonne vuote solo nella vista corrente (non salva dati nel database)
+[LIST] • [BOLD]"Sort Ascending/Descending"[NORMAL]: ordina temporaneamente i dati per quella colonna
+
+[BOLD]Quando usare il menù contestuale:[BOLD]
+[LIST] • Per filtrare visivamente i dati durante l'analisi senza modificare il database
+[LIST] • Per nascondere temporaneamente fornitori o articoli che non ti interessano in quel momento
+[LIST] • Per riordinare la vista e facilitare la lettura
+
+[BOLD]Per modifiche permanenti, usa sempre:[BOLD]
+[LIST] • I pulsanti dedicati nella GUI: [CODE]➕ Aggiungi[CODE], [CODE]🗑 Elimina[CODE], [CODE]✏️ Modifica[CODE]
+[LIST] • Il doppio click sulle celle per modificare i valori
+[LIST] • I pulsanti [CODE]💾 Salva[CODE] dopo le modifiche
+
+[INFO]Suggerimento: Per ripristinare la visualizzazione originale della tabella, ricarica i dati con "Cerca", riapri la finestra, oppure usa "Pulisci Filtri".
+
+Per [BOLD]eliminare definitivamente una RdO dal database[NORMAL], usa sempre il pulsante [CODE]🗑 Elimina RdO [NORMAL]nella barra superiore.
+
+[H2]Interfaccia e Pulsanti Principali
+[LIST] • [BOLD]Nuova RdO:[NORMAL] Apre la finestra per creare una nuova richiesta.
+[LIST] • [BOLD]Elimina RdO:[NORMAL] Elimina permanentemente la RdO selezionata. Per sicurezza, è possibile eliminare solo una RdO alla volta.
+[LIST] • [BOLD]Duplica RdO:[NORMAL] Crea una copia della RdO selezionata con un nuovo numero di identificazione progressivo. Questa funzione è utile per creare rapidamente nuove richieste simili a quelle esistenti, mantenendo la struttura degli articoli.
+
+[BOLD]Cosa viene copiato nella duplicazione:[BOLD]
+[LIST]   • [BOLD]✅ Testata RdO:[BOLD] Tipo (Piena/Conto Lavoro), Riferimento, Fornitore
+[LIST]   • [BOLD]✅ Lista Articoli Completa:[BOLD] Codice, Allegato (Disegno), Descrizione, Quantità
+[LIST]   • [BOLD]✅ Campi Conto Lavoro:[BOLD] Codice Grezzo, Disegno Grezzo, Materiale c/lavoro (se presenti)
+
+[BOLD]Cosa NON viene copiato:[BOLD]
+[LIST]   • [BOLD]❌ Prezzi:[BOLD] Tutte le celle dei prezzi nella nuova RdO saranno vuote
+[LIST]   • [BOLD]❌ Allegati:[BOLD] Offerte fornitori e documenti interni non vengono trasferiti
+[LIST]   • [BOLD]❌ Note:[BOLD] Le note associate alla RdO originale non vengono copiate
+[LIST]   • [BOLD]❌ Analisi SQDC:[BOLD] Eventuali analisi SQDC salvate non vengono duplicate
+[LIST]   • [BOLD]❌ Numeri Ordine (PO):[BOLD] I numeri ordine di acquisto non vengono copiati
+[LIST]   • [BOLD]❌ Date:[BOLD] Le date di emissione e scadenza vengono resettate
+[LIST]   • [BOLD]❌ Lista Fornitori:[BOLD] Tutti i fornitori associati alla RdO originale
+
+[WARNING_RED]ATTENZIONE: La nuova RdO avrà un [BOLD]nuovo numero identificativo[BOLD] progressivo e sarà automaticamente impostata come [BOLD]'Attiva'[BOLD]. Dopo la duplicazione, dovrai:
+[LIST]1. Modificare le date (emissione, scadenza) secondo necessità
+[LIST]2. Allegare manualmente i file necessari (offerte, disegni, documenti)
+[LIST]3. Far inserire i nuovi prezzi dai fornitori
+
+[INFO]Caso d'uso tipico: Hai una RdO per 10 articoli e devi richiedere gli stessi articoli con quantità diverse. Duplica la RdO, modifica solo le quantità e richiedi nuovi prezzi, senza dover reinserire tutti i dati articolo per articolo.
+[LIST] • [BOLD]Archivia / Riattiva:[NORMAL] Sposta la RdO selezionata tra le schede 'Attive' e 'Archiviate'.
+[LIST] • [BOLD]📊 Export Excel:[NORMAL] Esporta in un unico file Excel tutte le RdO attualmente visualizzate nella tabella (rispettando i filtri applicati). Questa funzione è utile per creare report globali, analizzare più RdO contemporaneamente o condividere un riepilogo completo con il team. Il file Excel generato include per ogni RdO: numero, tipo, riferimento, fornitore, articoli con prezzi, date e stato.
+[INFO]Il pulsante Export Excel globale esporta solo le RdO [BOLD]visibili[BOLD] nella schermata corrente. Se hai applicato filtri (per fornitore, data, utente, ecc.), verranno esportate solo le RdO che corrispondono ai criteri. Per esportare tutte le RdO, rimuovi i filtri cliccando "Pulisci Filtri" prima di esportare.
+[LIST] • [BOLD]Impostazioni:[NORMAL] Apre il pannello per la configurazione avanzata e la manutenzione.
+
+[H2]Scorciatoie da Tastiera
+Per una navigazione più rapida, puoi utilizzare queste scorciatoie:
+[LIST] • [BOLD]Doppio Click su RdO: [NORMAL]Apre il pannello di controllo della RdO
+
+[H2]Ordinamento delle Colonne
+Puoi ordinare le RdO usando il menù contestuale delle colonne:
+
+[BOLD]Come ordinare:
+[LIST] • [BOLD]Click con tasto destro [NORMAL]sull'intestazione della colonna che vuoi ordinare
+[LIST] • Dal menù che appare, seleziona l'opzione di ordinamento desiderata
+
+[BOLD]Opzioni disponibili:
+[LIST] • [BOLD]Sort Ascending [NORMAL](Ordina Crescente): dalla A alla Z, dal più piccolo al più grande, dalla data più vecchia alla più recente
+[LIST] • [BOLD]Sort Descending [NORMAL](Ordina Decrescente): dalla Z alla A, dal più grande al più piccolo, dalla data più recente alla più vecchia
+
+[BOLD]Esempi pratici:
+[LIST] • [BOLD]Ordina per Numero RdO[NORMAL]: Tasto destro su 'Num RdO' → Sort Ascending per vedere 1, 2, 3... oppure Sort Descending per ...3, 2, 1
+[LIST] • [BOLD]Ordina per Data Emissione[NORMAL]: Tasto destro su 'Data Emiss.' → Sort Ascending per le RdO dalla più vecchia alla più recente
+[LIST] • [BOLD]Ordina per Riferimento[NORMAL]: Tasto destro su 'Riferimento' → Sort Ascending per ordinare alfabeticamente A-Z
+
+[INFO]Suggerimento: Puoi ordinare per qualsiasi colonna per trovare rapidamente le RdO che cerchi. L'ordinamento funziona anche dopo aver applicato i filtri di ricerca.
+
+[H2]Filtri di Ricerca
+Permettono di trovare rapidamente le RdO. Puoi cercare per:
+[LIST] • Numero RdO, Tipo (Piena o Conto Lavoro), Riferimento, Fornitore, Codice o Descrizione Materiale, Numero Ordine.
+[LIST] • [BOLD]Campi specifici Conto Lavoro: [NORMAL]Codice Grezzo, Allegato (Disegno) Grezzo, Materiale c/lavoro. Questi campi sono utilizzabili per filtrare RdO di tipo "Conto Lavoro" che contengono articoli con questi dati.
+[LIST] • [BOLD]Intervalli di Date: [NORMAL]Usa i campi 'Data Emissione' e 'Data Scadenza' per filtrare le RdO in un determinato periodo.
+[LIST] • [BOLD]Filtra per Utente:[NORMAL] In ambienti multi-utente con cartella DataFlow condivisa (es: cartella di rete aziendale), permette di visualizzare le RdO di uno specifico utente o di tutti gli utenti. Selezionare dal menu a tendina:
+[LIST]   - [BOLD]"Tutti gli utenti":[NORMAL] Mostra tutte le RdO presenti nei database di tutti i colleghi nella cartella condivisa (visualizzazione in sola lettura per RdO altrui).
+[LIST]   - [BOLD]"[Il tuo username]":[NORMAL] Mostra solo le tue RdO (impostazione predefinita). Puoi modificare le tue RdO.
+[LIST]   - [BOLD]Username specifico:[NORMAL] Mostra solo le RdO di un collega specifico (sola lettura).
+[LIST]
+[LIST]   [INFO]💡 SUGGERIMENTO: Se lavori da solo o non hai configurato una cartella condivisa, questo filtro mostrerà solo il tuo username e "Tutti gli utenti" avrà lo stesso effetto.
+
+Premi 'Cerca' per applicare i filtri e 'Pulisci Filtri' per tornare alla visualizzazione completa.
+
+[BOLD]NOTA: [NORMAL]I filtri funzionano in modo cumulativo (AND logico). Se inserisci più criteri, troverai solo le RdO che soddisfano TUTTI i criteri contemporaneamente.
+
+Esempi Pratici:
+[LIST] • [BOLD]Esempio 1 - Cercare RdO di un fornitore: [NORMAL]Inserisci il nome del fornitore nel campo 'Fornitore', poi clicca 'Cerca'.
+[LIST] • [BOLD]Esempio 2 - Trovare RdO scadute: [NORMAL]Imposta 'Data Scadenza' fino a ieri, poi clicca 'Cerca'. Le RdO scadute appariranno in rosso.
+[LIST] • [BOLD]Esempio 3 - Cercare per codice materiale: [NORMAL]Inserisci il codice nel campo 'Cod. Materiale', poi clicca 'Cerca'.
+
+[H1]2. Creare una Nuova RdO
+Cliccando 'Nuova RdO' si apre la maschera di inserimento. La prima scelta fondamentale è il 'Tipo di RdO':
+[LIST] • [BOLD]Fornitura Piena: [NORMAL]Per l'acquisto standard di materiali.
+[LIST] • [BOLD]Conto Lavoro: [NORMAL]Attiva campi aggiuntivi specifici (Codice Grezzo, Disegno Grezzo, Materiale c/lavoro) per la gestione di lavorazioni esterne su materiali forniti.
+
+[H2]Inserimento Manuale degli Articoli
+
+Dopo aver creato la RdO, si apre automaticamente il [BOLD]Pannello di Controllo [NORMAL]dove puoi aggiungere gli articoli.
+
+[H3]La Griglia Articoli/Prezzi
+
+La sezione centrale mostra una tabella divisa in due aree:
+
+[BOLD]1. Colonne Articolo (Sinistra - Modificabili):
+[LIST] • [BOLD]Codice[NORMAL]: codice materiale
+[LIST] • [BOLD]Allegato[NORMAL]: riferimento al disegno tecnico
+[LIST] • [BOLD]Descrizione[NORMAL]: descrizione dell'articolo
+[LIST] • [BOLD]Q.tà[NORMAL]: quantità richiesta (usa la [BOLD]virgola [NORMAL]per i decimali: es. 10,5)
+
+[INFO]Se la RdO è di tipo "Conto lavoro", vedrai anche:
+[LIST] • [BOLD]Cod. Grezzo[NORMAL]: codice del materiale grezzo fornito
+[LIST] • [BOLD]Dis. Grezzo[NORMAL]: disegno del grezzo
+[LIST] • [BOLD]Mat. C/L[NORMAL]: specifica del materiale per lavorazione
+
+[BOLD]2. Colonne Fornitori (Destra - Modificabili):
+Una colonna per ogni fornitore aggiunto, dove inserire i prezzi unitari.
+
+[H3]Come Aggiungere e Modificare Articoli
+
+[BOLD]Aggiungere una nuova riga:
+[LIST]1. Clicca sul pulsante [CODE]➕ Aggiungi Articolo [NORMAL]sotto la griglia
+[LIST]2. Apparirà una nuova riga vuota in fondo alla tabella
+[LIST]3. [BOLD]Doppio click [NORMAL]su una cella per modificarla
+[LIST]4. Scrivi il valore e premi [BOLD]Invio [NORMAL]o clicca fuori dalla cella
+[LIST]5. Il salvataggio è [BOLD]automatico
+
+[BOLD]Modificare una riga esistente:
+[LIST]1. [BOLD]Doppio click [NORMAL]sulla cella da modificare
+[LIST]2. Modifica il testo
+[LIST]3. Premi [BOLD]Invio [NORMAL]o clicca fuori - il salvataggio è automatico
+
+[BOLD]Eliminare una riga:
+[LIST]1. [BOLD]Click semplice [NORMAL]sulla riga da eliminare (si evidenzia)
+[LIST]2. Clicca [CODE]🗑 Rimuovi Articolo Selezionato
+[LIST]3. Conferma l'eliminazione
+
+[WARNING_RED]RICORDA: Menù Contestuale (Tasto Destro)
+
+Il [BOLD]tasto destro [NORMAL]sulla griglia apre un menù con opzioni che hanno [BOLD]solo effetto visivo temporaneo[NORMAL] (vedi sezione "Menù Contestuale" sopra per dettagli completi).
+
+[WARNING]Usa sempre i pulsanti dedicati per modifiche permanenti:
+[LIST] • [CODE]➕ Aggiungi Articolo [NORMAL]per aggiungere articoli al database
+[LIST] • [CODE]🗑 Rimuovi Articolo Selezionato [NORMAL]per eliminare articoli dal database
+
+[H3]Inserimento Prezzi
+
+Nelle colonne dei fornitori (a destra), inserisci i prezzi unitari:
+
+[WARNING_RED]IMPORTANTE: Formato Numerico Italiano
+
+DataFlow utilizza il [BOLD]formato numerico italiano[BOLD] per prezzi e quantità:
+[LIST] • [BOLD]Usa la VIRGOLA (,) per i decimali[BOLD]: [CODE]12,50[CODE] ✅ CORRETTO
+[LIST] • [BOLD]NON usare il punto (.)[BOLD]: [CODE]12.50[CODE] ❌ ERRATO
+[LIST] • [BOLD]Esempi corretti[BOLD]: [CODE]10,5[CODE] | [CODE]125,75[CODE] | [CODE]0,99[CODE] | [CODE]1500,00[CODE]
+
+[BOLD]Altri valori ammessi per i prezzi:
+[LIST] • [CODE]X [NORMAL]in attesa che il fornitore quoti
+[LIST] • [CODE]ND [NORMAL]se il prezzo non è disponibile
+[LIST] • Cella vuota se non hai ancora il prezzo
+
+[INFO]I prezzi vengono formattati automaticamente a 4 decimali: 12,5 diventa 12,5000
+
+[BOLD]Copia/Incolla da Excel:
+Puoi copiare prezzi da Excel e incollarli direttamente nella griglia con [BOLD]Ctrl+V[NORMAL].
+[WARNING]ATTENZIONE: Assicurati che Excel sia configurato con [BOLD]impostazioni regionali italiane[BOLD] (virgola come separatore decimale) prima di copiare! Se Excel usa il punto, i valori verranno interpretati erroneamente.
+
+Nel campo Quantità è possibile inserire sia valori numerici che letterari (ad esempio "MOQ" o "Q.tà min."). Questo permette di esportare l'RdO in Excel e copiare direttamente la tabella nel corpo di una e-mail per la richiesta al fornitore. Per eseguire un'analisi SQDC è necessario inserire una quantità numerica.
+
+[H2]Importazione da Excel
+Questo strumento permette di caricare rapidamente un elenco di articoli da un file [CODE].xlsx[CODE].
+
+[BOLD]IMPORTANTE: [NORMAL]Assicurati di aver selezionato il 'Tipo di RdO' corretto PRIMA di importare, perché la struttura delle colonne richiesta cambia:
+[LIST] • [BOLD]Fornitura Piena (4 colonne):[NORMAL] A: Codice, B: Allegato (Disegno), C: Descrizione, D: Quantità.
+[LIST] • [BOLD]Conto Lavoro (7 colonne):[NORMAL] Le 4 precedenti più E: Codice Grezzo, F: Disegno Grezzo, G: Materiale C/L.
+
+File Template Disponibili: [BOLD]
+Nella cartella [CODE]add_data[CODE] dell'applicazione trovi i file template pronti all'uso:
+[LIST] • [BOLD]template_rdo.xlsx: [CODE]Template per Fornitura Piena (Italiano)
+[LIST] • [BOLD]template_rdo_cl.xlsx: [CODE]Template per Conto Lavoro (Italiano)
+[LIST] • [BOLD]template_rdo_eng.xlsx: [CODE]Template per Fornitura Piena (Inglese)
+[LIST] • [BOLD]template_rdo_eng_cl.xlsx: [CODE]Template per Conto Lavoro (Inglese)
+
+E' consigliato usare questi template come riferimento per garantire la corretta struttura del file.
+
+[H1]3. Gestire una RdO Esistente
+Fai doppio click su una RdO nella schermata principale per aprire il 'Pannello di Controllo', il centro operativo per quella specifica richiesta.
+
+[H2]La Griglia Prezzi
+
+La griglia centrale è il cuore operativo di ogni RdO. Mostra articoli e prezzi in un'unica vista integrata.
+
+[BOLD]Navigazione:
+[LIST] • [BOLD]Scroll verticale/orizzontale [NORMAL]con rotella mouse o barre di scorrimento
+[LIST] • [BOLD]Frecce tastiera [NORMAL]per muoversi tra le celle
+[LIST] • [BOLD]Tab [NORMAL]per passare alla cella successiva
+
+[BOLD]Modifica celle:
+[LIST] • [BOLD]Doppio click [NORMAL]per entrare in modalità modifica
+[LIST] • [BOLD]Invio [NORMAL]per confermare e passare alla riga sotto
+[LIST] • [BOLD]Esc [NORMAL]per annullare la modifica
+
+[BOLD]Selezione multipla:
+[LIST] • [BOLD]Ctrl+Click [NORMAL]per selezionare celle non contigue
+[LIST] • [BOLD]Shift+Click [NORMAL]per selezionare un intervallo
+[LIST] • [BOLD]Ctrl+C / Ctrl+V [NORMAL]per copiare/incollare
+
+[WARNING_RED]IMPORTANTE: Operazioni Permanenti vs Temporanee
+
+All'interno della griglia puoi eseguire due tipi di operazioni:
+
+[BOLD]1. Operazioni su Database (Permanenti):
+[LIST] • Modificare il contenuto delle celle ([BOLD]doppio click [NORMAL]+ edit)
+[LIST] • Aggiungere articoli (pulsante [CODE]➕ Aggiungi Articolo[NORMAL])
+[LIST] • Eliminare articoli (pulsante [CODE]🗑 Rimuovi Articolo Selezionato[NORMAL])
+
+[BOLD]2. Operazioni di Visualizzazione (Temporanee):
+Accessibili tramite [BOLD]menù contestuale (tasto destro del mouse)[NORMAL] sulla griglia. Queste operazioni hanno effetto solo visivo e non modificano il database.
+
+[INFO]Per dettagli completi sul menù contestuale (Inserisci/Elimina riga, Inserisci/Elimina colonna), consulta la sezione dedicata "Menù Contestuale (Tasto Destro)" nel capitolo 1. Schermata Principale. Chiudendo e riaprendo la RdO, la vista torna normale.
+
+[H2]Modifica Dati e Aggiunta Note
+[LIST] • [BOLD]Modifiche Rapide:[NORMAL] Clicca direttamente sulle etichette di Data Emissione, Data Scadenza e Riferimento per modificarle al volo.
+[LIST] • [BOLD]Pulsanti di Modifica:[NORMAL] Usa i pulsanti in alto per modificare l'elenco dei Fornitori o quello degli Articoli (anche qui è possibile importare da Excel per aggiungere nuove righe).
+
+[H3]Gestione Numeri Ordine di Acquisto (PO)
+
+[NORMAL]DataFlow permette di associare i numeri degli ordini di acquisto ai fornitori della RdO.
+
+[BOLD]Come inserire i numeri ordine:[/BOLD]
+[LIST]1. Nel Pannello di Controllo, clicca il pulsante [BOLD]"📋 Inserisci OdA"[/BOLD]
+[LIST]2. Si apre una finestra con due colonne: [BOLD]Numero Ordine[/BOLD] e [BOLD]Fornitore[/BOLD]
+[LIST]3. Inserisci il numero ordine nel campo di testo
+[LIST]4. Seleziona il fornitore dal menu a tendina
+[LIST]5. Clicca [BOLD]"➕ Aggiungi"[/BOLD] per confermare
+[LIST]6. Ripeti per ogni numero ordine da associare
+[LIST]7. Per eliminare un numero ordine, selezionalo e clicca [BOLD]"❌ Elimina"[/BOLD]
+
+[INFO]I numeri ordine sono salvati automaticamente e possono essere utilizzati nei filtri di ricerca del Cruscotto Principale.
+
+Gestione Note
+Il pulsante 'Aggiungi/Visualizza nota' apre un editor di testo dove puoi inserire appunti relativi alla RdO.
+
+Come usare l'editor di note:
+[BOLD]1. [NORMAL]Seleziona il testo che vuoi formattare tenendo premuto il mouse e trascinando
+[BOLD]2. [NORMAL]Clicca sui pulsanti della toolbar:
+[LIST]   • [CODE]B Grassetto:[NORMAL] Rende il testo in grassetto
+[LIST]   • [CODE]I Corsivo:[NORMAL] Rende il testo in corsivo
+[LIST]   • [CODE]U Sottolineato:[NORMAL] Sottolinea il testo
+[BOLD]3. [NORMAL]Clicca '[CODE]💾 Salva Nota[CODE]' per salvare le modifiche
+[BOLD]4. [NORMAL]Clicca '[CODE]❌ Annulla[CODE]' per chiudere senza salvare
+
+[BOLD]NOTA: [NORMAL]Il pulsante cambia da 'Aggiungi nota' a 'Visualizza nota' quando una nota è già presente per quella RdO.
+
+[H2]Gestione Allegati
+Ci sono due sezioni per gli allegati:
+[LIST] • [BOLD]Offerte Fornitori:[NORMAL] Carica qui i file delle offerte ricevute, associando ciascun file al fornitore corretto.
+[LIST] • [BOLD]Documenti Interni:[NORMAL] Usa questa sezione per qualsiasi altro documento di supporto (disegni tecnici, specifiche, etc.).
+
+[H3]Come Gestire gli Allegati
+
+[BOLD]Aggiungere un allegato:
+[BOLD]1. [NORMAL]Clicca il pulsante [CODE]📎 Carica Allegato[CODE] nella sezione desiderata (Offerte Fornitori o Documenti Interni)
+[BOLD]2. [NORMAL]Seleziona il file dal tuo computer
+[BOLD]3. [NORMAL]Per le Offerte Fornitori, associa il file al fornitore corretto dal menu a tendina
+[BOLD]4. [NORMAL]Il file viene automaticamente salvato nella cartella [CODE]Attachments[CODE] della struttura DataFlow
+
+[BOLD]Visualizzare un allegato:
+[LIST] • Fai doppio click sul nome del file nella lista per aprirlo con l'applicazione predefinita del tuo sistema
+
+[BOLD]Scaricare un allegato:
+[LIST] • Seleziona il file dalla lista cliccandoci una volta
+[LIST] • Clicca il pulsante [CODE]⬇️ Download[CODE] sotto la lista
+[LIST] • Scegli la cartella di destinazione dove vuoi salvare una copia del file
+[LIST] • Questa funzione è utile per salvare copie locali degli allegati o per condividerli via email
+
+[BOLD]Eliminare un allegato:
+[LIST] • Seleziona il file dalla lista
+[LIST] • Clicca il pulsante [CODE]🗑️ Elimina Allegato[CODE]
+[LIST] • Conferma l'eliminazione (l'operazione è irreversibile)
+
+[INFO]Gli allegati sono salvati fisicamente nella cartella [CODE]Documents\DataFlow\Attachments[CODE] (o nella cartella personalizzata se configurata). In un ambiente multi-utente, tutti gli utenti con accesso alla cartella condivisa possono scaricare gli allegati anche dalle RdO di altri utenti.
+
+[H2]Analisi SQDC
+L'analisi SQDC è uno strumento per valutare e confrontare i fornitori in base a quattro criteri fondamentali: [BOLD]Safety[BOLD] (Sicurezza), [BOLD]Quality[BOLD] (Qualità), [BOLD]Delivery[BOLD] (Consegna) e [BOLD]Cost[BOLD] (Costo).
+
+Il pulsante '[CODE]... SQDC[CODE]' nel pannello di controllo della RdO ti permette di creare o aprire un'analisi SQDC per quella specifica richiesta. Il testo del pulsante cambia dinamicamente:
+[LIST] • [BOLD]Crea analisi SQDC:[NORMAL] Quando non esiste ancora un'analisi salvata per questa RdO
+[LIST] • [BOLD]Apri analisi SQDC:[NORMAL] Quando un'analisi SQDC è già stata salvata
+
+Come utilizzare l'analisi SQDC:
+
+[BOLD]1. [NORMAL]Tab Pesi (%)
+[LIST]   • Assegna un peso percentuale a ciascuno dei quattro criteri (Safety, Quality, Delivery, Cost)
+[LIST]   • La somma dei pesi deve essere esattamente 100%
+[LIST]   • I pesi rappresentano l'importanza relativa di ciascun criterio nella valutazione finale
+[LIST]   • Ogni criterio ha una descrizione che spiega cosa rappresenta
+
+[BOLD]2. [NORMAL]Tab Voti (1-10)
+[LIST]   • Per ogni fornitore, assegna un voto da 1 a 10 per ciascuno dei quattro criteri
+[LIST]   • Il voto 1 rappresenta la performance peggiore, 10 la migliore
+[LIST]   • I voti vengono moltiplicati per i rispettivi pesi e sommati per ottenere il punteggio totale
+[LIST]   • Il fornitore con il punteggio totale più alto risulta il migliore secondo l'analisi
+
+[BOLD]3. [NORMAL]Calcolo Automatico
+[LIST]   • Il sistema calcola automaticamente il punteggio totale per ciascun fornitore
+[LIST]   • I punteggi totali vengono visualizzati in tempo reale mentre inserisci i voti
+[LIST]   • Non è possibile passare al tab Voti se i pesi non sommano a 100%
+
+[H3]Calcolo Automatico del Voto Cost
+
+Il sistema calcola automaticamente il voto Cost per ogni fornitore in base alla competitività economica dell'offerta:
+
+[BOLD]Formula di calcolo:[BOLD]
+[LIST]1. Il sistema identifica il fornitore con il prezzo totale più basso → riceve automaticamente voto [BOLD]10[BOLD]
+[LIST]2. Per gli altri fornitori, il voto viene calcolato con questa formula:
+[CODE]Voto Cost = 10 × (Prezzo Minimo / Prezzo Fornitore)[CODE]
+[LIST]3. Il voto viene arrotondato all'intero più vicino
+
+[BOLD]Esempio pratico:[BOLD]
+[LIST] • Fornitore A: Prezzo totale = €1000 → Voto Cost = [BOLD]10[BOLD] (prezzo più basso)
+[LIST] • Fornitore B: Prezzo totale = €1200 → Voto Cost = 10 × (1000/1200) = 8,33 → [BOLD]8[BOLD]
+[LIST] • Fornitore C: Prezzo totale = €1500 → Voto Cost = 10 × (1000/1500) = 6,67 → [BOLD]7[BOLD]
+
+[WARNING_RED]IMPORTANTE: Requisiti per il calcolo automatico Cost
+
+Il calcolo automatico del criterio Cost verifica che ogni fornitore abbia:
+[LIST] • Un prezzo [BOLD]numerico valido[BOLD] per [BOLD]TUTTI[BOLD] gli articoli della RdO
+[LIST] • Una quantità [BOLD]numerica valida[BOLD] per [BOLD]TUTTI[BOLD] gli articoli
+
+[BOLD]Se un fornitore ha anche un solo prezzo:[BOLD]
+[LIST] • Vuoto (cella non compilata)
+[LIST] • Contrassegnato come testo: "X", "ND", "N/A", "N.D.", "-", ecc.
+[LIST] • Con quantità mancante o non numerica
+
+→ Il suo voto Cost viene automaticamente impostato a [BOLD]0[BOLD] e apparirà un [BOLD]⚠️ avviso giallo[BOLD] nel campo del voto.
+
+[BOLD]Perché questa regola?[BOLD]
+Garantisce che vengano valutati equamente solo i fornitori che hanno presentato un'offerta completa. Un fornitore con prezzi parziali non può essere confrontato correttamente con gli altri in termini di competitività economica.
+
+[INFO]Dopo il calcolo automatico, puoi comunque [BOLD]modificare manualmente[BOLD] il voto Cost se necessario (ad esempio, per dare un punteggio parziale a un fornitore per una valutazione qualitativa o per gestire casi particolari).
+
+[BOLD]4. [NORMAL]Esportazione Excel
+[LIST]   • Clicca '[CODE]📊 Esporta Excel[CODE]' per generare un file Excel con l'analisi completa
+[LIST]   • Il file include tutti i dati: pesi, voti per ogni fornitore e punteggi totali
+[LIST]   • Il fornitore con il punteggio più alto viene evidenziato in verde
+[LIST]   • Il template utilizzato dipende dalla lingua selezionata nelle impostazioni
+
+[BOLD]5. [NORMAL]Salvataggio
+[LIST]   • Clicca '[CODE]💾 Salva SQDC[CODE]' per salvare l'analisi come Documento Interno
+[LIST]   • L'analisi salvata può essere riaperta in qualsiasi momento cliccando sul pulsante SQDC
+[LIST]   • Una volta salvata, l'analisi viene associata permanentemente alla RdO
+
+[BOLD]NOTA: [NORMAL]L'analisi SQDC è uno strumento di supporto alle decisioni. Valuta i fornitori in modo oggettivo considerando tutti i criteri rilevanti per la tua azienda.
+
+[H2]Esportazione Excel
+Il pulsante 'Esporta Excel' genera un file di riepilogo formattato. Dopo aver cliccato, ti verrà chiesto di scegliere la lingua:
+[LIST] • [BOLD]Italiano / Inglese:[NORMAL] La scelta della lingua determina quale modello di file Excel verrà utilizzato, traducendo intestazioni e campi per adattarsi al contesto internazionale.
+
+[H1]4. Impostazioni e Manutenzione
+Questa sezione, accessibile dalla schermata principale, è divisa in schede per una gestione chiara e ordinata del programma.
+
+[H2]Lavoro in Team Multi-Utente
+
+DataFlow 2.0.0 supporta nativamente il lavoro collaborativo in team. Ogni utente ha il proprio database personale e può contemporaneamente visualizzare in sola lettura le RdO create dai colleghi.
+
+[H3]Come Funziona l'Architettura Multi-Utente
+
+[BOLD]Database Separati per Utente:
+Ogni utente che avvia DataFlow crea automaticamente il proprio database personale con questo formato:
+[CODE]dataflow_db_[nome_utente].db[CODE]
+
+Esempio pratico:
+[LIST] • Mario accede con l'account [CODE]m.rossi[CODE] → viene creato [CODE]dataflow_db_m.rossi.db[CODE]
+[LIST] • Laura accede con l'account [CODE]l.bianchi[CODE] → viene creato [CODE]dataflow_db_l.bianchi.db[CODE]
+[LIST] • Ogni utente può modificare solo le proprie RdO
+
+[BOLD]Condivisione su Cartella di Rete:
+Per abilitare la collaborazione tra utenti:
+[BOLD]1. [NORMAL]L'amministratore IT crea una cartella condivisa in rete (es: [CODE]\\Server\DataFlow[CODE])
+[BOLD]2. [NORMAL]Tutti gli utenti del team devono avere:
+[LIST]   • Permessi di [BOLD]lettura e scrittura[BOLD] sulla cartella condivisa
+[LIST]   • Permessi di [BOLD]sola lettura[BOLD] sui database degli altri utenti
+[BOLD]3. [NORMAL]Ogni utente configura DataFlow per usare questa cartella condivisa tramite [CODE]Impostazioni → Database → Cartella DataFlow Personalizzata[CODE]
+[BOLD]4. [NORMAL]Una volta configurato, tutti i database personali risiedono nella stessa cartella di rete
+
+[H3]Visualizzazione RdO di Altri Utenti
+
+Nella schermata principale di DataFlow, nel pannello Filtri, troverai il menu a tendina [BOLD]"Filtra per Utente"[BOLD]:
+
+[BOLD]Opzioni disponibili:
+[LIST] • [BOLD]Tutti gli utenti:[NORMAL] Visualizza tutte le RdO create da tutti i membri del team. Le RdO altrui appaiono in modalità di sola lettura.
+[LIST] • [BOLD][Nome utente corrente]:[NORMAL] Visualizza solo le tue RdO personali (comportamento predefinito)
+[LIST] • [BOLD]Nomi specifici degli altri utenti:[NORMAL] Il menu mostra automaticamente tutti gli utenti che hanno creato database nella cartella condivisa
+
+[BOLD]Esempio pratico:
+[LIST]1. Mario ([CODE]m.rossi[CODE]) crea 5 RdO nel suo database
+[LIST]2. Laura ([CODE]l.bianchi[CODE]) crea 3 RdO nel suo database
+[LIST]3. Quando Laura seleziona [BOLD]"Tutti gli utenti"[BOLD] nel filtro, vedrà tutte le 8 RdO (le sue 3 + le 5 di Mario)
+[LIST]4. Se Laura fa doppio click su una RdO di Mario, si aprirà in [BOLD]sola lettura[BOLD] (non potrà modificarla)
+[LIST]5. Laura può selezionare specificamente [BOLD]"m.rossi"[BOLD] per vedere solo le RdO di Mario
+
+[H3]Cosa Puoi Fare con le RdO Altrui
+
+[BOLD]Permesso di Sola Lettura:
+Quando visualizzi RdO create da altri utenti puoi:
+[LIST] • [BOLD]✅ Visualizzare[BOLD] tutti i dati della RdO (articoli, prezzi, fornitori, note)
+[LIST] • [BOLD]✅ Consultare[BOLD] analisi SQDC già create
+[LIST] • [BOLD]✅ Scaricare[BOLD] gli allegati (offerte fornitori, documenti interni)
+[LIST] • [BOLD]✅ Esportare[BOLD] la RdO in Excel
+[LIST] • [BOLD]❌ NON puoi modificare[BOLD] dati, aggiungere articoli, cambiare prezzi
+[LIST] • [BOLD]❌ NON puoi eliminare[BOLD] la RdO o i suoi allegati
+
+[INFO]La visualizzazione in sola lettura è segnalata chiaramente nell'interfaccia: tutti i pulsanti di modifica risultano disabilitati e appare un messaggio informativo.
+
+[H3]Vantaggi del Sistema Multi-Utente
+
+[LIST] • [BOLD]Trasparenza:[NORMAL] Tutti i membri del team possono monitorare lo stato delle RdO, anche quelle gestite da colleghi
+[LIST] • [BOLD]Collaborazione:[NORMAL] Più persone possono lavorare contemporaneamente su RdO diverse senza conflitti
+[LIST] • [BOLD]Sicurezza:[NORMAL] Ogni utente può modificare solo le proprie RdO, prevenendo modifiche accidentali
+[LIST] • [BOLD]Visibilità:[NORMAL] I responsabili possono verificare rapidamente tutte le RdO del team cambiando il filtro utente
+[LIST] • [BOLD]Backup centralizzato:[NORMAL] Avendo tutti i database nella cartella di rete, il backup è centralizzato
+
+[WARNING]IMPORTANTE: Per garantire la corretta funzionalità multi-utente, assicurati che:
+[LIST] • La cartella condivisa di rete sia sempre accessibile a tutti gli utenti
+[LIST] • I permessi sui file database siano configurati correttamente (lettura/scrittura sul proprio, sola lettura sugli altri)
+[LIST] • Il backup della cartella condivisa venga eseguito regolarmente dall'amministratore IT
+
+[H2]Gestione Database
+[LIST] • [BOLD]Migra Database:[NORMAL] Nella cartella di installazione del programma (C:\Program Files\WindowsApps\…) troverai uno strumento "Database Migration Tool.exe" per importare i dati da un database creato con una versione precedente del programma (SQLite .db) al nuovo database DB personalizzato per utente (dataflow_db_[username].db) attualmente in uso.
+
+Quando usare la migrazione: [BOLD]
+Se stai aggiornando DataFlow dalla versione 1.x alla versione 2.0.0 (o successive) e hai già dei dati salvati nella versione precedente. La migrazione converte automaticamente il vecchio database SQLite nel nuovo formato DB, più performante e moderno.
+
+Cosa viene migrato: [BOLD]
+Tutte le RdO (complete con tutti i dati), fornitori, articoli, prezzi, allegati, note e tutte le informazioni associate vengono trasferite nel nuovo database senza perdite.
+
+Procedura passo-passo:
+[BOLD]1. [NORMAL]Chiudi DataFlow se è aperto
+[BOLD]2. [NORMAL]Assicurati di avere un backup del database attuale
+[BOLD]3. [NORMAL]Nella cartella di installazione del programma, avvia "Database Migration Tool.exe"
+[BOLD]4. [NORMAL]Clicca il pulsante [CODE]📂 Seleziona Database Vecchio[CODE] e scegli il file database SQLite della versione precedente (tipicamente [CODE]gestione_offerte.db[CODE])
+[BOLD]5. [NORMAL]Clicca il pulsante [CODE]📂 Seleziona Config.ini[CODE] e scegli il file [CODE]config.ini[CODE] di DataFlow 2.0.0 (si trova in C:\Users\[nome_utente]\AppData\Local\DataFlow)
+[BOLD]6. [NORMAL]Clicca [CODE]🔄 Avvia Migrazione[CODE] per avviare la conversione
+[BOLD]7. [NORMAL]Il tool copierà automaticamente tutti i dati nel nuovo formato DB nella cartella Documents\DataFlow
+[BOLD]8. [NORMAL]Al termine, riavvia DataFlow e verifica che i dati siano stati migrati correttamente aprendo alcune RdO
+
+[BOLD]IMPORTANTE: [WARNING]L'operazione è sicura e non modifica il database originale. Tutti i dati vengono copiati nel nuovo database mantenendo il formato corretto. Il tool estrae anche gli allegati salvati come BLOB nel vecchio database e li salva come file nella cartella Attachments.
+
+[LIST] • [BOLD]Cartella DataFlow Personalizzata:[NORMAL] Permette di cambiare la posizione dell'intera struttura DataFlow (database, allegati, backup).
+
+Per impostazione predefinita, DataFlow crea una cartella personalizzata per ogni utente in:
+[CODE]C:\Users\[nome_utente]\Documents\DataFlow_[username][CODE]
+
+Dove [BOLD][username][NORMAL] è lo username generato automaticamente al primo avvio (es: [CODE]DataFlow_mrossi[CODE] per l'utente Mario Rossi).
+
+[INFO]💡 STRUTTURA MULTI-UTENTE: Ogni utente ha la propria cartella separata, permettendo a più persone di usare DataFlow su dischi di rete senza interferenze. Ogni cartella contiene:
+[LIST] • [BOLD]Database\[NORMAL] - Il database personale [CODE]dataflow_db_[username].db[CODE]
+[LIST] • [BOLD]Attachments\[NORMAL] - Gli allegati delle proprie RdO
+
+[H3]Quando Personalizzare la Cartella
+
+Puoi spostare la tua cartella DataFlow in una posizione diversa in questi casi:
+
+[LIST]1. [BOLD]Disco esterno o SSD:[NORMAL] Per liberare spazio su C:\ o migliorare le prestazioni
+
+[LIST]2. [BOLD]Cartella di rete condivisa per team multi-utente:[NORMAL] Per collaborare con colleghi dello stesso ufficio/reparto
+[LIST]   Esempio: [CODE]\\Server\Procurement\DataFlow_mrossi[CODE]
+
+[H3]Come Spostare la Cartella
+
+[LIST]1. Menu [BOLD]Impostazioni[NORMAL] → [BOLD]Cartella DataFlow Personalizzata[NORMAL]
+
+[LIST]2. Cliccare [BOLD]"Seleziona Nuova Posizione"[NORMAL]
+
+[LIST]3. Scegliere la cartella PADRE dove creare la tua cartella utente
+[LIST]   Esempio: Se scegli [CODE]D:\Lavoro[CODE], DataFlow creerà [CODE]D:\Lavoro\DataFlow_[username][CODE]
+
+[LIST]4. DataFlow sposterà automaticamente tutti i file (database e allegati) nella nuova posizione
+
+[LIST]5. [BOLD]Riavviare DataFlow[NORMAL] per applicare le modifiche
+
+[INFO]💡 NOTA TECNICA: DataFlow salva la posizione nel file di configurazione usando il parametro [CODE]dataflow_base_dir[CODE] in [CODE]config.ini[CODE]. Se elimini questo parametro, DataFlow tornerà alla posizione predefinita in Documents.
+[BOLD]6. [NORMAL]Al termine della copia, la configurazione verrà aggiornata automaticamente
+[BOLD]7. [NORMAL]L'applicazione si riavvierà e userà la cartella DataFlow nella nuova posizione
+
+[WARNING_RED]AVVERTENZE IMPORTANTI:
+
+[LIST] • [BOLD]NON INTERROMPERE LA COPIA:[NORMAL] Aspetta che la barra di progresso raggiunga il 100% prima di chiudere. L'interruzione potrebbe causare perdita di dati.
+
+[LIST] • [BOLD]EVITA UNITÀ RIMOVIBILI:[NORMAL] Se usi chiavette USB o dischi esterni e li rimuovi, l'app non potrà accedere al database (errore all'avvio).
+
+[LIST] • [BOLD]BACKUP CONSIGLIATO:[NORMAL] Prima di spostare la cartella, effettua un backup manuale del database per sicurezza.
+
+[LIST] • [BOLD]RIPRISTINO POSIZIONE STANDARD:[NORMAL] Per tornare alla posizione originale:
+[LIST]    1. Vai in: C:\Users\[nome_utente]\AppData\Local\DataFlow
+[LIST]    2. Apri il file "config.ini" con Blocco Note
+[LIST]    3. Cerca la riga: dataflow_base_dir = ...
+[LIST]    4. Cancella l'intera riga
+[LIST]    5. Salva e riavvia DataFlow
+
+[BOLD]Nota:[NORMAL] Sotto il pulsante "Cambia Cartella DataFlow" viene sempre mostrato il percorso della cartella DataFlow attualmente in uso (per riferimento).
+
+[H2]Backup
+[LIST] • [BOLD]Manuale:[NORMAL] Crea una copia di sicurezza istantanea del database attuale in una posizione a tua scelta.
+[LIST] • [BOLD]Automatico:[NORMAL] Se abilitato, esegue un backup giornaliero a un'ora specifica in una cartella designata. Il sistema conserva al massimo le ultime 3 copie, eliminando automaticamente la più vecchia.
+
+[H2]Avanzate
+[LIST] • [BOLD]Selezione Lingua:[NORMAL] Permette di cambiare la lingua dell'interfaccia utente tra Italiano e English. Il cambio di lingua richiede il riavvio dell'applicazione per essere applicato correttamente.
+
+[H2]Selezione Lingua
+DataFlow supporta due lingue: [BOLD]Italiano[BOLD] e [BOLD]English[BOLD]. Puoi cambiare la lingua dell'interfaccia in qualsiasi momento dalle Impostazioni.
+
+Procedura per cambiare lingua:
+[BOLD]1. [NORMAL]Vai su Impostazioni dalla schermata principale
+[BOLD]2. [NORMAL]Apri la scheda 'Avanzate'
+[BOLD]3. [NORMAL]Nella sezione 'Lingua', seleziona la lingua desiderata dal menu a tendina
+[BOLD]4. [NORMAL]Clicca '[CODE]💾 Salva Lingua[CODE]' per salvare l'impostazione
+[BOLD]5. [NORMAL]Riavvia DataFlow per applicare la nuova lingua
+
+[BOLD]IMPORTANTE: [WARNING]Il cambio di lingua ha effetto solo dopo il riavvio dell'applicazione. Tutte le finestre e i menu saranno tradotti nella lingua selezionata.
+
+La lingua selezionata influisce su:
+[LIST] • Tutte le etichette e i menu dell'interfaccia utente
+[LIST] • I template Excel generati (esportazioni, analisi SQDC)
+[LIST] • I messaggi di errore e le notifiche del sistema
+
+[BOLD]NOTA: [NORMAL]La lingua viene salvata nel file di configurazione e viene mantenuta tra le diverse sessioni dell'applicazione.
+
+[H1]5. Problemi Comuni e Soluzioni
+Questa sezione ti aiuterà a risolvere i problemi più comuni che potresti incontrare durante l'utilizzo di DataFlow.
+
+[H2]Le Modifiche dalla Griglia non si Salvano
+
+[BOLD]Sintomo: [NORMAL]Ho modificato una cella nella griglia ma riaprendola i dati sono come prima.
+
+[BOLD]Causa: [NORMAL]Probabilmente hai usato il menù contestuale (tasto destro) invece di modificare direttamente.
+
+[BOLD]Soluzione:
+[LIST]1. Per modificare il [BOLD]contenuto [NORMAL]delle celle (articoli/prezzi): [BOLD]doppio click [NORMAL]sulla cella, modifica, premi Invio
+[LIST]2. Per [BOLD]aggiungere [NORMAL]articoli: usa il pulsante [CODE]➕ Aggiungi Articolo
+[LIST]3. Per [BOLD]eliminare [NORMAL]articoli: seleziona la riga e usa [CODE]🗑 Rimuovi Articolo Selezionato
+
+[WARNING]Il menù tasto destro (Inserisci riga, Elimina riga, etc.) serve solo per visualizzazione temporanea e [BOLD]non salva nulla nel database[NORMAL].
+
+[H2]Database Bloccato
+Messaggio di errore: [BOLD]'Il database è in uso' o 'database is locked'
+
+Causa: [BOLD]Un'altra istanza del programma sta già utilizzando il database.
+
+Soluzione:
+[BOLD]1. [NORMAL]Verifica tutte le finestre aperte di DataFlow
+[BOLD]2. [NORMAL]Chiudi eventuali altre istanze del programma
+[BOLD]3. [NORMAL]Se usi il database in rete, verifica che nessun altro utente lo stia utilizzando
+[BOLD]4. [NORMAL]Riavvia il programma
+
+[BOLD]ATTENZIONE: [WARNING_RED]NON aprire mai lo stesso database in scrittura da più postazioni contemporaneamente. Causerà corruzione permanente dei dati![/WARNING_RED]
+
+[H2]Errori Importazione Excel
+Messaggio di errore: [BOLD]'Errore lettura file Excel' o 'Colonne mancanti'
+
+Possibili cause e soluzioni:
+[LIST] • [BOLD]Formato file sbagliato:[NORMAL] Verifica di usare un file .xlsx (Excel 2007 o superiore)
+[LIST] • [BOLD]Colonne mancanti:[NORMAL] Controlla che tutte le colonne richieste siano presenti e nell'ordine corretto (vedi sezione 'Importazione da Excel')
+[LIST] • [BOLD]Tipo RdO errato:[NORMAL] Se hai selezionato 'Fornitura Piena' ma il file ha 7 colonne (o viceversa), cambia il tipo RdO prima di importare
+[LIST] • [BOLD]File corrotto:[NORMAL] Prova ad aprire il file in Excel e salvarlo nuovamente
+[LIST] • [BOLD]Dati non validi:[NORMAL] Verifica che le celle contengano i tipi di dati corretti (testo nelle colonne testo, numeri nelle colonne quantità)
+
+Consiglio: [BOLD]Usa i file template disponibili nella cartella [CODE]add_data[CODE] come riferimento per la struttura corretta.
+
+[H2]Allegati Non Trovati
+Messaggio di errore: [BOLD]'Percorso non valido' o 'File non trovato'
+
+Causa: [BOLD]La cartella DataFlow (contenente l'archivio allegati) è stata spostata o eliminata.
+
+Soluzione:
+[BOLD]1. [NORMAL]Vai su Impostazioni > Database
+[BOLD]2. [NORMAL]Clicca '[CODE]📁 Cambia Cartella DataFlow...[CODE]'
+[BOLD]3. [NORMAL]Seleziona la nuova posizione della cartella DataFlow (che include anche la cartella Attachments con gli allegati)
+[BOLD]4. [NORMAL]Il programma aggiornerà automaticamente tutti i riferimenti
+
+Prevenzione: [BOLD]Se devi spostare la struttura DataFlow completa (database e allegati), fallo SEMPRE tramite la funzione 'Cambia Cartella DataFlow' nelle Impostazioni, mai manualmente.
+
+[H2]Recupero da Backup
+Se hai perso dati o il database è corrotto, puoi recuperare da un backup.
+
+Procedura:
+[BOLD]1. [NORMAL]Chiudi DataFlow
+[BOLD]2. [NORMAL]Vai alla cartella dove hai salvato i backup (di default nella cartella C:\Users\[nome_utente]\Documents\DataFlow\Database)
+[BOLD]3. [NORMAL]Trova il backup più recente (i file hanno nome tipo [CODE]dataflow_db_[username]_backup_YYYYMMDD_HHMMSS.db[CODE])
+[BOLD]4. [NORMAL]Fai una copia del backup con un nome diverso (es. [CODE]dataflow_db_[username]_recupero.db[CODE])
+[BOLD]5. [NORMAL]Elimina o rinomina il database corrotto [CODE]dataflow_db_[username].db[CODE]
+[BOLD]6. [NORMAL]Rinomina il file di backup in [CODE]dataflow_db_[username].db[CODE]
+[BOLD]7. [NORMAL]Riavvia DataFlow
+
+[BOLD]IMPORTANTE: [WARNING]Questa procedura sostituisce il database attuale con il backup. Dati creati dopo il backup andranno persi.
+
+[H1]6. Requisiti di Sistema e Limiti
+Questa sezione descrive i requisiti di sistema e i limiti tecnici di DataFlow.
+
+[H2]Requisiti Minimi
+[LIST] • [BOLD]Sistema Operativo:[NORMAL] Microsoft Windows 10 o 11
+[LIST] • [BOLD]Spazio Disco:[NORMAL] Minimo 100 MB per l'applicazione + spazio aggiuntivo per database e allegati
+[LIST] • [BOLD]RAM:[NORMAL] Minimo 512 MB (consigliato 2 GB o superiore)
+[LIST] • [BOLD]Risoluzione Schermo:[NORMAL] Minimo 1280x720, consigliato 1920x1080 o superiore
+
+[H2]Limiti Tecnici
+[LIST] • [BOLD]Dimensione massima allegati:[NORMAL] Limitata solo dallo spazio disponibile sul disco
+[LIST] • [BOLD]Numero massimo RdO:[NORMAL] Illimitato (dipende dalle performance del database)
+[LIST] • [BOLD]Formato database:[NORMAL] SQLite (estensione file .db)
+[LIST] • [BOLD]Nome file database:[NORMAL] [CODE]dataflow_db_[username].db[CODE] (es: [CODE]dataflow_db_mrossi.db[CODE])
+[LIST] • [BOLD]Formati allegati supportati:[NORMAL] Tutti (PDF, DOC, XLS, immagini, etc.) - gestiti dal sistema operativo
+[LIST] • [BOLD]Backup automatico:[NORMAL] Massimo 3 copie conservate (le più vecchie vengono eliminate automaticamente)
+
+Performance
+DataFlow è ottimizzato per la gestione di un numero molto grande di RdO. Con database molto grandi, le operazioni di ricerca e filtro potrebbero risultare più lente.
+
+[H1]7. Glossario
+Questa sezione definisce i termini tecnici utilizzati in DataFlow.
+
+[LIST] • [BOLD]RdO:[NORMAL] Richiesta di Offerta. Documento con cui si richiede a uno o più fornitori un preventivo per materiali o servizi.
+[LIST] • [BOLD]Fornitura Piena:[NORMAL] Tipo di RdO per l'acquisto standard di materiali completi forniti dal venditore.
+[LIST] • [BOLD]Conto Lavoro (C/L):[NORMAL] Tipo di RdO per lavorazioni esterne su materiali forniti dal committente al fornitore.
+[LIST] • [BOLD]Grezzo:[NORMAL] Materiale non lavorato fornito per lavorazione esterna (es. lamiera grezza da stampare).
+[LIST] • [BOLD]Archivio:[NORMAL] Stato di una RdO completata o non più attiva, spostata nella scheda 'RdO Archiviate'.
+[LIST] • [BOLD]Link Esterno:[NORMAL] Allegato salvato come file separato nella cartella Attachments, non memorizzato nel database.
+[LIST] • [BOLD]DB:[NORMAL] Sistema di database analitico ad alte prestazioni utilizzato da DataFlow 2.0.0 per gestire i dati delle RdO.
+[LIST] • [BOLD]Username:[NORMAL] Identificativo univoco generato automaticamente al primo avvio di DataFlow concatenando la prima lettera del nome con il cognome completo, tutto in minuscolo senza spazi e accenti. Esempio: Mario Rossi → [CODE]mrossi[CODE], Laura Bianchi → [CODE]lbianchi[CODE]. Lo username viene utilizzato per nominare la cartella utente ([CODE]DataFlow_[username][CODE]), il database personale ([CODE]dataflow_db_[username].db[CODE]) e per filtrare le RdO in ambienti multi-utente. Lo username viene salvato automaticamente nel file [CODE]config.ini[CODE] e non può essere modificato dall'utente dopo il primo avvio.
+
+[H1]8. File di Log e Diagnostica
+
+DataFlow genera automaticamente un file di log per registrare eventi importanti e diagnosticare eventuali problemi.
+
+[H2]Posizione del File di Log
+
+Il file di log è salvato in:
+[CODE]C:\Users\[nome_utente]\AppData\Local\DataFlow\dataflow.log[CODE]
+
+Dove [CODE][nome_utente][CODE] è il tuo username Windows.
+
+[BOLD]Come aprire la cartella:[BOLD]
+[LIST]1. Premi [CODE]Windows + R[CODE] per aprire Esegui
+[LIST]2. Digita: [CODE]%LOCALAPPDATA%\DataFlow[CODE]
+[LIST]3. Premi Invio
+[LIST]4. Troverai il file [CODE]dataflow.log[CODE]
+
+[H2]Cosa Contiene il File di Log
+
+Il log registra automaticamente:
+[LIST] • [BOLD]Avvio e chiusura dell'applicazione[BOLD] con timestamp
+[LIST] • [BOLD]Operazioni sul database[BOLD] (creazione, apertura, migrazione)
+[LIST] • [BOLD]Errori e warning[BOLD] con descrizione dettagliata e traceback
+[LIST] • [BOLD]Operazioni importanti[BOLD] (creazione RdO, eliminazione, duplicazione)
+[LIST] • [BOLD]Modifiche alla configurazione[BOLD] (cambio cartella DataFlow, cambio lingua)
+[LIST] • [BOLD]Informazioni di sistema[BOLD] (versione DataFlow, sistema operativo)
+
+[H2]Quando Consultare il Log
+
+Consulta il file di log quando:
+[LIST] • L'applicazione si chiude inaspettatamente
+[LIST] • Ricevi messaggi di errore incomprensibili
+[LIST] • Operazioni sul database falliscono senza spiegazione chiara
+[LIST] • Devi segnalare un bug allo sviluppatore
+
+[H2]Gestione del File di Log
+
+[BOLD]Dimensione e Rotazione:[BOLD]
+[LIST] • Il file viene automaticamente ruotato quando raggiunge 5 MB
+[LIST] • Vengono mantenuti fino a 3 file di backup (dataflow.log.1, dataflow.log.2, dataflow.log.3)
+[LIST] • I log più vecchi vengono automaticamente eliminati
+
+[BOLD]Pulizia Manuale:[BOLD]
+Puoi eliminare manualmente i file di log senza problemi. DataFlow creerà un nuovo file al prossimo avvio.
+
+[INFO]Quando segnali un bug allo sviluppatore, allega sempre il file [CODE]dataflow.log[CODE] più recente. Contiene informazioni preziose per diagnosticare il problema.
+
+[H1]8. Contatti e Supporto
+Informazioni di contatto per supporto tecnico e segnalazione problemi.
+
+[H2]Sviluppatore
+Nome: [BOLD]Guido Sorarù
+Email: [BOLD]sorguido@gmail.com
+
+[H2]Segnalazione Bug
+Se incontri un bug o un comportamento anomalo, utilizza il form di segnalazione apposito:
+[LINK:https://forms.gle/u7qPHZ6ZGRp3k3SGA]Report a bug[/LINK]
+
+Per una risoluzione più rapida, includi nella segnalazione:
+[LIST] • Descrizione dettagliata del problema
+[LIST] • Passi per riprodurre il bug
+[LIST] • Versione di DataFlow utilizzata (indicata nel footer della schermata principale)
+[LIST] • Screenshot dell'errore (se disponibile)
+
+[H2]Richieste Funzionalità
+Hai un'idea per una nuova funzionalità? Contattami all'indirizzo email sopra. Feedback e suggerimenti sono sempre benvenuti!
+
+[H2]Licenza
+DataFlow è rilasciato come software open source sotto la licenza GNU General Public License versione 3 (GPLv3)
+Consulta la licenza completa cliccando sul pulsante [CODE]📄 Licenza[CODE] nella schermata principale.
+
+[H2]Ringraziamenti
+Grazie per aver scelto DataFlow. Spero che questo software possa semplificare la gestione delle tue Richieste di Offerta.
+
+DataFlow è ora disponibile come progetto open source.
+
+La versione Linux dell'applicazione è rilasciata sotto licenza GNU GPLv3 e il codice sorgente è disponibile su GitHub.
+
+Gli sviluppatori interessati a migliorare, estendere o adattare il software (incluse eventuali future versioni per Windows) sono i benvenuti a contribuire al progetto.
+
+Una versione Windows di DataFlow è inoltre disponibile sul Microsoft Store.
+
+Repository GitHub:
+[LINK:https://github.com/sorguido/dataflow-procurement-software]https://github.com/sorguido/dataflow-procurement-software[/LINK]
+
+
+[H2]Buon lavoro!
+
