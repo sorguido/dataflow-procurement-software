@@ -162,11 +162,14 @@ def get_target_paths(config_data):
             f'DataFlow_{username}'
         )
     else:
-        # Default: Documents folder
-        base_dir = os.path.join(
-            os.path.expanduser('~\\Documents'),
-            f'DataFlow_{username}'
-        )
+        # Default: Documents folder (Windows) or Home folder (Linux/macOS)
+        if sys.platform == 'win32':
+            base_dir = os.path.join(
+                os.path.join(os.path.expanduser('~'), 'Documents'),
+                f'DataFlow_{username}'
+            )
+        else:
+            base_dir = os.path.join(os.path.expanduser('~'), f'DataFlow_{username}')
     
     return {
         'base_dir': base_dir,

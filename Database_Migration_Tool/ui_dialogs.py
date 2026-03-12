@@ -49,7 +49,7 @@ def select_config_file(parent=None):
         parent=parent,
         title="Select DataFlow 2.0.0 config.ini file",
         filetypes=[("Configuration files", "*.ini"), ("All files", "*.*")],
-        initialdir=os.path.join(os.path.expanduser('~'), 'AppData', 'Local', 'DataFlow')
+        initialdir=os.path.expanduser('~')
     )
     
     return file_path if file_path else None
@@ -74,7 +74,7 @@ def select_source_database(parent=None):
         parent=parent,
         title="Select DataFlow 1.1.0 database file",
         filetypes=[("Database files", "*.db"), ("All files", "*.*")],
-        initialdir=os.path.expanduser('~\\Documents')
+        initialdir=os.path.join(os.path.expanduser('~'), 'Documents')
     )
     
     return file_path if file_path else None

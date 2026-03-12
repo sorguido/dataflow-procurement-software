@@ -24,11 +24,14 @@ def setup_migration_logger(log_dir=None):
     """
     # Determine log directory
     if log_dir is None:
-        log_dir = os.path.join(
-            os.path.expanduser('~\\Documents'),
-            'DataFlow',
-            'Migration_Logs'
-        )
+        if sys.platform == 'win32':
+            log_dir = os.path.join(
+                os.path.join(os.path.expanduser('~'), 'Documents'),
+                'DataFlow',
+                'Migration_Logs'
+            )
+        else:
+            log_dir = os.path.join(os.path.expanduser('~'), 'DataFlow', 'Migration_Logs')
     
     os.makedirs(log_dir, exist_ok=True)
     

@@ -303,7 +303,10 @@ def main():
         if open_folder:
             try:
                 folder = os.path.dirname(target_paths['db_file'])
-                subprocess.Popen(f'explorer /select,"{target_paths["db_file"]}"')
+                if sys.platform == 'win32':
+                    subprocess.Popen(f'explorer /select,"{target_paths["db_file"]}"')
+                else:
+                    subprocess.Popen(['xdg-open', folder])
                 logger.info(f"Opened folder: {folder}")
             except Exception as e:
                 logger.warning(f"Failed to open folder: {e}")

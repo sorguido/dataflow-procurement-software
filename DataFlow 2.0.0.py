@@ -97,7 +97,10 @@ def setup_logging():
     # Usa la directory locale dell'utente invece della directory corrente
     if getattr(sys, 'frozen', False):
         # Se eseguito come EXE/MSIX
-        log_dir = os.path.join(os.path.expanduser('~'), 'AppData', 'Local', 'DataFlow')
+        if sys.platform == 'win32':
+            log_dir = os.path.join(os.path.expanduser('~'), 'AppData', 'Local', 'DataFlow')
+        else:
+            log_dir = os.path.join(os.path.expanduser('~'), '.local', 'share', 'DataFlow')
     else:
         # Se eseguito come script Python
         log_dir = os.path.dirname(os.path.abspath(__file__))
@@ -146,12 +149,29 @@ def resource_path(relative_path):
             base_path = os.path.dirname(os.path.abspath(__file__))
     return os.path.join(base_path, relative_path)
 
+def set_window_icon(window):
+    """Imposta l'icona della finestra in modo cross-platform."""
+    icon_path = resource_path(os.path.join("add_data", "DataFlow.ico"))
+    try:
+        if sys.platform == 'win32':
+            window.iconbitmap(icon_path)
+        else:
+            img = Image.open(icon_path)
+            photo = ImageTk.PhotoImage(img)
+            window._icon_photo = photo  # Evita garbage collection
+            window.iconphoto(True, photo)
+    except Exception as e:
+        logger.debug(f"Icona non caricabile (normale in alcuni ambienti): {e}")
+
 # --- HELPER FUNCTION PER PERCORSI FILE ---
 def get_app_data_dir():
     """Restituisce la directory dati dell'applicazione."""
     if getattr(sys, 'frozen', False):
         # Se eseguito come EXE/MSIX, usa la directory locale dell'utente
-        return os.path.join(os.path.expanduser('~'), 'AppData', 'Local', 'DataFlow')
+        if sys.platform == 'win32':
+            return os.path.join(os.path.expanduser('~'), 'AppData', 'Local', 'DataFlow')
+        else:
+            return os.path.join(os.path.expanduser('~'), '.local', 'share', 'DataFlow')
     else:
         # Se eseguito come script Python, usa la directory corrente
         return os.path.dirname(os.path.abspath(__file__))
@@ -254,8 +274,13 @@ def get_user_documents_dataflow_dir():
         chosen_dir = os.path.join(dataflow_base_dir, base_folder)
         logger.info(f"Usando directory DataFlow personalizzata: {chosen_dir}")
     else:
-        documents_dir = os.path.join(os.path.expanduser('~'), 'Documents')
-        chosen_dir = os.path.join(documents_dir, base_folder)
+        # Windows: usa ~/Documents/DataFlow_username (comportamento standard Windows)
+        # Linux/macOS: usa ~/DataFlow_username (direttamente nella home)
+        if sys.platform == 'win32':
+            documents_dir = os.path.join(os.path.expanduser('~'), 'Documents')
+            chosen_dir = os.path.join(documents_dir, base_folder)
+        else:
+            chosen_dir = os.path.join(os.path.expanduser('~'), base_folder)
         logger.info(f"Usando directory DataFlow standard: {chosen_dir}")
     
     try:
@@ -817,11 +842,7 @@ class AttachmentWindow(tk.Toplevel):
     def __init__(self, parent, request_id, attachment_type, read_only=False, source_db_path=None):
         super().__init__(parent)
         self.withdraw()
-        try:
-            self.iconbitmap(resource_path(os.path.join("add_data", "DataFlow.ico")))
-        except (FileNotFoundError, tk.TclError) as e:
-            # BUG #21 FIX: Catch specifico e logging invece di print generico
-            logger.debug(f"Icona non caricabile (normale in alcuni ambienti): {e}")
+        set_window_icon(self)
         self.transient(parent)  # Aggiunta
         self.grab_set()         # Aggiunta
         self.request_id = request_id
@@ -1894,10 +1915,7 @@ class EditSuppliersWindow(tk.Toplevel):
     def __init__(self, parent, request_id):
         super().__init__(parent)
         self.withdraw()
-        try:
-            self.iconbitmap(resource_path(os.path.join("add_data", "DataFlow.ico")))
-        except Exception as e:
-            print(f"Errore caricamento icona: {e}")
+        set_window_icon(self)
         self.request_id = request_id;         self.title(_("Modifica Fornitori - RdO N°{}").format(request_id)); self.db_path = get_db_path(); self.transient(parent); self.grab_set()
         
         # Frame pulsanti (sempre in fondo)
@@ -1988,11 +2006,8 @@ class EditReferenceWindow(tk.Toplevel):
     def __init__(self, parent, request_id):
         super().__init__(parent)
         self.withdraw()
-        try:
-            self.iconbitmap(resource_path(os.path.join("add_data", "DataFlow.ico")))
-        except Exception as e:
-            print(f"Errore caricamento icona: {e}")
-        self.request_id = request_id;         self.title(_("Modifica Riferimento")); self.db_path = get_db_path(); self.transient(parent); self.grab_set()
+        set_window_icon(self)
+        self.request_id = request_id;         self.title(_("Modifica Riferimento")); self.db_path = get_db_path(); self.transient(parent)
         
         # Frame pulsanti (sempre in fondo)
         btn_frame = ttk.Frame(self)
@@ -2007,7 +2022,7 @@ class EditReferenceWindow(tk.Toplevel):
         ttk.Label(frame, text=_("Modifica Riferimento:")).pack(anchor="w")
         self.entry_riferimento = ttk.Entry(frame, width=70); self.entry_riferimento.pack(fill="x", expand=True, pady=5)
         
-        self.load_current_reference(); center_window(self)
+        self.load_current_reference(); center_window(self); self.wait_visibility(); self.grab_set()
     def load_current_reference(self):
         try:
             # BUG #47 FIX: Usa context manager per garantire chiusura DB anche su eccezione
@@ -2036,10 +2051,7 @@ class LanguagePrompt(tk.Toplevel):
     def __init__(self, parent):
         super().__init__(parent)
         self.withdraw()
-        try:
-            self.iconbitmap(resource_path(os.path.join("add_data", "DataFlow.ico")))
-        except Exception as e:
-            print(f"Errore caricamento icona: {e}")
+        set_window_icon(self)
         self.title(_("Scegli Lingua"))
         self.choice = None
         self.transient(parent)
@@ -2106,10 +2118,7 @@ class NotesWindow(tk.Toplevel):
     def __init__(self, parent, request_id):
         super().__init__(parent)
         self.withdraw()
-        try:
-            self.iconbitmap(resource_path(os.path.join("add_data", "DataFlow.ico")))
-        except Exception as e:
-            print(f"Errore caricamento icona: {e}")
+        set_window_icon(self)
         self.request_id = request_id
         self.db_path = get_db_path()
         self.title(_("Note - RdO N° {}").format(self.request_id))
@@ -2281,10 +2290,7 @@ class SQDCAnalysisWindow(tk.Toplevel):
     def __init__(self, parent, request_id, existing_data=None):
         super().__init__(parent)
         self.withdraw()
-        try:
-            self.iconbitmap(resource_path(os.path.join("add_data", "DataFlow.ico")))
-        except Exception as e:
-            print(f"Errore caricamento icona: {e}")
+        set_window_icon(self)
         self.request_id = request_id
         self.db_path = get_db_path()
         self.title(_("Analisi SQDC - RdO N° {}").format(self.request_id))
@@ -3195,10 +3201,7 @@ class ViewRequestWindow(tk.Toplevel):
     def __init__(self, parent, request_id, read_only=False, source_db_path=None):
         super().__init__(parent)
         self.withdraw()
-        try:
-            self.iconbitmap(resource_path(os.path.join("add_data", "DataFlow.ico")))
-        except Exception as e:
-            print(f"Errore caricamento icona: {e}")
+        set_window_icon(self)
         self.request_id = request_id
         self.selected_detail_id = None
         self.selected_supplier_name = None
@@ -4636,10 +4639,7 @@ class SettingsWindow(tk.Toplevel):
         try:
             super().__init__(parent)
             self.withdraw()
-            try:
-                self.iconbitmap(resource_path(os.path.join("add_data", "DataFlow.ico")))
-            except Exception as e:
-                logger.warning(f"Errore caricamento icona SettingsWindow: {e}")
+            set_window_icon(self)
             
             self.main_app = main_app
             try:
@@ -5063,7 +5063,10 @@ class SettingsWindow(tk.Toplevel):
             logger.info("Utente ha annullato il cambio posizione DataFlow")
             return
         
-        initial_dir = os.path.dirname(current_dataflow_dir) or os.path.expanduser("~\\Documents")
+        if sys.platform == 'win32':
+            initial_dir = os.path.dirname(current_dataflow_dir) or os.path.join(os.path.expanduser('~'), 'Documents')
+        else:
+            initial_dir = os.path.dirname(current_dataflow_dir) or os.path.expanduser('~')
         
         try:
             selected_dir = filedialog.askdirectory(
@@ -5479,10 +5482,7 @@ class HelpWindow(tk.Toplevel):
     def __init__(self, parent):
         super().__init__(parent)
         self.withdraw()
-        try:
-            self.iconbitmap(resource_path(os.path.join("add_data", "DataFlow.ico")))
-        except Exception as e:
-            print(f"Errore caricamento icona: {e}")
+        set_window_icon(self)
         
         # Leggi la lingua corrente per la traduzione del sommario
         import configparser
@@ -6119,10 +6119,7 @@ class LicenseWindow(tk.Toplevel):
     def __init__(self, parent, first_run=False):
         super().__init__(parent)
         self.withdraw()
-        try:
-            self.iconbitmap(resource_path(os.path.join("add_data", "DataFlow.ico")))
-        except Exception as e:
-            print(f"Errore caricamento icona: {e}")
+        set_window_icon(self)
         self.title(_("Licenza d'Uso - DataFlow Procurement Software"))
         self.transient(parent)
         self.grab_set()
@@ -6233,10 +6230,7 @@ class NewRdOTypeDialog(tk.Toplevel):
     def __init__(self, parent):
         super().__init__(parent)
         self.withdraw()
-        try:
-            self.iconbitmap(resource_path(os.path.join("add_data", "DataFlow.ico")))
-        except Exception as e:
-            print(f"Errore caricamento icona: {e}")
+        set_window_icon(self)
         
         self.title(_("Nuova Richiesta di Offerta"))
         # NON usare transient() e grab_set() per evitare che la chiusura chiuda anche il parent
@@ -6294,10 +6288,7 @@ class NewRdOTypeDialog(tk.Toplevel):
 class MainWindow:
     def __init__(self, root):
         self.root = root;
-        try:
-            self.root.iconbitmap(resource_path(os.path.join("add_data", "DataFlow.ico")))
-        except Exception as e:
-            print(f"Errore caricamento icona: {e}")
+        set_window_icon(self.root)
         self.root.title(_("DataFlow Procurement Software - Cruscotto Principale"))
         self.all_users_placeholder = _("Tutti gli utenti")
         self.username_filter_var = None
@@ -8161,16 +8152,13 @@ class UserIdentityDialog(tk.Toplevel):
     """Finestra modale che forza l'inserimento di nome e cognome."""
     def __init__(self, parent, first_name='', last_name=''):
         super().__init__(parent)
+        self.withdraw()
         self.title(_("Dati Utente Richiesti"))
         self.transient(parent)
         self.resizable(False, False)
         self.grab_set()
         self.result = None
-        try:
-            self.iconbitmap(resource_path(os.path.join("add_data", "DataFlow.ico")))
-        except Exception as e:
-            # BUG #36 FIX: Log fallimento caricamento icona invece di silenzio
-            logger.debug(f"Impossibile caricare icona DataFlow.ico: {e}")
+        set_window_icon(self)
         self.protocol("WM_DELETE_WINDOW", self._prevent_close)
         
         self.first_var = tk.StringVar(value=first_name)
@@ -8246,8 +8234,8 @@ class UserIdentityDialog(tk.Toplevel):
 
     def _center_window(self):
         self.update_idletasks()
-        w = self.winfo_width()
-        h = self.winfo_height()
+        w = self.winfo_reqwidth()
+        h = self.winfo_reqheight()
         if not w or not h:
             w, h = 360, 220
         screen_w = self.winfo_screenwidth()
@@ -8255,6 +8243,7 @@ class UserIdentityDialog(tk.Toplevel):
         x = (screen_w // 2) - (w // 2)
         y = (screen_h // 2) - (h // 2)
         self.geometry(f"{w}x{h}+{x}+{y}")
+        self.deiconify()
 
 # ------------------------------------------------------------------------------------
 # FINESTRA PROGRESSO COPIA (PER SPOSTAMENTO CARTELLA)
@@ -8264,10 +8253,7 @@ class CopyProgressWindow(tk.Toplevel):
     def __init__(self, parent, title="Copia in corso..."):
         super().__init__(parent)
         self.withdraw()
-        try:
-            self.iconbitmap(resource_path(os.path.join("add_data", "DataFlow.ico")))
-        except Exception as e:
-            print(f"Errore caricamento icona: {e}")
+        set_window_icon(self)
         self.title(title)
         self.overrideredirect(True)
         
@@ -8324,10 +8310,7 @@ class SplashScreen(tk.Toplevel):
     def __init__(self, parent):
         super().__init__(parent)
         self.withdraw()  # 1. Nascondi subito
-        try:
-            self.iconbitmap(resource_path(os.path.join("add_data", "DataFlow.ico")))
-        except Exception as e:
-            print(f"Errore caricamento icona: {e}")
+        set_window_icon(self)
         self.title(_("Avvio DataFlow")); self.overrideredirect(True) # 2. Rendi senza bordi
         
         # 3. Aggiungi TUTTI i widget (mentre è ancora nascosta)
