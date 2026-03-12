@@ -26,7 +26,13 @@ The application is written in **Python** with a **Tkinter** GUI and uses **SQLit
 
 ## Screenshots
 
-![Main Window](docs/screenshots/main_window.png)
+![Main Window](docs/screenshots/EN/1.png)
+![Main Window](docs/screenshots/EN/2.png)
+![Main Window](docs/screenshots/EN/3.png)
+![Main Window](docs/screenshots/EN/4.png)
+![Main Window](docs/screenshots/EN/5.png)
+![Main Window](docs/screenshots/EN/6.png)
+![Main Window](docs/screenshots/EN/7.png)
 
 ---
 
@@ -141,3 +147,4 @@ Once the GitHub repository is created, replace the placeholders in this README w
 ```text
 https://github.com/sorguido/dataflow-procurement-software
 ```
+
