@@ -773,7 +773,8 @@ Per una risoluzione più rapida, includi nella segnalazione:
 Hai un'idea per una nuova funzionalità? Contattami all'indirizzo email sopra. Feedback e suggerimenti sono sempre benvenuti!
 
 [H2]Licenza
-DataFlow è distribuito come Freeware. Consulta la licenza completa cliccando sul pulsante [CODE]📄 Licenza[CODE] nella schermata principale.
+DataFlow è rilasciato come software open source sotto la licenza GNU General Public License versione 3 (GPLv3)
+Consulta la licenza completa cliccando sul pulsante [CODE]📄 Licenza[CODE] nella schermata principale.
 
 [H2]Ringraziamenti
 Grazie per aver scelto DataFlow. Spero che questo software possa semplificare la gestione delle tue Richieste di Offerta.

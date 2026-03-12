@@ -4,620 +4,676 @@ msgstr ""
 "Language: it\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 
-msgid "\n"
+msgid ""
+"\n"
 "\n"
 "ERRORE: La migrazione è stata annullata.\n"
 "{}"
 msgstr ""
+"\n"
+"\n"
+"ERRORE: La migrazione è stata annullata.\n"
+"{}"
 
-msgid "\n"
+msgid ""
+"\n"
 "\n"
 "Migrazione completata con successo!"
 msgstr ""
-
-msgid "\n"
-"Allegati archiviati in: Documenti\\DataFlow\\Allegati"
-msgstr ""
-
-msgid "\n"
-"Tabella '{}':"
-msgstr ""
-
-msgid "\n"
-"Tabella '{}': Nessun dato da importare."
-msgstr ""
-
-msgid "   - Allegati"
-msgstr ""
-
-msgid "   - Allegati Non Trovati"
-msgstr ""
-
-msgid "   - Avanzate"
-msgstr ""
-
-msgid "   - Backup"
-msgstr ""
-
-msgid "   - Benvenuto in DataFlow"
-msgstr ""
-
-msgid "   - Database Bloccato"
-msgstr ""
-
-msgid "   - Errori Importazione Excel"
-msgstr ""
-
-msgid "   - Esportazione Excel"
-msgstr ""
-
-msgid "   - Filtri di Ricerca"
-msgstr ""
-
-msgid "   - Gestione Allegati"
-msgstr ""
-
-msgid "   - Analisi SQDC"
-msgstr ""
-
-msgid "   - Gestione Database"
-msgstr ""
-
-msgid "   - Importazione da Excel"
-msgstr ""
-
-msgid "   - Inserimento Manuale degli Articoli"
-msgstr ""
-
-msgid "   - Interfaccia e Pulsanti Principali"
-msgstr ""
-
-msgid "   - La Griglia Prezzi"
-msgstr ""
-
-msgid "   - Modifica Dati e Aggiunta Note"
-msgstr ""
-
-msgid "   - Ordinamento delle Colonne"
-msgstr ""
-
-msgid "   - Prima RdO di Prova"
-msgstr ""
-
-msgid "   - Primo Avvio"
-msgstr ""
-
-msgid "   - Recupero da Backup"
-msgstr ""
-
-msgid "   - Scorciatoie da Tastiera"
-msgstr ""
-
-msgid "  - Colonne migrate: {}"
-msgstr ""
-
-msgid "  - Nuove colonne non popolate: {}"
-msgstr ""
-
-msgid "  - Righe importate: {}"
-msgstr ""
-
-msgid "  - Righe saltate (già esistenti): {}"
-msgstr ""
-
-msgid " © 2025"
-msgstr ""
-
-msgid "0. Primi Passi"
-msgstr ""
-
-msgid "1 RdO eliminata."
-msgstr ""
-
-msgid "1. CONCESSIONE DELLA LICENZA\n"
-msgstr ""
-
-msgid "1. Schermata Principale"
-msgstr ""
-
-msgid "2. Creare una Nuova RdO"
-msgstr ""
-
-msgid "2. RESTRIZIONI\n"
-msgstr ""
-
-msgid "3. ESCLUSIONE DI GARANZIA\n"
-msgstr ""
-
-msgid "3. Gestire una RdO Esistente"
-msgstr ""
-
-msgid "4. Impostazioni e Manutenzione"
-msgstr ""
-
-msgid "4. LIMITAZIONE DI RESPONSABILITÀ\n"
-msgstr ""
-
-msgid "5. Problemi Comuni e Soluzioni"
-msgstr ""
-
-msgid "6. Requisiti di Sistema e Limiti"
-msgstr ""
-
-msgid "7. Glossario"
-msgstr ""
-
-msgid "8. Contatti e Supporto"
-msgstr ""
+"\n"
+"\n"
+"Migrazione completata con successo!"
 
 msgid ""
-"a) Vendere, affittare, noleggiare o distribuire il Software in cambio di un "
-"compenso.\n"
+"\n"
+"Allegati archiviati in: Documenti\\DataFlow\\Allegati"
 msgstr ""
+"\n"
+"Allegati archiviati in: Documenti\\DataFlow\\Allegati"
+
+msgid ""
+"\n"
+"Tabella '{}':"
+msgstr ""
+"\n"
+"Tabella '{}':"
+
+msgid ""
+"\n"
+"Tabella '{}': Nessun dato da importare."
+msgstr ""
+"\n"
+"Tabella '{}': Nessun dato da importare."
+
+msgid "   - Allegati"
+msgstr "   - Allegati"
+
+msgid "   - Allegati Non Trovati"
+msgstr "   - Allegati Non Trovati"
+
+msgid "   - Avanzate"
+msgstr "   - Avanzate"
+
+msgid "   - Backup"
+msgstr "   - Backup"
+
+msgid "   - Benvenuto in DataFlow"
+msgstr "   - Benvenuto in DataFlow"
+
+msgid "   - Database Bloccato"
+msgstr "   - Database Bloccato"
+
+msgid "   - Errori Importazione Excel"
+msgstr "   - Errori Importazione Excel"
+
+msgid "   - Esportazione Excel"
+msgstr "   - Esportazione Excel"
+
+msgid "   - Filtri di Ricerca"
+msgstr "   - Filtri di Ricerca"
+
+msgid "   - Gestione Allegati"
+msgstr "   - Gestione Allegati"
+
+msgid "   - Analisi SQDC"
+msgstr "   - Analisi SQDC"
+
+msgid "   - Gestione Database"
+msgstr "   - Gestione Database"
+
+msgid "   - Importazione da Excel"
+msgstr "   - Importazione da Excel"
+
+msgid "   - Inserimento Manuale degli Articoli"
+msgstr "   - Inserimento Manuale degli Articoli"
+
+msgid "   - Interfaccia e Pulsanti Principali"
+msgstr "   - Interfaccia e Pulsanti Principali"
+
+msgid "   - La Griglia Prezzi"
+msgstr "   - La Griglia Prezzi"
+
+msgid "   - Modifica Dati e Aggiunta Note"
+msgstr "   - Modifica Dati e Aggiunta Note"
+
+msgid "   - Ordinamento delle Colonne"
+msgstr "   - Ordinamento delle Colonne"
+
+msgid "   - Prima RdO di Prova"
+msgstr "   - Prima RdO di Prova"
+
+msgid "   - Primo Avvio"
+msgstr "   - Primo Avvio"
+
+msgid "   - Recupero da Backup"
+msgstr "   - Recupero da Backup"
+
+msgid "   - Scorciatoie da Tastiera"
+msgstr "   - Scorciatoie da Tastiera"
+
+msgid "  - Colonne migrate: {}"
+msgstr "  - Colonne migrate: {}"
+
+msgid "  - Nuove colonne non popolate: {}"
+msgstr "  - Nuove colonne non popolate: {}"
+
+msgid "  - Righe importate: {}"
+msgstr "  - Righe importate: {}"
+
+msgid "  - Righe saltate (già esistenti): {}"
+msgstr "  - Righe saltate (già esistenti): {}"
+
+msgid " © 2025 - Edizione Linux rilasciata sotto licenza GNU GPLv3"
+msgstr " © 2025 - Edizione Linux rilasciata sotto licenza GNU GPLv3"
+
+msgid "0. Primi Passi"
+msgstr "0. Primi Passi"
+
+msgid "1 RdO eliminata."
+msgstr "1 RdO eliminata."
+
+msgid "1. CONCESSIONE DELLA LICENZA\n"
+msgstr "1. CONCESSIONE DELLA LICENZA\n"
+
+msgid "1. Schermata Principale"
+msgstr "1. Schermata Principale"
+
+msgid "2. Creare una Nuova RdO"
+msgstr "2. Creare una Nuova RdO"
+
+msgid "2. DISTRIBUZIONE E MODIFICA\n"
+msgstr "2. DISTRIBUZIONE E MODIFICA\n"
+
+msgid "3. ESCLUSIONE DI GARANZIA\n"
+msgstr "3. ESCLUSIONE DI GARANZIA\n"
+
+msgid "3. Gestire una RdO Esistente"
+msgstr "3. Gestire una RdO Esistente"
+
+msgid "4. Impostazioni e Manutenzione"
+msgstr "4. Impostazioni e Manutenzione"
+
+msgid "4. LIMITAZIONE DI RESPONSABILITÀ\n"
+msgstr "4. LIMITAZIONE DI RESPONSABILITÀ\n"
+
+msgid "5. Problemi Comuni e Soluzioni"
+msgstr "5. Problemi Comuni e Soluzioni"
+
+msgid "6. Requisiti di Sistema e Limiti"
+msgstr "6. Requisiti di Sistema e Limiti"
+
+msgid "7. Glossario"
+msgstr "7. Glossario"
+
+msgid "8. Contatti e Supporto"
+msgstr "8. Contatti e Supporto"
 
 msgid "A-D come sopra, E: Codice Grezzo, F: Disegno Grezzo, G: Materiale C/L"
-msgstr ""
+msgstr "A-D come sopra, E: Codice Grezzo, F: Disegno Grezzo, G: Materiale C/L"
 
 msgid "A:"
-msgstr ""
+msgstr "A:"
 
 msgid ""
 "A: Codice, B: Allegato, C: Descrizione, D: Quantità\n"
 "\n"
 msgstr ""
+"A: Codice, B: Allegato, C: Descrizione, D: Quantità\n"
+"\n"
 
 msgid "Abilita backup automatico giornaliero (max 3 copie)"
-msgstr ""
+msgstr "Abilita backup automatico giornaliero (max 3 copie)"
 
 msgid "Aggiungi nota"
-msgstr ""
+msgstr "Aggiungi nota"
 
 msgid "Aggiungi o Modifica Articolo"
-msgstr ""
-
-msgid "All'utente non è consentito:\n"
-msgstr ""
+msgstr "Aggiungi o Modifica Articolo"
 
 msgid "Allegati"
-msgstr ""
+msgstr "Allegati"
 
 msgid "Allegato"
-msgstr ""
+msgstr "Allegato"
 
 msgid "Allegato (es. nome disegno):"
-msgstr ""
+msgstr "Allegato (es. nome disegno):"
 
 msgid ""
 "Allegato eliminato.\n"
 "Inizio compattazione database... (potrebbe richiedere tempo)"
 msgstr ""
+"Allegato eliminato.\n"
+"Inizio compattazione database... (potrebbe richiedere tempo)"
 
 msgid "Allegato non trovato."
-msgstr ""
+msgstr "Allegato non trovato."
 
 msgid "Allegato:"
-msgstr ""
+msgstr "Allegato:"
 
 msgid "Almeno un articolo e un fornitore sono obbligatori."
-msgstr ""
+msgstr "Almeno un articolo e un fornitore sono obbligatori."
 
 msgid "Apri Database Temporaneo"
-msgstr ""
+msgstr "Apri Database Temporaneo"
 
 msgid "Archiviazione"
-msgstr ""
+msgstr "Archiviazione"
 
 msgid "Archiviazione Allegati"
-msgstr ""
+msgstr "Archiviazione Allegati"
 
 msgid "Articoli (doppio click per modificare)"
-msgstr ""
+msgstr "Articoli (doppio click per modificare)"
 
 msgid "Articoli aggiornati con successo."
-msgstr ""
+msgstr "Articoli aggiornati con successo."
 
 msgid ""
 "Assicurarsi che il file Excel abbia la seguente struttura:\n"
 "\n"
 msgstr ""
+"Assicurarsi che il file Excel abbia la seguente struttura:\n"
+"\n"
 
 msgid "Attenzione"
-msgstr ""
+msgstr "Attenzione"
 
 msgid "ATTENZIONE: Database provvisorio attivo ({})"
-msgstr ""
+msgstr "ATTENZIONE: Database provvisorio attivo ({})"
 
 msgid "ATTENZIONE: RISCHIO CORRUZIONE DATI"
-msgstr ""
+msgstr "ATTENZIONE: RISCHIO CORRUZIONE DATI"
 
 msgid ""
 "ATTENZIONE: Stai per aggiungere {} a tutti i numeri di RdO. Operazione IRREVERSIBILE.\n"
 "\n"
 "Sei sicuro?"
 msgstr ""
+"ATTENZIONE: Stai per aggiungere {} a tutti i numeri di RdO. Operazione IRREVERSIBILE.\n"
+"\n"
+"Sei sicuro?"
 
 msgid ""
 "ATTENZIONE: Stai per archiviare gli allegati su disco. Operazione IRREVERSIBILE.\n"
 "Vuoi procedere?"
 msgstr ""
+"ATTENZIONE: Stai per archiviare gli allegati su disco. Operazione IRREVERSIBILE.\n"
+"Vuoi procedere?"
 
 msgid "Avanzate"
-msgstr ""
+msgstr "Avanzate"
 
 msgid "Avvio DataFlow"
-msgstr ""
+msgstr "Avvio DataFlow"
 
 msgid "Avvio in corso..."
-msgstr ""
+msgstr "Avvio in corso..."
 
 msgid "B Grassetto"
-msgstr ""
-
-msgid ""
-"b) Decodificare (reverse engineer), decompilare, disassemblare o tentare di "
-"scoprire in altro modo il codice sorgente del Software.\n"
-msgstr ""
+msgstr "B Grassetto"
 
 msgid "Backup"
-msgstr ""
+msgstr "Backup"
 
 msgid "Backup Automatico Giornaliero"
-msgstr ""
+msgstr "Backup Automatico Giornaliero"
 
 msgid "Backup Creato"
-msgstr ""
+msgstr "Backup Creato"
 
 msgid ""
 "Backup creato in:\n"
 "{}"
 msgstr ""
+"Backup creato in:\n"
+"{}"
 
 msgid ""
 "Backup di sicurezza creato in:\n"
 "{}"
 msgstr ""
+"Backup di sicurezza creato in:\n"
+"{}"
 
 msgid "Backup Manuale"
-msgstr ""
-
-msgid ""
-"c) Modificare, adattare, tradurre o creare opere derivate basate sul "
-"Software senza il previo consenso scritto dello Sviluppatore.\n"
-msgstr ""
+msgstr "Backup Manuale"
 
 msgid ""
 "Caricamento della guida in corso...\n"
 "\n"
 msgstr ""
+"Caricamento della guida in corso...\n"
+"\n"
 
 msgid "Caricamento interfaccia..."
-msgstr ""
+msgstr "Caricamento interfaccia..."
 
 msgid "Cod. Grezzo"
-msgstr ""
+msgstr "Cod. Grezzo"
 
 msgid "Cod. Grezzo:"
-msgstr ""
+msgstr "Cod. Grezzo:"
 
 msgid "Cod. Materiale:"
-msgstr ""
+msgstr "Cod. Materiale:"
 
 msgid "Codice"
-msgstr ""
+msgstr "Codice"
 
 msgid "Codice e Quantità obbligatori."
-msgstr ""
+msgstr "Codice e Quantità obbligatori."
 
 msgid "Codice Grezzo:"
-msgstr ""
+msgstr "Codice Grezzo:"
 
 msgid "Codice Materiale"
-msgstr ""
+msgstr "Codice Materiale"
 
 msgid "Codice Materiale e Quantità sono obbligatori."
-msgstr ""
+msgstr "Codice Materiale e Quantità sono obbligatori."
 
 msgid "Codice Materiale:"
-msgstr ""
+msgstr "Codice Materiale:"
 
 msgid "Codice:"
-msgstr ""
+msgstr "Codice:"
 
 msgid "Completato"
-msgstr ""
+msgstr "Completato"
 
 msgid "Completato!"
-msgstr ""
+msgstr "Completato!"
 
 msgid "Conferma"
-msgstr ""
+msgstr "Conferma"
 
 msgid "Conferma Eliminazione"
-msgstr ""
+msgstr "Conferma Eliminazione"
 
 msgid "Conferma Migrazione"
-msgstr ""
+msgstr "Conferma Migrazione"
 
 msgid "Conto lavoro"
-msgstr ""
+msgstr "Conto lavoro"
 
 msgid "Controllo configurazione..."
-msgstr ""
+msgstr "Controllo configurazione..."
 
 msgid ""
-"Copyright © 2025 Guido Sorarù. Tutti i diritti riservati.\n"
+"Copyright © 2025 Guido Sorarù.\n"
 "\n"
 msgstr ""
+"Copyright © 2025 Guido Sorarù.\n"
+"\n"
 
 msgid "Crea una copia di sicurezza immediata del database."
-msgstr ""
-
-msgid ""
-"d) Rimuovere o alterare qualsiasi avviso di copyright, marchio di fabbrica o altra notifica di proprietà presente nel Software.\n"
-"\n"
-msgstr ""
+msgstr "Crea una copia di sicurezza immediata del database."
 
 msgid "Da:"
-msgstr ""
+msgstr "Da:"
 
 msgid "Data Emiss."
-msgstr ""
+msgstr "Data Emiss."
 
 msgid "Data Emissione "
-msgstr ""
+msgstr "Data Emissione "
 
 msgid "Data Emissione:"
-msgstr ""
+msgstr "Data Emissione:"
 
 msgid "Data Emissione: "
-msgstr ""
+msgstr "Data Emissione: "
 
 msgid "Data non valida"
-msgstr ""
+msgstr "Data non valida"
 
 msgid "Data Scad."
-msgstr ""
+msgstr "Data Scad."
 
 msgid "Data Scadenza "
-msgstr ""
+msgstr "Data Scadenza "
 
 msgid "Data Scadenza:"
-msgstr ""
+msgstr "Data Scadenza:"
 
 msgid "Data Scadenza: "
-msgstr ""
+msgstr "Data Scadenza: "
 
 msgid "Database"
-msgstr ""
+msgstr "Database"
 
 msgid "Database Standard"
-msgstr ""
+msgstr "Database Standard"
 
 msgid "Database standard: Documenti\\DataFlow\\Database\\gestione_offerte.db"
-msgstr ""
+msgstr "Database standard: Documenti\\DataFlow\\Database\\gestione_offerte.db"
 
 msgid "DataFlow"
-msgstr ""
+msgstr "DataFlow"
 
 msgid "DataFlow Procurement Software - Cruscotto Principale"
-msgstr ""
+msgstr "DataFlow Procurement Software - Cruscotto Principale"
 
 msgid "DataFlow Procurement Software v1.1.0 - Sviluppato da "
-msgstr ""
+msgstr "DataFlow Procurement Software v1.1.0 - Sviluppato da "
 
 msgid "Date aggiornate."
-msgstr ""
+msgstr "Date aggiornate."
 
 msgid "Date non valide."
-msgstr ""
+msgstr "Date non valide."
 
 msgid "Date non valide: {}"
-msgstr ""
+msgstr "Date non valide: {}"
 
 msgid "Dati allegato non disponibili (né interni, né esterni)."
-msgstr ""
+msgstr "Dati allegato non disponibili (né interni, né esterni)."
 
 msgid "Dati Mancanti"
-msgstr ""
+msgstr "Dati Mancanti"
 
 msgid "Desc. Materiale:"
-msgstr ""
+msgstr "Desc. Materiale:"
 
 msgid "Descrizione"
-msgstr ""
+msgstr "Descrizione"
 
 msgid "Descrizione:"
-msgstr ""
+msgstr "Descrizione:"
 
 msgid "Dettagli Articolo"
-msgstr ""
+msgstr "Dettagli Articolo"
 
 msgid "Dettagli RdO non trovati."
-msgstr ""
+msgstr "Dettagli RdO non trovati."
 
 msgid "Dettagli Richiesta"
-msgstr ""
+msgstr "Dettagli Richiesta"
 
 msgid "Allegato Grezzo"
-msgstr ""
+msgstr "Allegato Grezzo"
 
 msgid "Allegato Grezzo:"
-msgstr ""
+msgstr "Allegato Grezzo:"
 
 msgid "Dis. Grezzo"
-msgstr ""
+msgstr "Dis. Grezzo"
 
 msgid "Dis. Grezzo:"
-msgstr ""
+msgstr "Dis. Grezzo:"
 
 msgid "Disegno Grezzo:"
-msgstr ""
+msgstr "Disegno Grezzo:"
 
 msgid "E-mail: "
-msgstr ""
+msgstr "E-mail: "
 
 msgid "Elenco fornitori aggiornato."
-msgstr ""
+msgstr "Elenco fornitori aggiornato."
 
 msgid "Eliminazione"
-msgstr ""
+msgstr "Eliminazione"
 
 msgid "Errore"
-msgstr ""
+msgstr "Errore"
 
 msgid "Errore Apertura"
-msgstr ""
+msgstr "Errore Apertura"
 
 msgid ""
 "Errore caricamento guida: {}\n"
 "\n"
 "Contatta l'amministratore."
 msgstr ""
+"Errore caricamento guida: {}\n"
+"\n"
+"Contatta l'amministratore."
 
 msgid "Errore Caricamento Nota"
-msgstr ""
+msgstr "Errore Caricamento Nota"
 
 msgid "Errore Critico"
-msgstr ""
+msgstr "Errore Critico"
 
 msgid "Errore Database"
-msgstr ""
+msgstr "Errore Database"
 
 msgid "Errore Download"
-msgstr ""
+msgstr "Errore Download"
 
 msgid ""
 "Errore durante l'archiviazione.\n"
 "{}"
 msgstr ""
+"Errore durante l'archiviazione.\n"
+"{}"
 
 msgid ""
 "Errore durante la migrazione. Operazione annullata.\n"
 "{}"
 msgstr ""
+"Errore durante la migrazione. Operazione annullata.\n"
+"{}"
 
 msgid ""
 "Errore durante la rinumerazione.\n"
 "{}"
 msgstr ""
+"Errore durante la rinumerazione.\n"
+"{}"
 
 msgid "Errore Esportazione"
-msgstr ""
+msgstr "Errore Esportazione"
 
 msgid "Errore Formato"
-msgstr ""
+msgstr "Errore Formato"
 
 msgid "Errore Formato Data"
-msgstr ""
+msgstr "Errore Formato Data"
 
 msgid "Errore Importazione"
-msgstr ""
+msgstr "Errore Importazione"
 
 msgid "Errore Nota"
-msgstr ""
+msgstr "Errore Nota"
 
 msgid "Errore ricerca: {}"
-msgstr ""
+msgstr "Errore ricerca: {}"
 
 msgid "Errore Sicurezza"
-msgstr ""
+msgstr "Errore Sicurezza"
 
 msgid "Errore sistema operativo: {}"
-msgstr ""
+msgstr "Errore sistema operativo: {}"
 
 msgid "Errore: {}"
-msgstr ""
+msgstr "Errore: {}"
 
 msgid "File database '{}' non trovato!"
-msgstr ""
+msgstr "File database '{}' non trovato!"
 
 msgid "File Excel"
-msgstr ""
+msgstr "File Excel"
 
 msgid "File guida non trovato. Contatta l'amministratore."
-msgstr ""
+msgstr "File guida non trovato. Contatta l'amministratore."
 
 msgid ""
 "File modello non trovato!\n"
 "Assicurarsi che '{}' esista nella cartella 'add_data'."
 msgstr ""
+"File modello non trovato!\n"
+"Assicurarsi che '{}' esista nella cartella 'add_data'."
 
 msgid "File non trovato: {}"
-msgstr ""
+msgstr "File non trovato: {}"
 
 msgid ""
 "File salvato in:\n"
 "{}"
 msgstr ""
+"File salvato in:\n"
+"{}"
 
 msgid ""
 "File scaricato con successo in:\n"
 "{}"
 msgstr ""
+"File scaricato con successo in:\n"
+"{}"
 
 msgid ""
 "File sorgente non trovato:\n"
 "{}"
 msgstr ""
+"File sorgente non trovato:\n"
+"{}"
 
 msgid "Filtri di Ricerca"
-msgstr ""
+msgstr "Filtri di Ricerca"
 
 msgid "Fornitore"
-msgstr ""
+msgstr "Fornitore"
 
 msgid "Fornitore:"
-msgstr ""
+msgstr "Fornitore:"
 
 msgid "Fornitori da Coinvolgere"
-msgstr ""
+msgstr "Fornitori da Coinvolgere"
 
 msgid "Fornitori Duplicati"
-msgstr ""
+msgstr "Fornitori Duplicati"
 
 msgid "Fornitura piena"
-msgstr ""
+msgstr "Fornitura piena"
 
 msgid "Gestione Documento Interno"
-msgstr ""
+msgstr "Gestione Documento Interno"
 
 msgid "Gestione Offerta Fornitore"
-msgstr ""
+msgstr "Gestione Offerta Fornitore"
 
 msgid "Guida Utente - DataFlow Procurement Software"
-msgstr ""
+msgstr "Guida Utente - DataFlow Procurement Software"
 
 msgid ""
 "Hai inserito lo stesso fornitore più volte:\n"
 "\n"
-"{}"
-"\n"
+"{}\n"
 "Ogni fornitore deve essere inserito una sola volta."
 msgstr ""
+"Hai inserito lo stesso fornitore più volte:\n"
+"\n"
+"{}\n"
+"Ogni fornitore deve essere inserito una sola volta."
 
 msgid "I Corsivo"
-msgstr ""
+msgstr "I Corsivo"
 
 msgid "ID"
-msgstr ""
+msgstr "ID"
 
 msgid ""
 "Il database di origine e quello di destinazione non possono essere gli "
 "stessi."
 msgstr ""
+"Il database di origine e quello di destinazione non possono essere gli "
+"stessi."
 
 msgid "Il file Excel deve avere almeno {} colonne per una RdO '{}'."
-msgstr ""
+msgstr "Il file Excel deve avere almeno {} colonne per una RdO '{}'."
 
 msgid ""
-"Il presente software, \"DataFlow\" (di seguito \"il Software\"), è fornito come \"Freeware\".\n"
+"Questo software, \"DataFlow\" (di seguito \"il Software\"), è rilasciato come software open source sotto la licenza GNU General Public License versione 3 (GPLv3).\n"
 "\n"
 msgstr ""
+"Questo software, \"DataFlow\" (di seguito \"il Software\"), è rilasciato come software open source sotto la licenza GNU General Public License versione 3 (GPLv3).\n"
+"\n"
+
+msgid ""
+"Il codice sorgente completo del Software è disponibile pubblicamente.\n"
+"\n"
+msgstr ""
+"Il codice sorgente completo del Software è disponibile pubblicamente.\n"
+"\n"
+
+msgid ""
+"Una copia della licenza GNU GPLv3 dovrebbe essere distribuita insieme a questo Software.\n"
+"In caso contrario consultare: https://www.gnu.org/licenses/\n"
+"\n"
+msgstr ""
+"Una copia della licenza GNU GPLv3 dovrebbe essere distribuita insieme a questo Software.\n"
+"In caso contrario consultare: https://www.gnu.org/licenses/\n"
+"\n"
 
 msgid ""
 "Il prezzo deve essere un numero valido (es. 123,45), 'X' o 'ND'.\n"
 "Usa la virgola come separatore decimale."
 msgstr ""
+"Il prezzo deve essere un numero valido (es. 123,45), 'X' o 'ND'.\n"
+"Usa la virgola come separatore decimale."
 
 msgid ""
 "Il Software utilizza un database SQLite locale. La funzione 'Apri Altro "
@@ -627,71 +683,80 @@ msgstr ""
 msgid ""
 "IL SOFTWARE È FORNITO \"COSÌ COM'È\" (AS IS), SENZA ALCUNA GARANZIA, "
 "ESPRESSA O IMPLICITA. LO SVILUPPATORE NON FORNISCE ALCUNA GARANZIA RIGUARDO "
-"LA COMMERCIABILITÀ, L'IDONEITÀ PER UNO SCOPO PARTICOLARE O LA NON VIOLAZIONE"  
-"DI DIRITTI DI TERZI.\n"
+"LA COMMERCIABILITÀ, L'IDONEITÀ PER UNO SCOPO PARTICOLARE O LA NON "
+"VIOLAZIONEDI DIRITTI DI TERZI.\n"
 msgstr ""
+"IL SOFTWARE È FORNITO \"COSÌ COM'È\" (AS IS), SENZA ALCUNA GARANZIA, "
+"ESPRESSA O IMPLICITA. LO SVILUPPATORE NON FORNISCE ALCUNA GARANZIA RIGUARDO "
+"LA COMMERCIABILITÀ, L'IDONEITÀ PER UNO SCOPO PARTICOLARE O LA NON "
+"VIOLAZIONEDI DIRITTI DI TERZI.\n"
 
 msgid ""
 "Importa i dati da un database di una versione precedente a quello attuale."
 msgstr ""
+"Importa i dati da un database di una versione precedente a quello attuale."
 
 msgid "Importazione Completata"
-msgstr ""
+msgstr "Importazione Completata"
 
 msgid "Impossibile aggiornare stato: {}"
-msgstr ""
+msgstr "Impossibile aggiornare stato: {}"
 
 msgid "Impossibile aggiungere l'allegato: {}"
-msgstr ""
+msgstr "Impossibile aggiungere l'allegato: {}"
 
 msgid "Impossibile aprire il file: {}"
-msgstr ""
+msgstr "Impossibile aprire il file: {}"
 
 msgid "Impossibile caricare articoli: {}"
-msgstr ""
+msgstr "Impossibile caricare articoli: {}"
 
 msgid "Impossibile caricare dettagli: {}"
-msgstr ""
+msgstr "Impossibile caricare dettagli: {}"
 
 msgid "Impossibile caricare elenco: {}"
-msgstr ""
+msgstr "Impossibile caricare elenco: {}"
 
 msgid "Impossibile caricare gli allegati: {}"
-msgstr ""
+msgstr "Impossibile caricare gli allegati: {}"
 
 msgid "Impossibile caricare i fornitori: {}"
-msgstr ""
+msgstr "Impossibile caricare i fornitori: {}"
 
 msgid "Impossibile caricare la griglia: {}"
-msgstr ""
+msgstr "Impossibile caricare la griglia: {}"
 
 msgid "Impossibile caricare ordini: {}"
-msgstr ""
+msgstr "Impossibile caricare ordini: {}"
 
 msgid "Impossibile caricare riferimento: {}"
-msgstr ""
+msgstr "Impossibile caricare riferimento: {}"
 
 msgid ""
 "Impossibile creare backup.\n"
 "{}"
 msgstr ""
+"Impossibile creare backup.\n"
+"{}"
 
 msgid "Impossibile determinare il tipo di RdO: {}"
-msgstr ""
+msgstr "Impossibile determinare il tipo di RdO: {}"
 
 msgid "Impossibile eliminare l'allegato: {}"
-msgstr ""
+msgstr "Impossibile eliminare l'allegato: {}"
 
 msgid "Impossibile eliminare: {}"
-msgstr ""
+msgstr "Impossibile eliminare: {}"
 
 msgid ""
 "Impossibile leggere il file Excel.\n"
 "{}"
 msgstr ""
+"Impossibile leggere il file Excel.\n"
+"{}"
 
 msgid "Impossibile recuperare l'allegato: {}"
-msgstr ""
+msgstr "Impossibile recuperare l'allegato: {}"
 
 msgid ""
 "Impossibile riavviare l'applicazione automaticamente.\n"
@@ -700,84 +765,101 @@ msgid ""
 "\n"
 "Percorso tentato: {}"
 msgstr ""
+"Impossibile riavviare l'applicazione automaticamente.\n"
+"\n"
+"Perfavore, chiudi e riapri manualmente l'applicazione per applicare le modifiche.\n"
+"\n"
+"Percorso tentato: {}"
 
 msgid ""
 "Impossibile ripristinare la formattazione. Nota caricata come testo semplice:\n"
 "\n"
 "{}"
 msgstr ""
+"Impossibile ripristinare la formattazione. Nota caricata come testo semplice:\n"
+"\n"
+"{}"
 
 msgid "Impossibile salvare il file: {}"
-msgstr ""
+msgstr "Impossibile salvare il file: {}"
 
 msgid "Impossibile salvare il prezzo: {}"
-msgstr ""
+msgstr "Impossibile salvare il prezzo: {}"
 
 msgid ""
 "Impossibile salvare l'impostazione della licenza: {}\n"
 "\n"
 "Il programma continuerà, ma la licenza potrebbe riapparire al prossimo avvio."
 msgstr ""
+"Impossibile salvare l'impostazione della licenza: {}\n"
+"\n"
+"Il programma continuerà, ma la licenza potrebbe riapparire al prossimo avvio."
 
 msgid "Impossibile salvare l'impostazione della lingua: {}"
-msgstr ""
+msgstr "Impossibile salvare l'impostazione della lingua: {}"
 
 msgid "Impossibile salvare la configurazione: {}"
-msgstr ""
+msgstr "Impossibile salvare la configurazione: {}"
 
 msgid "Impossibile salvare la nota: {}"
-msgstr ""
+msgstr "Impossibile salvare la nota: {}"
 
 msgid "Impossibile salvare le date: {}"
-msgstr ""
+msgstr "Impossibile salvare le date: {}"
 
 msgid "Impossibile salvare le impostazioni: {}"
-msgstr ""
+msgstr "Impossibile salvare le impostazioni: {}"
 
 msgid "Impossibile salvare le modifiche: {}"
-msgstr ""
+msgstr "Impossibile salvare le modifiche: {}"
 
 msgid "Impossibile salvare: {}"
-msgstr ""
+msgstr "Impossibile salvare: {}"
 
 msgid ""
 "Impostazione lingua salvata.\n"
 "Riavviare ora l'applicazione per applicare le modifiche?"
 msgstr ""
+"Impostazione lingua salvata.\n"
+"Riavviare ora l'applicazione per applicare le modifiche?"
 
 msgid "Impostazioni allegati salvate."
-msgstr ""
+msgstr "Impostazioni allegati salvate."
 
 msgid "Impostazioni backup salvate."
-msgstr ""
+msgstr "Impostazioni backup salvate."
 
 msgid "Impostazioni e Manutenzione"
-msgstr ""
+msgstr "Impostazioni e Manutenzione"
 
 msgid ""
 "IN NESSUN CASO LO SVILUPPATORE (GUIDO SORARÙ) POTRÀ ESSERE RITENUTO RESPONSABILE PER QUALSIASI DANNO DIRETTO, INDIRETTO, INCIDENTALE, SPECIALE, ESEMPLARE O CONSEQUENZIALE (INCLUSI, A TITOLO ESEMPLIFICATIVO MA NON ESAUSIVO, DANNI PER PERDITA DI DATI, PERDITA DI PROFITTI O INTERRUZIONE DELL'ATTIVITÀ) DERIVANTE DALL'USO, DALL'USO IMPROPRIO O DALL'IMPOSSIBILITÀ DI UTILIZZARE IL SOFTWARE, ANCHE SE LO SVILUPPATORE È STATO AVVISATO DELLA POSSIBILITÀ DI TALI DANNI.\n"
 "\n"
 msgstr ""
+"IN NESSUN CASO LO SVILUPPATORE (GUIDO SORARÙ) POTRÀ ESSERE RITENUTO RESPONSABILE PER QUALSIASI DANNO DIRETTO, INDIRETTO, INCIDENTALE, SPECIALE, ESEMPLARE O CONSEQUENZIALE (INCLUSI, A TITOLO ESEMPLIFICATIVO MA NON ESAUSIVO, DANNI PER PERDITA DI DATI, PERDITA DI PROFITTI O INTERRUZIONE DELL'ATTIVITÀ) DERIVANTE DALL'USO, DALL'USO IMPROPRIO O DALL'IMPOSSIBILITÀ DI UTILIZZARE IL SOFTWARE, ANCHE SE LO SVILUPPATORE È STATO AVVISATO DELLA POSSIBILITÀ DI TALI DANNI.\n"
+"\n"
 
 msgid "In quale lingua vuoi esportare il file Excel?"
-msgstr ""
+msgstr "In quale lingua vuoi esportare il file Excel?"
 
 msgid "Info"
-msgstr ""
+msgstr "Info"
 
 msgid "Inserisci il valore da SOMMARE a tutti i numeri di RdO."
-msgstr ""
+msgstr "Inserisci il valore da SOMMARE a tutti i numeri di RdO."
 
 msgid "Inserisci Nuova Richiesta di Offerta"
-msgstr ""
+msgstr "Inserisci Nuova Richiesta di Offerta"
 
 msgid "Istruzioni Importazione Excel"
-msgstr ""
+msgstr "Istruzioni Importazione Excel"
 
 msgid ""
 "L'accesso simultaneo in scrittura al database causerà la corruzione permanente e la perdita totale dei dati.\n"
 "\n"
 msgstr ""
+"L'accesso simultaneo in scrittura al database causerà la corruzione permanente e la perdita totale dei dati.\n"
+"\n"
 
 msgid ""
 "L'accesso simultaneo in scrittura da parte di più utenti a un singolo file di database non è supportato e causerà con alta probabilità la corruzione irreversibile dei dati.\n"
@@ -788,11 +870,15 @@ msgid ""
 "L'INTERO RISCHIO DERIVANTE DALL'USO O DALLE PRESTAZIONI DEL SOFTWARE RIMANE A CARICO DELL'UTENTE.\n"
 "\n"
 msgstr ""
+"L'INTERO RISCHIO DERIVANTE DALL'USO O DALLE PRESTAZIONI DEL SOFTWARE RIMANE A CARICO DELL'UTENTE.\n"
+"\n"
 
 msgid ""
 "L'opzione per salvare allegati come link è attiva, ma non è stato configurato un percorso di archivio.\n"
 "Vai su Impostazioni > Cambia percorso archivio per impostarlo."
 msgstr ""
+"L'opzione per salvare allegati come link è attiva, ma non è stato configurato un percorso di archivio.\n"
+"Vai su Impostazioni > Cambia percorso archivio per impostarlo."
 
 msgid ""
 "L'utente si assume la piena responsabilità per la perdita o corruzione dei "
@@ -804,83 +890,114 @@ msgid ""
 "La funzione 'Apri Altro Database' è pensata per consentire a un singolo utente di gestire temporaneamente diversi database personali.\n"
 "\n"
 msgstr ""
+"La funzione 'Apri Altro Database' è pensata per consentire a un singolo utente di gestire temporaneamente diversi database personali.\n"
+"\n"
 
 msgid "Lavora su un altro file database solo per questa sessione."
-msgstr ""
+msgstr "Lavora su un altro file database solo per questa sessione."
 
 msgid ""
-"Licenza d'Uso (Freeware) - DataFlow Procurement Software\n"
+"Contratto di Licenza per l'Utente Finale (GNU GPLv3) - DataFlow Procurement Software\n"
 "\n"
 msgstr ""
+"Contratto di Licenza per l'Utente Finale (GNU GPLv3) - DataFlow Procurement Software\n"
+"\n"
 
 msgid "Licenza d'Uso - DataFlow Procurement Software"
-msgstr ""
+msgstr "Licenza d'Uso - DataFlow Procurement Software"
 
 msgid "Lingua"
-msgstr ""
+msgstr "Lingua"
 
 msgid "Lingua:"
-msgstr ""
+msgstr "Lingua:"
 
 msgid ""
-"Lo Sviluppatore concede all'utente una licenza non esclusiva e gratuita per scaricare, installare e utilizzare il Software per scopi personali, educativi o commerciali, senza limiti di tempo.\n"
+"Lo sviluppatore concede all'utente una licenza non esclusiva per scaricare, installare, utilizzare, studiare, modificare e ridistribuire il Software in conformità con i termini della GNU General Public License versione 3.\n"
 "\n"
 msgstr ""
-
-msgid "Mat. C/L"
-msgstr ""
-
-msgid "Mat. c/lavoro:"
-msgstr ""
-
-msgid "Materiale c/lavoro:"
-msgstr ""
-
-msgid "Migrazione completata. Consulta il report per i dettagli."
-msgstr ""
-
-msgid "Migrazione Dati"
-msgstr ""
-
-msgid "Modifica Articoli - RdO N° {}"
-msgstr ""
-
-msgid "Modifica elenco fornitori (nomi separati da virgola):"
-msgstr ""
-
-msgid "Modifica Fornitori - RdO N°{}"
-msgstr ""
-
-msgid "Modifica Riferimento"
-msgstr ""
-
-msgid "Modifica Riferimento:"
-msgstr ""
-
-msgid "N/D"
-msgstr ""
-
-msgid "Nessun allegato da archiviare."
-msgstr ""
-
-msgid "Nessun articolo selezionato."
-msgstr ""
-
-msgid "Nessuna RdO da rinumerare."
-msgstr ""
-
-msgid "Nessuna RfQ da esportare nella vista corrente."
-msgstr ""
-
-msgid "Nome File"
-msgstr ""
-
-msgid "Nomi Fornitori (separati da virgola):"
-msgstr ""
+"Lo sviluppatore concede all'utente una licenza non esclusiva per scaricare, installare, utilizzare, studiare, modificare e ridistribuire il Software in conformità con i termini della GNU General Public License versione 3.\n"
+"\n"
 
 msgid ""
-"NON USARE QUESTA FUNZIONE per aprire un database condiviso su una rete se un"
-"altro utente potrebbe aprirlo contemporaneamente. "
+"Il Software può essere utilizzato, studiato, modificato e ridistribuito liberamente secondo i termini della GNU General Public License versione 3.\n"
+"\n"
+msgstr ""
+"Il Software può essere utilizzato, studiato, modificato e ridistribuito liberamente secondo i termini della GNU General Public License versione 3.\n"
+"\n"
+
+msgid ""
+"Qualsiasi ridistribuzione del Software, modificato o non modificato, deve mantenere l'avviso di copyright ed essere distribuita sotto la stessa licenza GNU GPLv3.\n"
+"\n"
+msgstr ""
+"Qualsiasi ridistribuzione del Software, modificato o non modificato, deve mantenere l'avviso di copyright ed essere distribuita sotto la stessa licenza GNU GPLv3.\n"
+"\n"
+
+msgid ""
+"Il Software utilizza un database SQLite con modalità WAL per ogni utente. "
+"DataFlow 2.0.0 supporta l'utilizzo multi-utente con database separati per "
+"ciascun utente, permettendo la condivisione sicura dei dati in sola "
+"lettura.\n"
+msgstr ""
+"Il Software utilizza un database SQLite con modalità WAL per ogni utente. "
+"DataFlow 2.0.0 supporta l'utilizzo multi-utente con database separati per "
+"ciascun utente, permettendo la condivisione sicura dei dati in sola "
+"lettura.\n"
+
+msgid "Mat. C/L"
+msgstr "Mat. C/L"
+
+msgid "Mat. c/lavoro:"
+msgstr "Mat. c/lavoro:"
+
+msgid "Materiale c/lavoro:"
+msgstr "Materiale c/lavoro:"
+
+msgid "Migrazione completata. Consulta il report per i dettagli."
+msgstr "Migrazione completata. Consulta il report per i dettagli."
+
+msgid "Migrazione Dati"
+msgstr "Migrazione Dati"
+
+msgid "Modifica Articoli - RdO N° {}"
+msgstr "Modifica Articoli - RdO N° {}"
+
+msgid "Modifica elenco fornitori (nomi separati da virgola):"
+msgstr "Modifica elenco fornitori (nomi separati da virgola):"
+
+msgid "Modifica Fornitori - RdO N°{}"
+msgstr "Modifica Fornitori - RdO N°{}"
+
+msgid "Modifica Riferimento"
+msgstr "Modifica Riferimento"
+
+msgid "Modifica Riferimento:"
+msgstr "Modifica Riferimento:"
+
+msgid "N/D"
+msgstr "N/D"
+
+msgid "Nessun allegato da archiviare."
+msgstr "Nessun allegato da archiviare."
+
+msgid "Nessun articolo selezionato."
+msgstr "Nessun articolo selezionato."
+
+msgid "Nessuna RdO da rinumerare."
+msgstr "Nessuna RdO da rinumerare."
+
+msgid "Nessuna RfQ da esportare nella vista corrente."
+msgstr "Nessuna RfQ da esportare nella vista corrente."
+
+msgid "Nome File"
+msgstr "Nome File"
+
+msgid "Nomi Fornitori (separati da virgola):"
+msgstr "Nomi Fornitori (separati da virgola):"
+
+msgid ""
+"NON USARE QUESTA FUNZIONE per aprire un database condiviso su una rete se "
+"unaltro utente potrebbe aprirlo contemporaneamente. "
 msgstr ""
 
 msgid ""
@@ -888,587 +1005,637 @@ msgid ""
 "\n"
 "Dettagli: {}"
 msgstr ""
+"Non è stato possibile ripristinare la formattazione della nota. Potrebbe essere stata salvata con una versione precedente.\n"
+"\n"
+"Dettagli: {}"
 
 msgid "Nota salvata correttamente."
-msgstr ""
+msgstr "Nota salvata correttamente."
 
 msgid "Note - RdO N° {}"
-msgstr ""
+msgstr "Note - RdO N° {}"
 
 msgid "Num RdO"
-msgstr ""
+msgstr "Num RdO"
 
 msgid "Num. Ordine:"
-msgstr ""
+msgstr "Num. Ordine:"
 
 msgid "Numerazione Richieste di Offerta (RdO)"
-msgstr ""
+msgstr "Numerazione Richieste di Offerta (RdO)"
 
 msgid "Numeri Ordine (separati da virgola):"
-msgstr ""
+msgstr "Numeri Ordine (separati da virgola):"
 
 msgid "Numeri ordine salvati."
-msgstr ""
+msgstr "Numeri ordine salvati."
 
 msgid "Numero RdO:"
-msgstr ""
+msgstr "Numero RdO:"
 
 msgid "Ora:"
-msgstr ""
+msgstr "Ora:"
 
 msgid "Ordini di Acquisto"
-msgstr ""
+msgstr "Ordini di Acquisto"
 
 msgid "Pannello di Controllo - Richiesta N° {}"
-msgstr ""
+msgstr "Pannello di Controllo - Richiesta N° {}"
 
 msgid "Pannello di Controllo - Richiesta N° {} - {}"
 msgstr "Pannello di Controllo - Richiesta N° {} - {}"
 
 msgid "Control Panel - User: {} - Request N° {} - {}"
-msgstr "Pannello di Controllo - Utente: {} - Richiesta N° {} - {}"
+msgstr "Control Panel - User: {} - Request N° {} - {}"
 
 msgid "Control Panel - Request N° {} - {}"
-msgstr "Pannello di Controllo - Richiesta N° {} - {}"
+msgstr "Control Panel - Request N° {} - {}"
 
 msgid "Per abilitare il backup automatico specificare un percorso."
-msgstr ""
+msgstr "Per abilitare il backup automatico specificare un percorso."
 
 msgid "Percorso di archivio non configurato."
-msgstr ""
+msgstr "Percorso di archivio non configurato."
 
 msgid ""
 "Percorso file non valido. Possibile tentativo di accesso non autorizzato."
 msgstr ""
+"Percorso file non valido. Possibile tentativo di accesso non autorizzato."
 
 msgid "Permessi insufficienti per aprire il file: {}"
-msgstr ""
+msgstr "Permessi insufficienti per aprire il file: {}"
 
 msgid "Q.tà"
-msgstr ""
+msgstr "Q.tà"
 
 msgid "Quantità"
-msgstr ""
+msgstr "Quantità"
 
 msgid "Quantità:"
-msgstr ""
+msgstr "Quantità:"
 
 msgid "RdO Archiviate"
-msgstr ""
+msgstr "RdO Archiviate"
 
 msgid "RdO Attive"
-msgstr ""
+msgstr "RdO Attive"
 
 msgid "Report di Migrazione Database\n"
-msgstr ""
+msgstr "Report di Migrazione Database\n"
 
 msgid "Report Migrazione"
-msgstr ""
+msgstr "Report Migrazione"
 
 msgid "Riavvio Necessario"
-msgstr ""
+msgstr "Riavvio Necessario"
 
 msgid ""
 "Ricalcola i numeri delle RdO aggiungendo un offset. Operazione "
 "irreversibile."
 msgstr ""
+"Ricalcola i numeri delle RdO aggiungendo un offset. Operazione "
+"irreversibile."
 
 msgid "Ricalcolo Numerazione"
-msgstr ""
+msgstr "Ricalcolo Numerazione"
 
 msgid "Richiesta N° {} salvata!"
-msgstr ""
+msgstr "Richiesta N° {} salvata!"
 
 msgid "Riepilogo Articoli Inseriti"
-msgstr ""
+msgstr "Riepilogo Articoli Inseriti"
 
 msgid "Riferimento"
-msgstr ""
+msgstr "Riferimento"
 
 msgid "Riferimento aggiornato."
-msgstr ""
+msgstr "Riferimento aggiornato."
 
 msgid "Riferimento:"
-msgstr ""
+msgstr "Riferimento:"
 
 msgid "Riferimento: "
-msgstr ""
+msgstr "Riferimento: "
 
 msgid "Rinumerazione completata!"
-msgstr ""
+msgstr "Rinumerazione completata!"
 
 msgid "Salva allegato come..."
-msgstr ""
+msgstr "Salva allegato come..."
 
 msgid "Salva backup come..."
-msgstr ""
+msgstr "Salva backup come..."
 
 msgid "Salva i nuovi allegati come link esterni (non incorporarli nel DB)"
-msgstr ""
+msgstr "Salva i nuovi allegati come link esterni (non incorporarli nel DB)"
 
 msgid "Salva in:"
-msgstr ""
+msgstr "Salva in:"
 
 msgid "Salvare le modifiche agli articoli?"
-msgstr ""
+msgstr "Salvare le modifiche agli articoli?"
 
 msgid "Scegli Lingua"
-msgstr ""
+msgstr "Scegli Lingua"
 
 msgid ""
 "Sei sicuro di voler eliminare la RdO N° {}?\n"
 "L'operazione è permanente."
 msgstr ""
+"Sei sicuro di voler eliminare la RdO N° {}?\n"
+"L'operazione è permanente."
 
 msgid ""
 "Sei sicuro di voler eliminare le {} RdO selezionate?\n"
 "L'operazione è permanente."
 msgstr ""
+"Sei sicuro di voler eliminare le {} RdO selezionate?\n"
+"L'operazione è permanente."
 
 msgid "Sei sicuro di voler eliminare questo allegato?"
-msgstr ""
+msgstr "Sei sicuro di voler eliminare questo allegato?"
 
 msgid "Seleziona cartella per backup automatici"
-msgstr ""
+msgstr "Seleziona cartella per backup automatici"
 
 msgid "Seleziona file da allegare"
-msgstr ""
+msgstr "Seleziona file da allegare"
 
 msgid "Seleziona file Excel"
-msgstr ""
+msgstr "Seleziona file Excel"
 
 msgid "Seleziona il VECCHIO database da cui importare i dati"
-msgstr ""
+msgstr "Seleziona il VECCHIO database da cui importare i dati"
 
 msgid ""
 "Seleziona la lingua dell'interfaccia. Il cambio richiede il riavvio "
 "dell'applicazione."
 msgstr ""
+"Seleziona la lingua dell'interfaccia. Il cambio richiede il riavvio "
+"dell'applicazione."
 
 msgid "Seleziona un allegato da aprire."
-msgstr ""
+msgstr "Seleziona un allegato da aprire."
 
 msgid "Seleziona un allegato da eliminare."
-msgstr ""
+msgstr "Seleziona un allegato da eliminare."
 
 msgid "Seleziona un allegato da scaricare."
-msgstr ""
+msgstr "Seleziona un allegato da scaricare."
 
 msgid "Seleziona un database da aprire temporaneamente"
-msgstr ""
+msgstr "Seleziona un database da aprire temporaneamente"
 
 msgid "Seleziona un fornitore."
-msgstr ""
+msgstr "Seleziona un fornitore."
 
 msgid "Seleziona una lingua."
-msgstr ""
+msgstr "Seleziona una lingua."
 
 msgid "Sommario"
-msgstr ""
+msgstr "Sommario"
 
 msgid "Specificare almeno un fornitore."
-msgstr ""
+msgstr "Specificare almeno un fornitore."
 
 msgid "Sposta allegati esistenti dal database a una cartella esterna."
-msgstr ""
+msgstr "Sposta allegati esistenti dal database a una cartella esterna."
 
 msgid "SQLite DB"
-msgstr ""
+msgstr "SQLite DB"
 
 msgid ""
 "Stai per importare i dati da:\n"
-"{}" 
-"\n"
+"{}\n"
 "Nel database attuale:\n"
-"{}" 
-"\n"
+"{}\n"
 "L'operazione potrebbe richiedere tempo. Continuare?"
 msgstr ""
+"Stai per importare i dati da:\n"
+"{}\n"
+"Nel database attuale:\n"
+"{}\n"
+"L'operazione potrebbe richiedere tempo. Continuare?"
 
 msgid "Successo"
-msgstr ""
+msgstr "Successo"
 
 msgid "Sviluppatore: "
-msgstr ""
+msgstr "Sviluppatore: "
 
 msgid "Tabella Prezzi: Materiali / Fornitori"
-msgstr ""
+msgstr "Tabella Prezzi: Materiali / Fornitori"
 
 msgid "Testata Richiesta Offerta"
-msgstr ""
+msgstr "Testata Richiesta Offerta"
 
 msgid "TIPO '{}' (4 colonne):\n"
-msgstr ""
+msgstr "TIPO '{}' (4 colonne):\n"
 
 msgid "TIPO '{}' (7 colonne):\n"
-msgstr ""
+msgstr "TIPO '{}' (7 colonne):\n"
 
 msgid "Tipo di RdO:"
-msgstr ""
+msgstr "Tipo di RdO:"
 
 msgid "Tipo RdO"
-msgstr ""
+msgstr "Tipo RdO"
 
 msgid "Tipo RdO non trovato."
-msgstr ""
+msgstr "Tipo RdO non trovato."
 
 msgid "Tipo RdO:"
-msgstr ""
+msgstr "Tipo RdO:"
 
 msgid "Tutte"
-msgstr ""
+msgstr "Tutte"
 
 msgid "Tutti i file"
-msgstr ""
+msgstr "Tutti i file"
 
 msgid "U Sottolineato"
-msgstr ""
+msgstr "U Sottolineato"
 
 msgid ""
 "Utilizzando questo Software, l'utente accetta i termini e le condizioni di "
 "questa licenza.\n"
 msgstr ""
+"Utilizzando questo Software, l'utente accetta i termini e le condizioni di "
+"questa licenza.\n"
 
 msgid "Verifica database..."
-msgstr ""
+msgstr "Verifica database..."
 
 msgid "Verrà caricato il database temporaneo. Il programma verrà riavviato."
-msgstr ""
+msgstr "Verrà caricato il database temporaneo. Il programma verrà riavviato."
 
 msgid "Visualizza nota"
-msgstr ""
+msgstr "Visualizza nota"
 
 msgid "Vuoi procedere lo stesso?"
-msgstr ""
+msgstr "Vuoi procedere lo stesso?"
 
 msgid ""
 "{} allegati archiviati e rimossi dal database.\n"
 "Spazio liberato: {:.2f} MB"
 msgstr ""
+"{} allegati archiviati e rimossi dal database.\n"
+"Spazio liberato: {:.2f} MB"
 
 msgid ""
 "{} allegati archiviati.\n"
 "Inizio compattazione database... (potrebbe richiedere tempo)"
 msgstr ""
+"{} allegati archiviati.\n"
+"Inizio compattazione database... (potrebbe richiedere tempo)"
 
 msgid "{} articoli importati."
-msgstr ""
+msgstr "{} articoli importati."
 
 msgid "{} RdO eliminate."
-msgstr ""
+msgstr "{} RdO eliminate."
 
 msgid "↩️ Riattiva"
-msgstr ""
+msgstr "↩️ Riattiva"
 
 msgid "⚙️ Impostazioni"
-msgstr ""
+msgstr "⚙️ Impostazioni"
 
 msgid "✅ Accetto"
-msgstr ""
+msgstr "✅ Accetto"
 
 msgid "✏️ Modifica Articoli"
-msgstr ""
+msgstr "✏️ Modifica Articoli"
 
 msgid "✏️ Modifica Fornitori"
-msgstr ""
+msgstr "✏️ Modifica Fornitori"
 
 msgid "❌ Annulla"
-msgstr ""
+msgstr "❌ Annulla"
 
 msgid "❌ Annulla Modifica"
-msgstr ""
+msgstr "❌ Annulla Modifica"
 
 msgid "❌ Chiudi"
-msgstr ""
+msgstr "❌ Chiudi"
 
 msgid "❌ Esci"
-msgstr ""
+msgstr "❌ Esci"
 
 msgid "❓ Guida"
-msgstr ""
+msgstr "❓ Guida"
 
 msgid "➕ Aggiungi Articolo"
-msgstr ""
+msgstr "➕ Aggiungi Articolo"
 
 msgid "➕ Aggiungi..."
-msgstr ""
+msgstr "➕ Aggiungi..."
 
 msgid "➕ Nuova RdO"
-msgstr ""
+msgstr "➕ Nuova RdO"
 
 msgid "⬇️ Download..."
-msgstr ""
+msgstr "⬇️ Download..."
 
 msgid "🇬🇧 Inglese"
-msgstr ""
+msgstr "🇬🇧 Inglese"
 
 msgid "🇮🇹 Italiano"
-msgstr ""
+msgstr "🇮🇹 Italiano"
 
 msgid "👁️ Apri Selezionato"
-msgstr ""
+msgstr "👁️ Apri Selezionato"
 
 msgid "💾 Backup Manuale..."
-msgstr ""
+msgstr "💾 Backup Manuale..."
 
 msgid "💾 Salva"
-msgstr ""
+msgstr "💾 Salva"
 
 msgid "💾 Salva Impostazione Allegati"
-msgstr ""
+msgstr "💾 Salva Impostazione Allegati"
 
 msgid "💾 Salva Impostazioni Backup"
-msgstr ""
+msgstr "💾 Salva Impostazioni Backup"
 
 msgid "💾 Salva Lingua"
-msgstr ""
+msgstr "💾 Salva Lingua"
 
 msgid "💾 Salva Modifiche"
-msgstr ""
+msgstr "💾 Salva Modifiche"
 
 msgid "💾 Salva Nota"
-msgstr ""
+msgstr "💾 Salva Nota"
 
 msgid "💾 Salva Numeri Ordine"
-msgstr ""
+msgstr "💾 Salva Numeri Ordine"
 
 msgid "💾 Salva Richiesta Completa"
-msgstr ""
+msgstr "💾 Salva Richiesta Completa"
 
 msgid "📁 Apri Altro Database..."
-msgstr ""
+msgstr "📁 Apri Altro Database..."
 
 msgid "📁 Gestisci Documenti Interni"
-msgstr ""
+msgstr "📁 Gestisci Documenti Interni"
 
 msgid "📁 Scegli..."
-msgstr ""
+msgstr "📁 Scegli..."
 
 msgid "📄 Gestisci Offerte Fornitori"
-msgstr ""
+msgstr "📄 Gestisci Offerte Fornitori"
 
 msgid "📄 Licenza"
-msgstr ""
+msgstr "📄 Licenza"
 
 msgid "📊 Esporta Excel"
-msgstr ""
+msgstr "📊 Esporta Excel"
 
 msgid "📊 Importa da Excel..."
-msgstr ""
+msgstr "📊 Importa da Excel..."
 
 msgid "📦 Archivia"
-msgstr ""
+msgstr "📦 Archivia"
 
 msgid "📦 Archivia Allegati..."
-msgstr ""
+msgstr "📦 Archivia Allegati..."
 
 msgid "🔄 Aggiorna Articolo"
-msgstr ""
+msgstr "🔄 Aggiorna Articolo"
 
 msgid "🔄 Avvia Ricalcolo..."
-msgstr ""
+msgstr "🔄 Avvia Ricalcolo..."
 
 msgid "🔄 Migra Database..."
-msgstr ""
+msgstr "🔄 Migra Database..."
 
 msgid "🔍 Cerca"
-msgstr ""
+msgstr "🔍 Cerca"
 
 msgid "🔎 Pulisci Filtri"
-msgstr ""
+msgstr "🔎 Pulisci Filtri"
 
 msgid "🔁 Duplica RdO"
-msgstr ""
+msgstr "🔁 Duplica RdO"
 
 msgid "🗑 Elimina RdO"
-msgstr ""
+msgstr "🗑 Elimina RdO"
 
 msgid "🗑️ Elimina Selezionata"
 msgstr ""
 
 msgid "🗑️ Elimina Selezionato"
-msgstr ""
+msgstr "🗑️ Elimina Selezionato"
 
 msgid "🗑 Rimuovi"
-msgstr ""
+msgstr "🗑 Rimuovi"
 
 msgid "Apri analisi SQDC"
-msgstr "📈 Apri analisi SQDC"
+msgstr "Apri analisi SQDC"
 
 msgid ""
 "Assegna i pesi percentuali a ciascun criterio (la somma deve essere 100%):"
 msgstr ""
+"Assegna i pesi percentuali a ciascun criterio (la somma deve essere 100%):"
 
 msgid "Calcola Cost Automaticamente"
-msgstr ""
+msgstr "Calcola Cost Automaticamente"
 
 msgid "🔄 Calcola Cost Automaticamente"
-msgstr ""
+msgstr "🔄 Calcola Cost Automaticamente"
 
 msgid "Assegna un voto da 1 a 10 per ciascun criterio e fornitore:"
-msgstr ""
+msgstr "Assegna un voto da 1 a 10 per ciascun criterio e fornitore:"
 
 msgid ""
-"Assegna un voto da 1 a 10 per ciascun criterio e fornitore (doppio click per"
-"modificare):"
+"Assegna un voto da 1 a 10 per ciascun criterio e fornitore (doppio click "
+"permodificare):"
 msgstr ""
 
 msgid "Crea analisi SQDC"
-msgstr "📊 Crea analisi SQDC"
+msgstr "Crea analisi SQDC"
 
 msgid "Cost"
-msgstr ""
+msgstr "Cost"
 
 msgid "Devi compilare tutti i voti."
-msgstr "Devi compilare tutti i campi vuoti."
+msgstr "Devi compilare tutti i voti."
 
 msgid "Delivery"
-msgstr ""
+msgstr "Delivery"
 
 msgid "Descrizioni Criteri"
-msgstr ""
+msgstr "Descrizioni Criteri"
 
 msgid "Errore Pesi"
-msgstr ""
+msgstr "Errore Pesi"
 
 msgid "Errore SQDC"
-msgstr ""
+msgstr "Errore SQDC"
 
 msgid "Errore Voti"
-msgstr ""
+msgstr "Errore Voti"
 
 msgid "I pesi devono essere tra 0 e 100."
-msgstr ""
+msgstr "I pesi devono essere tra 0 e 100."
 
 msgid "I pesi devono essere numeri validi."
-msgstr ""
+msgstr "I pesi devono essere numeri validi."
 
 msgid "I voti devono essere numeri interi da 1 a 10."
-msgstr ""
+msgstr "I voti devono essere numeri interi da 1 a 10."
 
 msgid "I voti devono essere tra 1 e 10."
-msgstr ""
+msgstr "I voti devono essere tra 1 e 10."
 
 msgid "La somma dei pesi deve essere 100%. Attualmente: {:.1f}%"
-msgstr ""
+msgstr "La somma dei pesi deve essere 100%. Attualmente: {:.1f}%"
 
 msgid "Pesi (%)"
-msgstr ""
+msgstr "Pesi (%)"
 
 msgid "Pesi Percentuali"
-msgstr ""
+msgstr "Pesi Percentuali"
 
 msgid "Quality"
-msgstr ""
+msgstr "Quality"
 
 msgid "Safety"
-msgstr ""
+msgstr "Safety"
 
 msgid "Salva SQDC"
-msgstr ""
+msgstr "Salva SQDC"
 
 msgid "💾 Salva SQDC"
-msgstr ""
+msgstr "💾 Salva SQDC"
 
 msgid "TOTALE"
-msgstr ""
+msgstr "TOTALE"
 
 msgid "Voti (1-10)"
-msgstr ""
+msgstr "Voti (1-10)"
 
 msgid "Analisi SQDC - RdO N° {}"
-msgstr ""
+msgstr "Analisi SQDC - RdO N° {}"
 
 msgid ""
 "Analisi SQDC esportata con successo:\n"
 "{}"
 msgstr ""
+"Analisi SQDC esportata con successo:\n"
+"{}"
 
 msgid "Analisi SQDC salvata correttamente nei Documenti Interni."
-msgstr ""
+msgstr "Analisi SQDC salvata correttamente nei Documenti Interni."
 
 msgid ""
 "aderenza del fornitore agli standard di sicurezza, alle conformità normativa"
 " relativa al prodotto/servizio e al rischio finanziario e geopolitico."
 msgstr ""
+"aderenza del fornitore agli standard di sicurezza, alle conformità normativa"
+" relativa al prodotto/servizio e al rischio finanziario e geopolitico."
 
 msgid ""
 "capacità del fornitore di rispettare integralmente le specifiche tecniche "
 "concordate."
 msgstr ""
+"capacità del fornitore di rispettare integralmente le specifiche tecniche "
+"concordate."
 
 msgid ""
 "capacità di rispettare il tempo di consegna offerto e la flessibilità a "
 "fronte di eventuali variazioni richieste."
 msgstr ""
+"capacità di rispettare il tempo di consegna offerto e la flessibilità a "
+"fronte di eventuali variazioni richieste."
 
 msgid ""
 "competitività relativa al prezzo totale offerto, considerando i termini di "
 "pagamento e i costi accessori (es. trasporto, installazione)."
 msgstr ""
+"competitività relativa al prezzo totale offerto, considerando i termini di "
+"pagamento e i costi accessori (es. trasporto, installazione)."
 
 msgid "Prezzi Mancanti"
-msgstr ""
+msgstr "Prezzi Mancanti"
 
 msgid ""
 "Non tutti i fornitori hanno prezzi validi. I voti Cost devono essere "
 "inseriti manualmente."
 msgstr ""
+"Non tutti i fornitori hanno prezzi validi. I voti Cost devono essere "
+"inseriti manualmente."
 
 msgid "Calcolo Automatico"
-msgstr ""
+msgstr "Calcolo Automatico"
 
 msgid ""
 "Voti Cost calcolati automaticamente. Il fornitore con il prezzo più basso ha"
 " voto 10."
 msgstr ""
+"Voti Cost calcolati automaticamente. Il fornitore con il prezzo più basso ha"
+" voto 10."
 
 msgid "Impossibile calcolare i voti Cost: {}"
-msgstr ""
+msgstr "Impossibile calcolare i voti Cost: {}"
 
 msgid ""
 "I voti devono essere tra 1 e 10.\n"
 "Fornitore: {}\n"
 "Criterio: {}"
 msgstr ""
+"I voti devono essere tra 1 e 10.\n"
+"Fornitore: {}\n"
+"Criterio: {}"
 
 msgid ""
 "I voti devono essere numeri interi da 1 a 10.\n"
 "Fornitore: {}\n"
 "Criterio: {}"
 msgstr ""
+"I voti devono essere numeri interi da 1 a 10.\n"
+"Fornitore: {}\n"
+"Criterio: {}"
 
 msgid "Impossibile esportare l'analisi: {}"
-msgstr ""
+msgstr "Impossibile esportare l'analisi: {}"
 
 msgid "Impossibile salvare l'analisi: {}"
-msgstr ""
+msgstr "Impossibile salvare l'analisi: {}"
 
 msgid "Errore nel recupero dei prezzi dal database: {}"
-msgstr ""
+msgstr "Errore nel recupero dei prezzi dal database: {}"
 
 msgid "Impossibile creare il file: {}"
-msgstr ""
+msgstr "Impossibile creare il file: {}"
 
 msgid "Salva Analisi SQDC"
-msgstr ""
+msgstr "Salva Analisi SQDC"
 
 msgid ""
 "⚠️ Seleziona prima un fornitore dall'elenco sottostante prima di aggiungere "
 "un allegato"
 msgstr ""
+"⚠️ Seleziona prima un fornitore dall'elenco sottostante prima di aggiungere "
+"un allegato"
 
 msgid ""
 "⚠️ ATTENZIONE: Impossibile calcolare il prezzo automaticamente per il "
 "fornitore {} per mancanza di prezzi o quantità nella tabella di RdO. Il voto"
 " Cost è stato impostato a 0."
 msgstr ""
+"⚠️ ATTENZIONE: Impossibile calcolare il prezzo automaticamente per il "
+"fornitore {} per mancanza di prezzi o quantità nella tabella di RdO. Il voto"
+" Cost è stato impostato a 0."
 
 msgid ""
 "⚠️ ATTENZIONE: Impossibile calcolare il prezzo automaticamente per i "
 "fornitori {} per mancanza di prezzi o quantità nella tabella di RdO. I voti "
 "Cost sono stati impostati a 0."
 msgstr ""
+"⚠️ ATTENZIONE: Impossibile calcolare il prezzo automaticamente per i "
+"fornitori {} per mancanza di prezzi o quantità nella tabella di RdO. I voti "
+"Cost sono stati impostati a 0."
 
 #: DataFlow 1.1.0.py
 msgid "📊 Crea analisi SQDC"
@@ -1477,5 +1644,1348 @@ msgstr "📊 Crea analisi SQDC"
 #: DataFlow 1.1.0.py
 msgid "📈 Apri analisi SQDC"
 msgstr "📈 Apri analisi SQDC"
-msgid "âš ï MODALITÃ€ SOLA LETTURA: Stai visualizzando una RdO di un altro utente. Non puoi modificare i dati."
-msgstr "âš ï MODALITÃ€ SOLA LETTURA: Stai visualizzando una RdO di un altro utente. Non puoi modificare i dati."
+
+msgid ""
+"âš ï MODALITÃ€ SOLA LETTURA: Stai visualizzando una RdO di un altro utente. "
+"Non puoi modificare i dati."
+msgstr ""
+"âš ï MODALITÃ€ SOLA LETTURA: Stai visualizzando una RdO di un altro utente. "
+"Non puoi modificare i dati."
+
+msgid "Gestione Numeri Ordine"
+msgstr "Gestione Numeri Ordine"
+
+msgid "🧹 Pulisci Filtri"
+msgstr "🧹 Pulisci Filtri"
+
+msgid "TIPO '{}' (7 colonne):"
+msgstr "TIPO '{}' (7 colonne):"
+
+msgid "Posizione attuale: {}"
+msgstr "Posizione attuale: {}"
+
+msgid ""
+"L'utente si assume la piena responsabilità per la perdita o corruzione dei "
+"dati derivante dall'uso improprio del software.\n"
+msgstr ""
+"L'utente si assume la piena responsabilità per la perdita o corruzione dei "
+"dati derivante dall'uso improprio del software.\n"
+
+msgid ""
+"Utilizzando questo Software, l'utente accetta i termini e le condizioni di "
+"questa licenza."
+msgstr ""
+"Utilizzando questo Software, l'utente accetta i termini e le condizioni di "
+"questa licenza."
+
+msgid "Nessun file da copiare nella cartella sorgente"
+msgstr "Nessun file da copiare nella cartella sorgente"
+
+msgid "v2.0.0 - Sviluppato da "
+msgstr "v2.0.0 - Sviluppato da "
+
+msgid ""
+"Licenza d'Uso (Freeware) - DataFlow Procurement Software\n"
+"\n"
+msgstr ""
+"Licenza d'Uso (Freeware) - DataFlow Procurement Software\n"
+"\n"
+
+msgid "Scansione database condivisi..."
+msgstr "Scansione database condivisi..."
+
+msgid "Impossibile eliminare l'articolo: {}"
+msgstr "Impossibile eliminare l'articolo: {}"
+
+msgid "Seleziona almeno un articolo da rimuovere."
+msgstr "Seleziona almeno un articolo da rimuovere."
+
+msgid ""
+"Errore durante la copia:\n"
+"{}\n"
+"\n"
+"Tentativo di rollback in corso..."
+msgstr ""
+"Errore durante la copia:\n"
+"{}\n"
+"\n"
+"Tentativo di rollback in corso..."
+
+msgid "- Allegati Non Trovati"
+msgstr "- Allegati Non Trovati"
+
+msgid "Operazione Non Consentita"
+msgstr "Operazione Non Consentita"
+
+msgid "[SOLA LETTURA]"
+msgstr "[SOLA LETTURA]"
+
+msgid ""
+"c) Modificare, adattare, tradurre o creare opere derivate basate sul "
+"Software senza il previo consenso scritto dello Sviluppatore."
+msgstr ""
+"c) Modificare, adattare, tradurre o creare opere derivate basate sul "
+"Software senza il previo consenso scritto dello Sviluppatore."
+
+msgid "Posizione DataFlow Standard"
+msgstr "Posizione DataFlow Standard"
+
+msgid "Impossibile salvare i dati utente: {}"
+msgstr "Impossibile salvare i dati utente: {}"
+
+msgid "✓ Username aggiornato da '{}' a '{}'"
+msgstr "✓ Username aggiornato da '{}' a '{}'"
+
+msgid "- La Griglia Prezzi"
+msgstr "- La Griglia Prezzi"
+
+msgid ""
+"L'INTERO RISCHIO DERIVANTE DALL'USO O DALLE PRESTAZIONI DEL SOFTWARE RIMANE "
+"A CARICO DELL'UTENTE."
+msgstr ""
+"L'INTERO RISCHIO DERIVANTE DALL'USO O DALLE PRESTAZIONI DEL SOFTWARE RIMANE "
+"A CARICO DELL'UTENTE."
+
+msgid "Input Sanitizzato"
+msgstr "Input Sanitizzato"
+
+msgid ""
+"⚠️ MODALITÀ SOLA LETTURA: Stai visualizzando una RdO di un altro utente. Non"
+" puoi modificare i dati."
+msgstr ""
+"⚠️ MODALITÀ SOLA LETTURA: Stai visualizzando una RdO di un altro utente. Non"
+" puoi modificare i dati."
+
+msgid "- Gestione Numeri Ordine (PO)"
+msgstr "- Gestione Numeri Ordine (PO)"
+
+msgid "Licenza d'Uso (Freeware) - DataFlow Procurement Software"
+msgstr "Licenza d'Uso (Freeware) - DataFlow Procurement Software"
+
+msgid "Percorso Troppo Lungo"
+msgstr "Percorso Troppo Lungo"
+
+msgid ""
+"IL SOFTWARE È FORNITO \"COSÌ COM'È\" (AS IS), SENZA ALCUNA GARANZIA, "
+"ESPRESSA O IMPLICITA. LO SVILUPPATORE NON FORNISCE ALCUNA GARANZIA RIGUARDO "
+"LA COMMERCIABILITÀ, L'IDONEITÀ PER UNO SCOPO PARTICOLARE O LA NON VIOLAZIONE"
+" DI DIRITTI DI TERZI.\n"
+msgstr ""
+"IL SOFTWARE È FORNITO \"COSÌ COM'È\" (AS IS), SENZA ALCUNA GARANZIA, "
+"ESPRESSA O IMPLICITA. LO SVILUPPATORE NON FORNISCE ALCUNA GARANZIA RIGUARDO "
+"LA COMMERCIABILITÀ, L'IDONEITÀ PER UNO SCOPO PARTICOLARE O LA NON VIOLAZIONE"
+" DI DIRITTI DI TERZI.\n"
+
+msgid "Configurazione percorsi utente..."
+msgstr "Configurazione percorsi utente..."
+
+msgid "- Prima RdO di Prova"
+msgstr "- Prima RdO di Prova"
+
+msgid "Numero Ordine:"
+msgstr "Numero Ordine:"
+
+msgid ""
+"✓ OPERAZIONE COMPLETATA CON SUCCESSO\n"
+"\n"
+"La cartella DataFlow è stata copiata con successo in:\n"
+"{dest}\n"
+"\n"
+"File copiati: {count}{username_change}\n"
+"\n"
+"⚠️ IMPORTANTE:\n"
+"- La cartella ORIGINALE in '{src}' NON è stata eliminata.\n"
+"- Prima di eliminarla manualmente, TESTA il corretto funzionamento \n"
+"  del database copiato.\n"
+"- DataFlow verrà riavviato automaticamente."
+msgstr ""
+"✓ OPERAZIONE COMPLETATA CON SUCCESSO\n"
+"\n"
+"La cartella DataFlow è stata copiata con successo in:\n"
+"{dest}\n"
+"\n"
+"File copiati: {count}{username_change}\n"
+"\n"
+"⚠️ IMPORTANTE:\n"
+"- La cartella ORIGINALE in '{src}' NON è stata eliminata.\n"
+"- Prima di eliminarla manualmente, TESTA il corretto funzionamento \n"
+"  del database copiato.\n"
+"- DataFlow verrà riavviato automaticamente."
+
+msgid "Analisi SQDC"
+msgstr "Analisi SQDC"
+
+msgid ""
+"b) Decodificare (reverse engineer), decompilare, disassemblare o tentare di "
+"scoprire in altro modo il codice sorgente del Software.\n"
+msgstr ""
+"b) Decodificare (reverse engineer), decompilare, disassemblare o tentare di "
+"scoprire in altro modo il codice sorgente del Software.\n"
+
+msgid "Operazione Completata"
+msgstr "Operazione Completata"
+
+msgid ""
+"Il backup è stato completato, ma non è stato possibile riaprire la connessione principale.\n"
+"Si consiglia di riavviare l'applicazione."
+msgstr ""
+"Il backup è stato completato, ma non è stato possibile riaprire la connessione principale.\n"
+"Si consiglia di riavviare l'applicazione."
+
+msgid ""
+"Sei sicuro di voler eliminare {} articolo/i selezionato/i?\n"
+"Verranno eliminati anche tutti i prezzi associati."
+msgstr ""
+"Sei sicuro di voler eliminare {} articolo/i selezionato/i?\n"
+"Verranno eliminati anche tutti i prezzi associati."
+
+msgid "🗑️ Cancella Nota"
+msgstr "🗑️ Cancella Nota"
+
+msgid ""
+"⚠️ CONFLITTO UTENTE RILEVATO\n"
+"\n"
+"Nella cartella di destinazione selezionata esiste già un database \n"
+"associato all'utente '{}'.\n"
+"\n"
+"Per evitare conflitti e perdita dati, è necessario cambiare \n"
+"il tuo username prima di procedere.\n"
+"\n"
+"Vuoi procedere con il cambio username?"
+msgstr ""
+"⚠️ CONFLITTO UTENTE RILEVATO\n"
+"\n"
+"Nella cartella di destinazione selezionata esiste già un database \n"
+"associato all'utente '{}'.\n"
+"\n"
+"Per evitare conflitti e perdita dati, è necessario cambiare \n"
+"il tuo username prima di procedere.\n"
+"\n"
+"Vuoi procedere con il cambio username?"
+
+msgid "Scegli dove salvare la cartella DataFlow (richiede riavvio)."
+msgstr "Scegli dove salvare la cartella DataFlow (richiede riavvio)."
+
+msgid "Selezione mancante"
+msgstr "Selezione mancante"
+
+msgid "📋 Inserisci OdA"
+msgstr "📋 Inserisci OdA"
+
+msgid ""
+"Non puoi duplicare RdO di altri utenti.\n"
+"Puoi operare solo sulle tue RdO."
+msgstr ""
+"Non puoi duplicare RdO di altri utenti.\n"
+"Puoi operare solo sulle tue RdO."
+
+msgid "   - Gestione Numeri Ordine (PO)"
+msgstr "   - Gestione Numeri Ordine (PO)"
+
+msgid "(in attesa dati)"
+msgstr "(in attesa dati)"
+
+msgid "🗑 Rimuovi Articolo Selezionato"
+msgstr "🗑 Rimuovi Articolo Selezionato"
+
+msgid "- Benvenuto in DataFlow"
+msgstr "- Benvenuto in DataFlow"
+
+msgid "Conflitto Username"
+msgstr "Conflitto Username"
+
+msgid ""
+"Backup creato con successo in:\n"
+"{}\n"
+"\n"
+"Dimensione: {:.2f} MB"
+msgstr ""
+"Backup creato con successo in:\n"
+"{}\n"
+"\n"
+"Dimensione: {:.2f} MB"
+
+msgid "Utente"
+msgstr "Utente"
+
+msgid "Operazione Annullata"
+msgstr "Operazione Annullata"
+
+msgid ""
+"a) Vendere, affittare, noleggiare o distribuire il Software in cambio di un "
+"compenso.\n"
+msgstr ""
+"a) Vendere, affittare, noleggiare o distribuire il Software in cambio di un "
+"compenso.\n"
+
+msgid ""
+"File SQDC trovato ma impossibile caricare i dati.\n"
+"Verrà aperta una nuova analisi vuota.\n"
+"\n"
+"Errore: {}"
+msgstr ""
+"File SQDC trovato ma impossibile caricare i dati.\n"
+"Verrà aperta una nuova analisi vuota.\n"
+"\n"
+"Errore: {}"
+
+msgid "Nome completo richiesto per procedere."
+msgstr "Nome completo richiesto per procedere."
+
+msgid "1 RdO eliminata e database compattato."
+msgstr "1 RdO eliminata e database compattato."
+
+msgid "Errore durante la selezione della cartella: {}"
+msgstr "Errore durante la selezione della cartella: {}"
+
+msgid ""
+"Impossibile scrivere nella cartella selezionata:\n"
+"{}\n"
+"Dettagli: {}"
+msgstr ""
+"Impossibile scrivere nella cartella selezionata:\n"
+"{}\n"
+"Dettagli: {}"
+
+msgid "© 2025"
+msgstr "© 2025"
+
+msgid "Database SQLite"
+msgstr "Database SQLite"
+
+msgid "- Inserimento Manuale degli Articoli"
+msgstr "- Inserimento Manuale degli Articoli"
+
+msgid "Errore Spostamento"
+msgstr "Errore Spostamento"
+
+msgid ""
+"Il percorso selezionato è troppo lungo ({} caratteri).\n"
+"\n"
+"Windows potrebbe avere problemi.\n"
+"Limite consigliato: 240 caratteri."
+msgstr ""
+"Il percorso selezionato è troppo lungo ({} caratteri).\n"
+"\n"
+"Windows potrebbe avere problemi.\n"
+"Limite consigliato: 240 caratteri."
+
+msgid ""
+"Non puoi eliminare RdO di altri utenti.\n"
+"Puoi operare solo sulle tue RdO."
+msgstr ""
+"Non puoi eliminare RdO di altri utenti.\n"
+"Puoi operare solo sulle tue RdO."
+
+msgid "📊 Importa da Excel"
+msgstr "📊 Importa da Excel"
+
+msgid ""
+"Copia il file del database nella nuova posizione, poi clicca OK per "
+"riavviare l'app."
+msgstr ""
+"Copia il file del database nella nuova posizione, poi clicca OK per "
+"riavviare l'app."
+
+msgid "Rollback completato: configurazione ripristinata"
+msgstr "Rollback completato: configurazione ripristinata"
+
+msgid "Vuoi aprire la cartella di destinazione per copiare il database?"
+msgstr "Vuoi aprire la cartella di destinazione per copiare il database?"
+
+msgid "➕ Aggiungi Fornitori"
+msgstr "➕ Aggiungi Fornitori"
+
+msgid "Percorso non valido."
+msgstr "Percorso non valido."
+
+msgid ""
+"c) Modificare, adattare, tradurre o creare opere derivate basate sul "
+"Software senza il previo consenso scritto dello Sviluppatore.\n"
+msgstr ""
+"c) Modificare, adattare, tradurre o creare opere derivate basate sul "
+"Software senza il previo consenso scritto dello Sviluppatore.\n"
+
+msgid "Errore durante il rollback: {}"
+msgstr "Errore durante il rollback: {}"
+
+msgid "𝐁 Grassetto"
+msgstr "𝐁 Grassetto"
+
+msgid "- Recupero da Backup"
+msgstr "- Recupero da Backup"
+
+msgid "⚠️ Errore Nota"
+msgstr "⚠️ Errore Nota"
+
+msgid "Apri Cartella"
+msgstr "Apri Cartella"
+
+msgid "Dati Utente Richiesti"
+msgstr "Dati Utente Richiesti"
+
+msgid "❌ Elimina"
+msgstr "❌ Elimina"
+
+msgid "Assicurarsi che il file Excel abbia la seguente struttura:"
+msgstr "Assicurarsi che il file Excel abbia la seguente struttura:"
+
+msgid "Che tipo di RdO vuoi creare?"
+msgstr "Che tipo di RdO vuoi creare?"
+
+msgid "Avviso"
+msgstr "Avviso"
+
+msgid "Tutti gli utenti"
+msgstr "Tutti gli utenti"
+
+msgid "- Gestione Allegati"
+msgstr "- Gestione Allegati"
+
+msgid ""
+"{} RdO eliminate.\n"
+"Inizio compattazione database... (potrebbe richiedere tempo)"
+msgstr ""
+"{} RdO eliminate.\n"
+"Inizio compattazione database... (potrebbe richiedere tempo)"
+
+msgid "- Avanzate"
+msgstr "- Avanzate"
+
+msgid "Separatore Decimale"
+msgstr "Separatore Decimale"
+
+msgid "📝 Aggiungi nota"
+msgstr "📝 Aggiungi nota"
+
+msgid ""
+"⚠️ ATTENZIONE: Impossibile calcolare il prezzo automaticamente per il "
+"fornitore {} per mancanza di prezzi o quantità nella tabella di RdO. Il "
+"votoCost è stato impostato a 0."
+msgstr ""
+"⚠️ ATTENZIONE: Impossibile calcolare il prezzo automaticamente per il "
+"fornitore {} per mancanza di prezzi o quantità nella tabella di RdO. Il "
+"votoCost è stato impostato a 0."
+
+msgid ""
+"File SQDC trovato ma impossibile caricare i dati.\\nVerrà aperta una nuova "
+"analisi vuota.\\n\\nErrore: {}"
+msgstr ""
+"File SQDC trovato ma impossibile caricare i dati.\\nVerrà aperta una nuova "
+"analisi vuota.\\n\\nErrore: {}"
+
+msgid "4. LIMITAZIONE DI RESPONSABILITÀ"
+msgstr "4. LIMITAZIONE DI RESPONSABILITÀ"
+
+msgid "Per utilizzare DataFlow è necessario completare i dati richiesti."
+msgstr "Per utilizzare DataFlow è necessario completare i dati richiesti."
+
+msgid "📋 Add PO"
+msgstr "📋 Add PO"
+
+msgid "{} RdO eliminate e database compattato."
+msgstr "{} RdO eliminate e database compattato."
+
+msgid ""
+"Impossibile accedere alla cartella selezionata:\n"
+"{}\n"
+"\n"
+"Dettagli: {}"
+msgstr ""
+"Impossibile accedere alla cartella selezionata:\n"
+"{}\n"
+"\n"
+"Dettagli: {}"
+
+msgid "Caricamento della guida in corso..."
+msgstr "Caricamento della guida in corso..."
+
+msgid "Cognome:"
+msgstr "Cognome:"
+
+msgid "Non puoi modificare i numeri ordine di RdO di altri utenti."
+msgstr "Non puoi modificare i numeri ordine di RdO di altri utenti."
+
+msgid "E-mail:"
+msgstr "E-mail:"
+
+msgid ""
+"⚠️ ATTENZIONE: Hai selezionato una cartella di RETE.\n"
+"\n"
+"L'uso di database su rete condivisa può causare:\n"
+"- Corruzione permanente dei dati\n"
+"- Perdita completa del database\n"
+"- Prestazioni ridotte\n"
+"\n"
+"È FORTEMENTE SCONSIGLIATO.\n"
+"\n"
+"Vuoi procedere comunque a tuo rischio?"
+msgstr ""
+"⚠️ ATTENZIONE: Hai selezionato una cartella di RETE.\n"
+"\n"
+"L'uso di database su rete condivisa può causare:\n"
+"- Corruzione permanente dei dati\n"
+"- Perdita completa del database\n"
+"- Prestazioni ridotte\n"
+"\n"
+"È FORTEMENTE SCONSIGLIATO.\n"
+"\n"
+"Vuoi procedere comunque a tuo rischio?"
+
+msgid "Errore Fornitori"
+msgstr "Errore Fornitori"
+
+msgid "Cambia la posizione del database standard (richiede riavvio)."
+msgstr "Cambia la posizione del database standard (richiede riavvio)."
+
+msgid "✏️ Aggiungi Fornitori"
+msgstr "✏️ Aggiungi Fornitori"
+
+msgid "- Modifica Dati e Aggiunta Note"
+msgstr "- Modifica Dati e Aggiunta Note"
+
+msgid "Seleziona la nuova posizione della cartella DataFlow"
+msgstr "Seleziona la nuova posizione della cartella DataFlow"
+
+msgid "Non puoi aggiungere allegati a RdO di altri utenti."
+msgstr "Non puoi aggiungere allegati a RdO di altri utenti."
+
+msgid "Data Emissione"
+msgstr "Data Emissione"
+
+msgid "Impossibile determinare la RdO selezionata."
+msgstr "Impossibile determinare la RdO selezionata."
+
+msgid ""
+"Nuova posizione DataFlow salvata e preparata in:\n"
+"{new}\n"
+"\n"
+"⚠️ IMPORTANTE:\n"
+"- È stata creata una cartella DataFlow vuota con database e sottocartelle standard.\n"
+"- Per continuare a usare i TUOI dati, sposta manualmente la vecchia cartella DataFlow.\n"
+"1. Dopo la chiusura automatica di DataFlow, apri Esplora File.\n"
+"2. Sposta la cartella da:\n"
+"   {old}\n"
+"   a:\n"
+"   {new}"
+msgstr ""
+"Nuova posizione DataFlow salvata e preparata in:\n"
+"{new}\n"
+"\n"
+"⚠️ IMPORTANTE:\n"
+"- È stata creata una cartella DataFlow vuota con database e sottocartelle standard.\n"
+"- Per continuare a usare i TUOI dati, sposta manualmente la vecchia cartella DataFlow.\n"
+"1. Dopo la chiusura automatica di DataFlow, apri Esplora File.\n"
+"2. Sposta la cartella da:\n"
+"   {old}\n"
+"   a:\n"
+"   {new}"
+
+msgid "DuckDB"
+msgstr "DuckDB"
+
+msgid "Impossibile aggiungere l'articolo: {}"
+msgstr "Impossibile aggiungere l'articolo: {}"
+
+msgid "Impossibile creare la cartella utente."
+msgstr "Impossibile creare la cartella utente."
+
+msgid "Esporta Excel"
+msgstr "Esporta Excel"
+
+msgid "Selezione non valida"
+msgstr "Selezione non valida"
+
+msgid ""
+"L'accesso simultaneo in scrittura da parte di più utenti allo stesso file di"
+" database non è supportato e causerà con alta probabilità la corruzione "
+"irreversibile dei dati. Tuttavia, l'architettura multi-utente di DataFlow "
+"garantisce che ogni utente abbia il proprio database separato, eliminando "
+"questo rischio."
+msgstr ""
+"L'accesso simultaneo in scrittura da parte di più utenti allo stesso file di"
+" database non è supportato e causerà con alta probabilità la corruzione "
+"irreversibile dei dati. Tuttavia, l'architettura multi-utente di DataFlow "
+"garantisce che ogni utente abbia il proprio database separato, eliminando "
+"questo rischio."
+
+msgid "Dati mancanti"
+msgstr "Dati mancanti"
+
+msgid ""
+"L'utente si assume la piena responsabilità per la perdita o corruzione dei "
+"dati derivante dall'uso improprio del software."
+msgstr ""
+"L'utente si assume la piena responsabilità per la perdita o corruzione dei "
+"dati derivante dall'uso improprio del software."
+
+msgid "🔧 Conto lavoro"
+msgstr "🔧 Conto lavoro"
+
+msgid "📁 Cambia Posizione Database..."
+msgstr "📁 Cambia Posizione Database..."
+
+msgid "Analisi file da copiare..."
+msgstr "Analisi file da copiare..."
+
+msgid "Copia il Database"
+msgstr "Copia il Database"
+
+msgid "Formato non valido"
+msgstr "Formato non valido"
+
+msgid "📝 Visualizza nota"
+msgstr "📝 Visualizza nota"
+
+msgid ""
+"Sei sicuro di voler cancellare completamente questa nota?\n"
+"\n"
+"Questa operazione non può essere annullata."
+msgstr ""
+"Sei sicuro di voler cancellare completamente questa nota?\n"
+"\n"
+"Questa operazione non può essere annullata."
+
+msgid "📊 Export Excel"
+msgstr "📊 Export Excel"
+
+msgid ""
+"Assegna un voto da 1 a 10 per ciascun criterio e fornitore (doppio click per"
+" modificare):"
+msgstr ""
+"Assegna un voto da 1 a 10 per ciascun criterio e fornitore (doppio click per"
+" modificare):"
+
+msgid "Non puoi modificare i fornitori di RdO di altri utenti."
+msgstr "Non puoi modificare i fornitori di RdO di altri utenti."
+
+msgid "Copia file {}/{}: {}"
+msgstr "Copia file {}/{}: {}"
+
+msgid "Percorso Molto Lungo"
+msgstr "Percorso Molto Lungo"
+
+msgid "Errore nel salvataggio dei numeri ordine."
+msgstr "Errore nel salvataggio dei numeri ordine."
+
+msgid "Valore Non Valido"
+msgstr "Valore Non Valido"
+
+msgid "TIPO '{}' (4 colonne):"
+msgstr "TIPO '{}' (4 colonne):"
+
+msgid " © 2025"
+msgstr " © 2025"
+
+msgid "Pronto!"
+msgstr "Pronto!"
+
+msgid "Copia completata, aggiornamento configurazione..."
+msgstr "Copia completata, aggiornamento configurazione..."
+
+msgid "Cambia Identità"
+msgstr "Cambia Identità"
+
+msgid ""
+"Il presente software, \"DataFlow\" (di seguito \"il Software\"), è fornito come \"Freeware\".\n"
+"\n"
+msgstr ""
+"Il presente software, \"DataFlow\" (di seguito \"il Software\"), è fornito come \"Freeware\".\n"
+"\n"
+
+msgid "Sviluppatore:"
+msgstr "Sviluppatore:"
+
+msgid "Errore Formato File"
+msgstr "Errore Formato File"
+
+msgid "Inizializzazione Database..."
+msgstr "Inizializzazione Database..."
+
+msgid "- Gestione Database"
+msgstr "- Gestione Database"
+
+msgid "ATTENZIONE: Database provvisorio attivo"
+msgstr "ATTENZIONE: Database provvisorio attivo"
+
+msgid "𝑰 Corsivo"
+msgstr "𝑰 Corsivo"
+
+msgid ""
+"d) Rimuovere o alterare qualsiasi avviso di copyright, marchio di fabbrica o"
+" altra notifica di proprietà presente nel Software."
+msgstr ""
+"d) Rimuovere o alterare qualsiasi avviso di copyright, marchio di fabbrica o"
+" altra notifica di proprietà presente nel Software."
+
+msgid "A: Codice, B: Allegato, C: Descrizione, D: Quantità"
+msgstr "A: Codice, B: Allegato, C: Descrizione, D: Quantità"
+
+msgid "📁 Cambia Posizione DataFlow..."
+msgstr "📁 Cambia Posizione DataFlow..."
+
+msgid ""
+"d) Rimuovere o alterare qualsiasi avviso di copyright, marchio di fabbrica o altra notifica di proprietà presente nel Software.\n"
+"\n"
+msgstr ""
+"d) Rimuovere o alterare qualsiasi avviso di copyright, marchio di fabbrica o altra notifica di proprietà presente nel Software.\n"
+"\n"
+
+msgid "Nessun articolo valido trovato nel file Excel."
+msgstr "Nessun articolo valido trovato nel file Excel."
+
+msgid "{} articolo/i eliminato/i con successo."
+msgstr "{} articolo/i eliminato/i con successo."
+
+msgid "Selezionare una RdO da duplicare."
+msgstr "Selezionare una RdO da duplicare."
+
+msgid ""
+"Lo Sviluppatore concede all'utente una licenza non esclusiva e gratuita per "
+"scaricare, installare e utilizzare il Software per scopi personali, "
+"educativi o commerciali, senza limiti di tempo."
+msgstr ""
+"Lo Sviluppatore concede all'utente una licenza non esclusiva e gratuita per "
+"scaricare, installare e utilizzare il Software per scopi personali, "
+"educativi o commerciali, senza limiti di tempo."
+
+msgid "Percorso di Rete Rilevato"
+msgstr "Percorso di Rete Rilevato"
+
+msgid "Utente:"
+msgstr "Utente:"
+
+msgid "Conferma Cambio Posizione"
+msgstr "Conferma Cambio Posizione"
+
+msgid "Seleziona la cartella dove salvare il database standard"
+msgstr "Seleziona la cartella dove salvare il database standard"
+
+msgid "Nessuna RdO da esportare nella vista corrente."
+msgstr "Nessuna RdO da esportare nella vista corrente."
+
+msgid "Data Inserimento"
+msgstr "Data Inserimento"
+
+msgid "Associa numeri di ordine ai fornitori della RdO"
+msgstr "Associa numeri di ordine ai fornitori della RdO"
+
+msgid ""
+"⚠️ ATTENZIONE: stai per cambiare la posizione della cartella DataFlow.\n"
+"\n"
+"IMPORTANTE:\n"
+"- La cartella attuale non verrà spostata automaticamente\n"
+"- L'app verrà riavviata per applicare la modifica\n"
+"\n"
+"Posizione attuale:\n"
+"{}\n"
+"\n"
+"Vuoi procedere?"
+msgstr ""
+"⚠️ ATTENZIONE: stai per cambiare la posizione della cartella DataFlow.\n"
+"\n"
+"IMPORTANTE:\n"
+"- La cartella attuale non verrà spostata automaticamente\n"
+"- L'app verrà riavviata per applicare la modifica\n"
+"\n"
+"Posizione attuale:\n"
+"{}\n"
+"\n"
+"Vuoi procedere?"
+
+msgid "Allegato eliminato."
+msgstr "Allegato eliminato."
+
+msgid "Posizione Database Personalizzata"
+msgstr "Posizione Database Personalizzata"
+
+msgid "➕ Aggiungi"
+msgstr "➕ Aggiungi"
+
+msgid ""
+"L'accesso simultaneo in scrittura da parte di più utenti allo stesso file di database non è supportato e causerà con alta probabilità la corruzione irreversibile dei dati. Tuttavia, l'architettura multi-utente di DataFlow garantisce che ogni utente abbia il proprio database separato, eliminando questo rischio.\n"
+"\n"
+msgstr ""
+"L'accesso simultaneo in scrittura da parte di più utenti allo stesso file di database non è supportato e causerà con alta probabilità la corruzione irreversibile dei dati. Tuttavia, l'architettura multi-utente di DataFlow garantisce che ogni utente abbia il proprio database separato, eliminando questo rischio.\n"
+"\n"
+
+msgid "Unità Rimovibile?"
+msgstr "Unità Rimovibile?"
+
+msgid "⚠️ Errore SQDC"
+msgstr "⚠️ Errore SQDC"
+
+msgid "Nome:"
+msgstr "Nome:"
+
+msgid "2. RESTRIZIONI"
+msgstr "2. RESTRIZIONI"
+
+msgid ""
+"IN NESSUN CASO LO SVILUPPATORE (GUIDO SORARÙ) POTRÀ ESSERE RITENUTO "
+"RESPONSABILE PER QUALSIASI DANNO DIRETTO, INDIRETTO, INCIDENTALE, SPECIALE, "
+"ESEMPLARE O CONSEQUENZIALE (INCLUSI, A TITOLO ESEMPLIFICATIVO MA NON "
+"ESAUSIVO, DANNI PER PERDITA DI DATI, PERDITA DI PROFITTI O INTERRUZIONE "
+"DELL'ATTIVITÀ) DERIVANTE DALL'USO, DALL'USO IMPROPRIO O DALL'IMPOSSIBILITÀ "
+"DI UTILIZZARE IL SOFTWARE, ANCHE SE LO SVILUPPATORE È STATO AVVISATO DELLA "
+"POSSIBILITÀ DI TALI DANNI."
+msgstr ""
+"IN NESSUN CASO LO SVILUPPATORE (GUIDO SORARÙ) POTRÀ ESSERE RITENUTO "
+"RESPONSABILE PER QUALSIASI DANNO DIRETTO, INDIRETTO, INCIDENTALE, SPECIALE, "
+"ESEMPLARE O CONSEQUENZIALE (INCLUSI, A TITOLO ESEMPLIFICATIVO MA NON "
+"ESAUSIVO, DANNI PER PERDITA DI DATI, PERDITA DI PROFITTI O INTERRUZIONE "
+"DELL'ATTIVITÀ) DERIVANTE DALL'USO, DALL'USO IMPROPRIO O DALL'IMPOSSIBILITÀ "
+"DI UTILIZZARE IL SOFTWARE, ANCHE SE LO SVILUPPATORE È STATO AVVISATO DELLA "
+"POSSIBILITÀ DI TALI DANNI."
+
+msgid "Errore Salvataggio"
+msgstr "Errore Salvataggio"
+
+msgid "- Filtri di Ricerca"
+msgstr "- Filtri di Ricerca"
+
+msgid "- Importazione da Excel"
+msgstr "- Importazione da Excel"
+
+msgid "📂 Apri Selezionato"
+msgstr "📂 Apri Selezionato"
+
+msgid "Salva Mega Export"
+msgstr "Salva Mega Export"
+
+msgid "Preparazione copia..."
+msgstr "Preparazione copia..."
+
+msgid "Avvio interfaccia..."
+msgstr "Avvio interfaccia..."
+
+msgid "Il numero RdO deve essere un numero intero positivo."
+msgstr "Il numero RdO deve essere un numero intero positivo."
+
+msgid "- Interfaccia e Pulsanti Principali"
+msgstr "- Interfaccia e Pulsanti Principali"
+
+msgid ""
+"Il backup creato è significativamente più piccolo del database originale.\n"
+"\n"
+"Originale: {:.2f} MB\n"
+"Backup: {:.2f} MB\n"
+"\n"
+"Vuoi conservarlo comunque?"
+msgstr ""
+"Il backup creato è significativamente più piccolo del database originale.\n"
+"\n"
+"Originale: {:.2f} MB\n"
+"Backup: {:.2f} MB\n"
+"\n"
+"Vuoi conservarlo comunque?"
+
+msgid "Errore Integrità"
+msgstr "Errore Integrità"
+
+msgid "Chiudi"
+msgstr "Chiudi"
+
+msgid ""
+"RdO eliminata.\n"
+"Inizio compattazione database... (potrebbe richiedere tempo)"
+msgstr ""
+"RdO eliminata.\n"
+"Inizio compattazione database... (potrebbe richiedere tempo)"
+
+msgid "Impossibile duplicare: {}"
+msgstr "Impossibile duplicare: {}"
+
+msgid "Nome e cognome:"
+msgstr "Nome e cognome:"
+
+msgid "- Scorciatoie da Tastiera"
+msgstr "- Scorciatoie da Tastiera"
+
+msgid "Cambi a Posizione DataFlow Standard"
+msgstr "Cambi a Posizione DataFlow Standard"
+
+msgid ""
+"Hai usato il punto (.) come separatore decimale.\n"
+"\n"
+"In questo programma si usa la VIRGOLA (,) come separatore decimale.\n"
+"\n"
+"Esempio corretto: 12,5 invece di 12.5"
+msgstr ""
+"Hai usato il punto (.) come separatore decimale.\n"
+"\n"
+"In questo programma si usa la VIRGOLA (,) come separatore decimale.\n"
+"\n"
+"Esempio corretto: 12,5 invece di 12.5"
+
+msgid "Conferma Cancellazione"
+msgstr "Conferma Cancellazione"
+
+msgid "Non puoi eliminare allegati di RdO di altri utenti."
+msgstr "Non puoi eliminare allegati di RdO di altri utenti."
+
+msgid "Impossibile cancellare la nota: {}"
+msgstr "Impossibile cancellare la nota: {}"
+
+msgid "Alcuni indici selezionati non sono validi e verranno ignorati: {}"
+msgstr "Alcuni indici selezionati non sono validi e verranno ignorati: {}"
+
+msgid "❌ Elimina Selezionato"
+msgstr "❌ Elimina Selezionato"
+
+msgid "Input Troppo Lungo"
+msgstr "Input Troppo Lungo"
+
+msgid "Impossibile creare il database utente: {}"
+msgstr "Impossibile creare il database utente: {}"
+
+msgid "- Esportazione Excel"
+msgstr "- Esportazione Excel"
+
+msgid "Dati non validi"
+msgstr "Dati non validi"
+
+msgid "DataFlow Procurement Software v2.0.0 - Sviluppato da"
+msgstr "DataFlow Procurement Software v2.0.0 - Sviluppato da"
+
+msgid "Errore durante l'esportazione: {}"
+msgstr "Errore durante l'esportazione: {}"
+
+msgid "RdO non trovata."
+msgstr "RdO non trovata."
+
+msgid "Data Scadenza"
+msgstr "Data Scadenza"
+
+msgid "Inserisci sia il nome sia il cognome."
+msgstr "Inserisci sia il nome sia il cognome."
+
+msgid "Non puoi modificare il riferimento di RdO di altri utenti."
+msgstr "Non puoi modificare il riferimento di RdO di altri utenti."
+
+msgid "📦 Fornitura piena"
+msgstr "📦 Fornitura piena"
+
+msgid ""
+"Il Software utilizza un database DuckDB per ogni utente. DataFlow 2.0.0 "
+"supporta l'utilizzo multi-utente con database separati per ciascun utente, "
+"permettendo la condivisione sicura dei dati in sola lettura.\n"
+msgstr ""
+"Il Software utilizza un database DuckDB per ogni utente. DataFlow 2.0.0 "
+"supporta l'utilizzo multi-utente con database separati per ciascun utente, "
+"permettendo la condivisione sicura dei dati in sola lettura.\n"
+
+msgid "All'utente non è consentito:\n"
+msgstr "All'utente non è consentito:\n"
+
+msgid ""
+"\n"
+"\n"
+"✓ Username aggiornato da '{}' a '{}'"
+msgstr ""
+"\n"
+"\n"
+"✓ Username aggiornato da '{}' a '{}'"
+
+msgid " [SOLA LETTURA]"
+msgstr " [SOLA LETTURA]"
+
+msgid "Salva Export"
+msgstr "Salva Export"
+
+msgid "Tutti i fornitori sono stati rimossi."
+msgstr "Tutti i fornitori sono stati rimossi."
+
+msgid "⚠️ Errore Fornitori"
+msgstr "⚠️ Errore Fornitori"
+
+msgid "Supplier:"
+msgstr "Supplier:"
+
+msgid "Impossibile salvare la modifica: {}"
+msgstr "Impossibile salvare la modifica: {}"
+
+msgid "Nota cancellata correttamente."
+msgstr "Nota cancellata correttamente."
+
+msgid "Copia DataFlow in corso..."
+msgstr "Copia DataFlow in corso..."
+
+msgid "Purchase Order Management"
+msgstr "Purchase Order Management"
+
+msgid "Impossibile creare la nuova RdO: {}"
+msgstr "Impossibile creare la nuova RdO: {}"
+
+msgid "Assegna i pesi percentuali a ciascun criterio"
+msgstr "Assegna i pesi percentuali a ciascun criterio"
+
+msgid "Errore nel recupero delle RfQ da esportare: {}"
+msgstr "Errore nel recupero delle RfQ da esportare: {}"
+
+msgid "3. ESCLUSIONE DI GARANZIA"
+msgstr "3. ESCLUSIONE DI GARANZIA"
+
+msgid "- Ordinamento delle Colonne"
+msgstr "- Ordinamento delle Colonne"
+
+msgid "- Errori Importazione Excel"
+msgstr "- Errori Importazione Excel"
+
+msgid ""
+"Il database presenta errori di integrità:\n"
+"{}\n"
+"Impossibile creare un backup affidabile."
+msgstr ""
+"Il database presenta errori di integrità:\n"
+"{}\n"
+"Impossibile creare un backup affidabile."
+
+msgid ""
+"Cartella DataFlow di origine non trovata:\n"
+"{}"
+msgstr ""
+"Cartella DataFlow di origine non trovata:\n"
+"{}"
+
+msgid "Impostazione Salvata"
+msgstr "Impostazione Salvata"
+
+msgid ""
+"Alcuni caratteri speciali sono stati rimossi dai campi di ricerca per motivi"
+" di sicurezza."
+msgstr ""
+"Alcuni caratteri speciali sono stati rimossi dai campi di ricerca per motivi"
+" di sicurezza."
+
+msgid ""
+"Impossibile scrivere nella cartella selezionata:\n"
+"{}\n"
+"\n"
+"Dettagli: {}"
+msgstr ""
+"Impossibile scrivere nella cartella selezionata:\n"
+"{}\n"
+"\n"
+"Dettagli: {}"
+
+msgid "All'utente non è consentito:"
+msgstr "All'utente non è consentito:"
+
+msgid "Cartella DataFlow attuale: {}"
+msgstr "Cartella DataFlow attuale: {}"
+
+msgid ""
+"Non puoi modificare lo stato di RfO di altri utenti.\n"
+"Puoi operare solo sulle tue RdO."
+msgstr ""
+"Non puoi modificare lo stato di RfO di altri utenti.\n"
+"Puoi operare solo sulle tue RdO."
+
+msgid ""
+"Export completato con successo:\n"
+"{}"
+msgstr ""
+"Export completato con successo:\n"
+"{}"
+
+msgid "Aggiungi Fornitori"
+msgstr "Aggiungi Fornitori"
+
+msgid "- Database Bloccato"
+msgstr "- Database Bloccato"
+
+msgid "- Backup"
+msgstr "- Backup"
+
+msgid ""
+"Nuova posizione database salvata:\n"
+"{}\n"
+"📋 PROSSIMI PASSI:\n"
+"1. Il programma si riavvierà\n"
+"2. PRIMA di usare l'app, COPIA MANUALMENTE il file:\n"
+"   DA: {}   A: {}3. Se il file non esiste nella nuova posizione, verrà creato un database VUOTO\n"
+"\n"
+"Vuoi aprire la cartella di destinazione ora?"
+msgstr ""
+"Nuova posizione database salvata:\n"
+"{}\n"
+"📋 PROSSIMI PASSI:\n"
+"1. Il programma si riavvierà\n"
+"2. PRIMA di usare l'app, COPIA MANUALMENTE il file:\n"
+"   DA: {}   A: {}3. Se il file non esiste nella nuova posizione, verrà creato un database VUOTO\n"
+"\n"
+"Vuoi aprire la cartella di destinazione ora?"
+
+msgid "Campi obbligatori"
+msgstr "Campi obbligatori"
+
+msgid "RdO duplicata come N° {}."
+msgstr "RdO duplicata come N° {}."
+
+msgid "Salvataggio configurazione..."
+msgstr "Salvataggio configurazione..."
+
+msgid "Posizione corrente: {}"
+msgstr "Posizione corrente: {}"
+
+msgid "Username generato:"
+msgstr "Username generato:"
+
+msgid "Il testo di ricerca nel campo '{}' è troppo lungo (max {} caratteri)"
+msgstr "Il testo di ricerca nel campo '{}' è troppo lungo (max {} caratteri)"
+
+msgid "Aggiornamento username nel database..."
+msgstr "Aggiornamento username nel database..."
+
+msgid "Impossibile eliminare: indice riga non valido ({})."
+msgstr "Impossibile eliminare: indice riga non valido ({})."
+
+msgid "- Primo Avvio"
+msgstr "- Primo Avvio"
+
+msgid ""
+"⚠️ ATTENZIONE: Stai per cambiare la posizione del database standard.\n"
+"\n"
+"IMPORTANTE:\n"
+"- Il database ATTUALE in Documents\\DataFlow\\Database NON verrà spostato automaticamente\n"
+"- Dovrai copiarlo manualmente nella nuova posizione\n"
+"- Scegli una cartella LOCALE (non unità di rete) per evitare corruzione dati\n"
+"- Il programma si riavvierà per applicare le modifiche\n"
+"\n"
+"Vuoi procedere?"
+msgstr ""
+"⚠️ ATTENZIONE: Stai per cambiare la posizione del database standard.\n"
+"\n"
+"IMPORTANTE:\n"
+"- Il database ATTUALE in Documents\\DataFlow\\Database NON verrà spostato automaticamente\n"
+"- Dovrai copiarlo manualmente nella nuova posizione\n"
+"- Scegli una cartella LOCALE (non unità di rete) per evitare corruzione dati\n"
+"- Il programma si riavvierà per applicare le modifiche\n"
+"\n"
+"Vuoi procedere?"
+
+msgid "Modifica Fornitori"
+msgstr "Modifica Fornitori"
+
+msgid ""
+"{} allegati archiviati.\n"
+"Compattazione database avviata in background..."
+msgstr ""
+"{} allegati archiviati.\n"
+"Compattazione database avviata in background..."
+
+msgid "Attenzione Dimensione"
+msgstr "Attenzione Dimensione"
+
+msgid "Nessun articolo valido selezionato per l'eliminazione."
+msgstr "Nessun articolo valido selezionato per l'eliminazione."
+
+msgid "Posizione Database Standard"
+msgstr "Posizione Database Standard"
+
+msgid "Per procedere è necessario indicare il tuo nome e cognome."
+msgstr "Per procedere è necessario indicare il tuo nome e cognome."
+
+msgid "Impossibile identificare l'allegato selezionato."
+msgstr "Impossibile identificare l'allegato selezionato."
+
+msgid "Per utilizzare DataFlow devi inserire nome e cognome."
+msgstr "Per utilizzare DataFlow devi inserire nome e cognome."
+
+msgid "Percorso allegati non disponibile."
+msgstr "Percorso allegati non disponibile."
+
+msgid ""
+"Lo Sviluppatore concede all'utente una licenza non esclusiva e gratuita per scaricare, installare e utilizzare il Software per scopi personali, educativi o commerciali, senza limiti di tempo.\n"
+"\n"
+msgstr ""
+"Lo Sviluppatore concede all'utente una licenza non esclusiva e gratuita per scaricare, installare e utilizzare il Software per scopi personali, educativi o commerciali, senza limiti di tempo.\n"
+"\n"
+
+msgid "📁 Apri Selezionato"
+msgstr "📁 Apri Selezionato"
+
+msgid ""
+"b) Decodificare (reverse engineer), decompilare, disassemblare o tentare di "
+"scoprire in altro modo il codice sorgente del Software."
+msgstr ""
+"b) Decodificare (reverse engineer), decompilare, disassemblare o tentare di "
+"scoprire in altro modo il codice sorgente del Software."
+
+msgid "A-D come sopra, E: Codice Grezzo, F: Allegato Grezzo, G: Materiale C/L"
+msgstr ""
+"A-D come sopra, E: Codice Grezzo, F: Allegato Grezzo, G: Materiale C/L"
+
+msgid "Nuova Richiesta di Offerta"
+msgstr "Nuova Richiesta di Offerta"
+
+msgid ""
+"Impossibile identificare l'allegato selezionato. Prova a ricaricare la "
+"finestra."
+msgstr ""
+"Impossibile identificare l'allegato selezionato. Prova a ricaricare la "
+"finestra."
+
+msgid ""
+"NON USARE QUESTA FUNZIONE per aprire un database condiviso su una rete se un"
+" altro utente potrebbe aprirlo contemporaneamente. "
+msgstr ""
+"NON USARE QUESTA FUNZIONE per aprire un database condiviso su una rete se un"
+" altro utente potrebbe aprirlo contemporaneamente. "
+
+msgid "- Analisi SQDC"
+msgstr "- Analisi SQDC"
+
+msgid "PO Number:"
+msgstr "PO Number:"
+
+msgid "Associate purchase order numbers with RfQ suppliers"
+msgstr "Associate purchase order numbers with RfQ suppliers"
+
+msgid ""
+"Hai inserito lo stesso fornitore più volte:\n"
+"\n"
+"{}\n"
+"\n"
+"Ogni fornitore deve essere inserito una sola volta."
+msgstr ""
+"Hai inserito lo stesso fornitore più volte:\n"
+"\n"
+"{}\n"
+"\n"
+"Ogni fornitore deve essere inserito una sola volta."
+
+msgid "Verifica identità utente..."
+msgstr "Verifica identità utente..."
+
+msgid "Operazione completata!"
+msgstr "Operazione completata!"
+
+msgid ""
+"Backup creato con successo:\n"
+"\n"
+"File copiati:\n"
+"{}\n"
+"\n"
+"Dimensione totale: {:.2f} MB"
+msgstr ""
+"Backup creato con successo:\n"
+"\n"
+"File copiati:\n"
+"{}\n"
+"\n"
+"Dimensione totale: {:.2f} MB"
+
+msgid "Errore File Format"
+msgstr "Errore File Format"
+
+msgid "Inserisci un numero ordine valido."
+msgstr "Inserisci un numero ordine valido."
+
+msgid ""
+"Il Software utilizza un database DuckDB per ogni utente. DataFlow 2.0.0 "
+"supporta l'utilizzo multi-utente con database separati per ciascun utente, "
+"permettendo la condivisione sicura dei dati in sola lettura."
+msgstr ""
+"Il Software utilizza un database DuckDB per ogni utente. DataFlow 2.0.0 "
+"supporta l'utilizzo multi-utente con database separati per ciascun utente, "
+"permettendo la condivisione sicura dei dati in sola lettura."
+
+msgid "U̲ Sottolineato"
+msgstr "U̲ Sottolineato"
+
+msgid "Vuoi procedere con il cambio username?"
+msgstr "Vuoi procedere con il cambio username?"
+
+msgid "Continua Comunque?"
+msgstr "Continua Comunque?"
+
+msgid ""
+"Copyright © 2025 Guido Sorarù. Tutti i diritti riservati.\n"
+"\n"
+msgstr ""
+"Copyright © 2025 Guido Sorarù. Tutti i diritti riservati.\n"
+"\n"
+
+msgid "  - Righe saltate (già esistenti o invalide): {}"
+msgstr "  - Righe saltate (già esistenti o invalide): {}"
+
+msgid "1. CONCESSIONE DELLA LICENZA"
+msgstr "1. CONCESSIONE DELLA LICENZA"
+
+msgid "Inserisci i tuoi dati"
+msgstr "Inserisci i tuoi dati"
+
+msgid "Nessun articolo disponibile per l'eliminazione."
+msgstr "Nessun articolo disponibile per l'eliminazione."
+
+msgid "2. RESTRIZIONI\n"
+msgstr "2. RESTRIZIONI\n"
+
+msgid "Operazione necessaria"
+msgstr "Operazione necessaria"
+
+msgid "  - Conversioni tipo_rdo:"
+msgstr "  - Conversioni tipo_rdo:"
+
+msgid "Impossibile determinare l'utente corrente. Riavvia DataFlow."
+msgstr "Impossibile determinare l'utente corrente. Riavvia DataFlow."
+
+msgid ""
+"a) Vendere, affittare, noleggiare o distribuire il Software in cambio di un "
+"compenso."
+msgstr ""
+"a) Vendere, affittare, noleggiare o distribuire il Software in cambio di un "
+"compenso."
+
+msgid ""
+"⚠️ ATTENZIONE\n"
+"\n"
+"Si è verificato un errore durante la copia.\n"
+"Rollback completato, ma la cartella parzialmente copiata è stata lasciata in:\n"
+"{}\n"
+"\n"
+"Rimuovila manualmente se necessario."
+msgstr ""
+"⚠️ ATTENZIONE\n"
+"\n"
+"Si è verificato un errore durante la copia.\n"
+"Rollback completato, ma la cartella parzialmente copiata è stata lasciata in:\n"
+"{}\n"
+"\n"
+"Rimuovila manualmente se necessario."
+
+msgid "Copyright © 2025 Guido Sorarù. Tutti i diritti riservati."
+msgstr "Copyright © 2025 Guido Sorarù. Tutti i diritti riservati."
+
+msgid "Vuoi procedere ugualmente?"
+msgstr "Vuoi procedere ugualmente?"
+
+msgid "Impossibile duplicare la RdO: {}"
+msgstr "Impossibile duplicare la RdO: {}"
+
+msgid "Errore Permessi"
+msgstr "Errore Permessi"
+
+msgid ""
+"⚠️ L'unità selezionata ({}) potrebbe essere rimovibile.\n"
+"\n"
+"Se rimuovi l'unità, l'app non potrà accedere al database."
+msgstr ""
+"⚠️ L'unità selezionata ({}) potrebbe essere rimovibile.\n"
+"\n"
+"Se rimuovi l'unità, l'app non potrà accedere al database."
+
+msgid "Seleziona una sola RdO per duplicarla."
+msgstr "Seleziona una sola RdO per duplicarla."
+
+msgid "📊 Apri analisi SQDC"
+msgstr "📊 Apri analisi SQDC"
+
+msgid ""
+"Impossibile creare backup:\n"
+"{}"
+msgstr ""
+"Impossibile creare backup:\n"
+"{}"

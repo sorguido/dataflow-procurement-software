@@ -6184,25 +6184,24 @@ class LicenseWindow(tk.Toplevel):
 
         # --- INIZIO CONTENUTO LICENZA ---
         
-        add(_("Licenza d'Uso (Freeware) - DataFlow Procurement Software\n\n"), "h1")
+        add(_("Contratto di Licenza per l'Utente Finale (GNU GPLv3) - DataFlow Procurement Software\n\n"), "h1")
         
         add(_("Sviluppatore: "), "h2"); add("Guido Sorarù", ("normal", "link")); add("\n", "normal")
         add(_("E-mail: "), "h2"); add("sorguido@gmail.com\n", "normal")
-        add(_("Copyright © 2025 Guido Sorarù. Tutti i diritti riservati.\n\n"), "h2")
+        add(_("Copyright © 2025 Guido Sorarù.\n\n"), "h2")
         
         add("--------------------------------------------------\n\n", "normal")
         
-        add(_("Il presente software, \"DataFlow\" (di seguito \"il Software\"), è fornito come \"Freeware\".\n\n"), "normal")
+        add(_("Questo software, \"DataFlow\" (di seguito \"il Software\"), è rilasciato come software open source sotto la licenza GNU General Public License versione 3 (GPLv3).\n\n"), "normal")
         
         add(_("1. CONCESSIONE DELLA LICENZA\n"), "h2")
-        add(_("Lo Sviluppatore concede all'utente una licenza non esclusiva e gratuita per scaricare, installare e utilizzare il Software per scopi personali, educativi o commerciali, senza limiti di tempo.\n\n"), "normal")
+        add(_("Lo sviluppatore concede all'utente una licenza non esclusiva per scaricare, installare, utilizzare, studiare, modificare e ridistribuire il Software in conformità con i termini della GNU General Public License versione 3.\n\n"), "normal")
+        add(_("Il codice sorgente completo del Software è disponibile pubblicamente.\n\n"), "normal")
+        add(_("Una copia della licenza GNU GPLv3 dovrebbe essere distribuita insieme a questo Software.\nIn caso contrario consultare: https://www.gnu.org/licenses/\n\n"), "normal")
         
-        add(_("2. RESTRIZIONI\n"), "h2")
-        add(_("All'utente non è consentito:\n"), "normal")
-        add(_("a) Vendere, affittare, noleggiare o distribuire il Software in cambio di un compenso.\n"), "normal")
-        add(_("b) Decodificare (reverse engineer), decompilare, disassemblare o tentare di scoprire in altro modo il codice sorgente del Software.\n"), "normal")
-        add(_("c) Modificare, adattare, tradurre o creare opere derivate basate sul Software senza il previo consenso scritto dello Sviluppatore.\n"), "normal")
-        add(_("d) Rimuovere o alterare qualsiasi avviso di copyright, marchio di fabbrica o altra notifica di proprietà presente nel Software.\n\n"), "normal")
+        add(_("2. DISTRIBUZIONE E MODIFICA\n"), "h2")
+        add(_("Il Software può essere utilizzato, studiato, modificato e ridistribuito liberamente secondo i termini della GNU General Public License versione 3.\n\n"), "normal")
+        add(_("Qualsiasi ridistribuzione del Software, modificato o non modificato, deve mantenere l'avviso di copyright ed essere distribuita sotto la stessa licenza GNU GPLv3.\n\n"), "normal")
         
         add(_("3. ESCLUSIONE DI GARANZIA\n"), "h2")
         add(_("IL SOFTWARE È FORNITO \"COSÌ COM'È\" (AS IS), SENZA ALCUNA GARANZIA, ESPRESSA O IMPLICITA. LO SVILUPPATORE NON FORNISCE ALCUNA GARANZIA RIGUARDO LA COMMERCIABILITÀ, L'IDONEITÀ PER UNO SCOPO PARTICOLARE O LA NON VIOLAZIONE DI DIRITTI DI TERZI.\n"), "normal")
@@ -6394,10 +6393,10 @@ class MainWindow:
         self.tab_attive = ttk.Frame(self.notebook); self.tab_archiviate = ttk.Frame(self.notebook)
         self.notebook.add(self.tab_attive, text=_("RdO Attive")); self.notebook.add(self.tab_archiviate, text=_("RdO Archiviate"))
         footer_frame = ttk.Frame(self.root); footer_frame.pack(side="bottom", fill="x", padx=10, pady=5)
-        ttk.Label(footer_frame, text=_("DataFlow Procurement Software v2.0.0 - Sviluppato da ")).pack(side="left")
+        ttk.Label(footer_frame, text=_("v2.0.0 - Sviluppato da ")).pack(side="left")
         name_label = ttk.Label(footer_frame, text="Guido Sorarù", foreground="blue", cursor="hand2"); name_label.pack(side="left")
         name_label.bind("<Button-1>", lambda e: webbrowser.open("https://www.linkedin.com/in/guido-soraru-buyer/"))
-        ttk.Label(footer_frame, text=_(" © 2025")).pack(side="left")
+        ttk.Label(footer_frame, text=_(" © 2025 - Edizione Linux rilasciata sotto licenza GNU GPLv3")).pack(side="left")
         # --- RIMOSSO: etichetta warning DB provvisorio ---
         self.tree_attive = self.create_request_treeview(self.tab_attive); self.tree_archiviate = self.create_request_treeview(self.tab_archiviate)
         # NOTA: La configurazione dei tag (oddrow, scaduta) non è più necessaria

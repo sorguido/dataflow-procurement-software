@@ -1,0 +1,40 @@
+# Cache Python
+__pycache__/
+*.pyc
+
+# Ambienti virtuali
+venv/
+.env/
+
+# Database locali
+*.db
+*.sqlite
+*.sqlite3
+
+# Configurazioni locali
+config.ini
+
+# Log
+*.log
+
+# File temporanei e backup
+*.tmp
+*.bak
+*.backup
+
+# Cartelle dati dell'app
+Database/
+Attachments/
+
+# File di sistema
+.DS_Store
+Thumbs.db
+
+# IDE/editor
+.vscode/
+.idea/
+
+# Build
+dist/
+build/
+*.egg-info/
