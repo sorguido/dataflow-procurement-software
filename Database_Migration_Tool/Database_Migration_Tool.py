@@ -24,13 +24,18 @@ import subprocess
 # Enable DPI awareness for sharp rendering on high-DPI displays
 try:
     from ctypes import windll
-    windll.shcore.SetProcessDpiAwareness(1)  # 1 = System DPI aware
-except:
+except ImportError:
+    windll = None
+
+if windll is not None:
     try:
-        # Fallback for older Windows versions
-        windll.user32.SetProcessDPIAware()
+        windll.shcore.SetProcessDpiAwareness(1)  # 1 = System DPI aware
     except:
-        pass  # If both fail, continue without DPI awareness
+        try:
+            # Fallback for older Windows versions
+            windll.user32.SetProcessDPIAware()
+        except:
+            pass  # If both fail, continue without DPI awareness
 
 # Add current directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))

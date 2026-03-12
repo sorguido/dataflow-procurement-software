@@ -1,0 +1,18 @@
+2026-03-12 08:00:36 - INFO - init_i18n - Tentativo di caricare traduzioni per 'it' da: /home/guido/DataFlow 2.0.0 - Linux/locale
+2026-03-12 08:00:36 - INFO - init_i18n - ✓ File traduzioni caricato con successo: /home/guido/DataFlow 2.0.0 - Linux/locale/it/LC_MESSAGES/dataflow.mo
+2026-03-12 08:00:36 - INFO - <module> - ======================================================================
+2026-03-12 08:00:36 - INFO - <module> - INIZIALIZZAZIONE I18N
+2026-03-12 08:00:36 - INFO - <module> - ======================================================================
+2026-03-12 08:00:36 - INFO - init_i18n - Tentativo di caricare traduzioni per 'en' da: /home/guido/DataFlow 2.0.0 - Linux/locale
+2026-03-12 08:00:36 - INFO - init_i18n - ✓ File traduzioni caricato con successo: /home/guido/DataFlow 2.0.0 - Linux/locale/en/LC_MESSAGES/dataflow.mo
+2026-03-12 08:00:36 - INFO - <module> - Lingua inizializzata: en
+2026-03-12 08:00:36 - INFO - <module> - ======================================================================
+2026-03-12 08:01:09 - INFO - init_i18n - Tentativo di caricare traduzioni per 'it' da: /home/guido/DataFlow 2.0.0 - Linux/locale
+2026-03-12 08:01:09 - INFO - init_i18n - ✓ File traduzioni caricato con successo: /home/guido/DataFlow 2.0.0 - Linux/locale/it/LC_MESSAGES/dataflow.mo
+2026-03-12 08:01:09 - INFO - <module> - ======================================================================
+2026-03-12 08:01:09 - INFO - <module> - INIZIALIZZAZIONE I18N
+2026-03-12 08:01:09 - INFO - <module> - ======================================================================
+2026-03-12 08:01:09 - INFO - init_i18n - Tentativo di caricare traduzioni per 'en' da: /home/guido/DataFlow 2.0.0 - Linux/locale
+2026-03-12 08:01:09 - INFO - init_i18n - ✓ File traduzioni caricato con successo: /home/guido/DataFlow 2.0.0 - Linux/locale/en/LC_MESSAGES/dataflow.mo
+2026-03-12 08:01:09 - INFO - <module> - Lingua inizializzata: en
+2026-03-12 08:01:09 - INFO - <module> - ======================================================================

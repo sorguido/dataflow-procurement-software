@@ -1,6 +1,9 @@
 # RIGHE 1-2 (Importazioni necessarie per il DPI)
 import sys
-from ctypes import windll
+if sys.platform == 'win32':
+    from ctypes import windll
+else:
+    windll = None
 
 # ---------------------------------------------
 # RIGHE 3-20: BLOCCO DPI AWARENESS (DEVE ESSERE QUI)
