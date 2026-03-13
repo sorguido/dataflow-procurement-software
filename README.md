@@ -64,13 +64,13 @@ The codebase also includes a dedicated database manager with SQLite/WAL support 
 
 ## Screenshots
 
-![Main Window](docs/screenshots/EN/1.png)
-![Main Window](docs/screenshots/EN/2.png)
-![Main Window](docs/screenshots/EN/3.png)
-![Main Window](docs/screenshots/EN/4.png)
-![Main Window](docs/screenshots/EN/5.png)
-![Main Window](docs/screenshots/EN/6.png)
-![Main Window](docs/screenshots/EN/7.png)
+![Main Window](docs/screenshot/EN/1.png)
+![Main Window](docs/screenshot/EN/2.png)
+![Main Window](docs/screenshot/EN/3.png)
+![Main Window](docs/screenshot/EN/4.png)
+![Main Window](docs/screenshot/EN/5.png)
+![Main Window](docs/screenshot/EN/6.png)
+![Main Window](docs/screenshot/EN/7.png)
 
 ---
 
