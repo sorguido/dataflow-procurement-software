@@ -38,7 +38,7 @@ Enter prices item by item to obtain an immediate and transparent comparison betw
 
 ---
 
-Originally developed for Windows (https://apps.microsoft.com/detail/9NT3BBG1W0K7) and also published on the Microsoft Store, the project is now being released as an open-source Linux edition under the **GNU GPLv3** license.  
+Originally developed for Windows and also published on the Microsoft Store (https://apps.microsoft.com/detail/9NT3BBG1W0K7), the project is now being released as an open-source Linux edition under the **GNU GPLv3** license.  
 
 The application is written in **Python** with a **Tkinter** GUI and uses **SQLite** as its local database engine.  
 The current Linux port already includes cross-platform path handling, Linux window icon support, multilingual support (Italian and English), Excel import/export, attachment management, purchaseer the **GNU GPL order tracking, notes, and SQDC analysis support.  
@@ -110,9 +110,11 @@ Recent work on the port includes:
 
 ### Linux Installation
 
-Download the Debian package from the **Releases** section.
+➡ Download Linux package (.deb)
 
-Install with:
+https://github.com/sorguido/dataflow-procurement-software/releases
+
+Install with double click or:
 
 ```bash
 sudo apt install ./dataflow_2.0.0_amd64.deb
@@ -148,7 +150,7 @@ python3 "DataFlow 2.0.0.py"
 
 ---
 
-## requirements.txt example
+## Requirements
 
 ```txt
 openpyxl
@@ -157,9 +159,6 @@ polib
 tkcalendar
 tksheet
 ```
-
-You can pin versions later after testing the Linux release more broadly.
-
 ---
 
 ## License
@@ -190,8 +189,6 @@ Developers interested in improving or adapting the software, including future Wi
 ---
 
 ## Repository link
-
-Once the GitHub repository is created, replace the placeholders in this README with the final public URL:
 
 ```text
 https://github.com/sorguido/dataflow-procurement-software
