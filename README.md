@@ -108,11 +108,14 @@ Recent work on the port includes:
 
 ## Installation
 
-### Linux Installation
+### Linux Installation  
+
+➡ **Download AppImage package and double click it (for all Linux Distributions)**  
+https://github.com/sorguido/dataflow-procurement-software/releases
+
+or
 
 ➡ Download Linux package (.deb)
-
-https://github.com/sorguido/dataflow-procurement-software/releases
 
 Install with double click or:
 
