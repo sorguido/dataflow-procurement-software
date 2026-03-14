@@ -75,6 +75,7 @@ from utils.string_utils import generate_username
 from utils.format_utils import parse_float_from_comma_string, format_quantity_display
 from utils.window_utils import calculate_center_position, calculate_optimal_window_size, center_window
 from utils.user_utils import get_app_data_dir, get_config_file, load_user_identity, save_user_identity
+from utils.resource_utils import resource_path
 
 # --- PULIZIA TMP ALL'AVVIO ---
 def cleanup_temp_on_startup():
@@ -161,20 +162,6 @@ logger = setup_logging()
 # --- FINE SISTEMA DI LOGGING ---
 
 # --- INIZIO CODICE AGGIUNTO PER PYINSTALLER ---
-def resource_path(relative_path):
-    """ Ottiene il percorso assoluto della risorsa, funzionante sia in sviluppo che con PyInstaller """
-    try:
-        # PyInstaller crea una cartella temporanea e ci memorizza il percorso in _MEIPASS
-        base_path = sys._MEIPASS
-    except AttributeError:
-        # BUG #21 FIX: Catch specifico invece di Exception generico
-        # In sviluppo, usa la directory dello script
-        if getattr(sys, 'frozen', False):
-            base_path = os.path.dirname(sys.executable)
-        else:
-            base_path = os.path.dirname(os.path.abspath(__file__))
-    return os.path.join(base_path, relative_path)
-
 def set_window_icon(window):
     """Imposta l'icona della finestra in modo cross-platform."""
     icon_path = resource_path(os.path.join("add_data", "DataFlow.ico"))
