@@ -57,6 +57,23 @@ import subprocess
 import threading
 import unicodedata
 
+# Importa costanti UI/layout
+from constants import (
+    TASKBAR_BUFFER,
+    BASE_ARTICLE_WIDTH,
+    CONTO_LAVORO_WIDTH,
+    SUPPLIER_COLUMN_WIDTH,
+    PADDING,
+    BUTTONS_MIN_WIDTH,
+    MIN_WINDOW_WIDTH,
+    SCREEN_WIDTH_PERCENTAGE,
+    SCREEN_HEIGHT_PERCENTAGE
+)
+
+# Importa utility stringhe e formattazione
+from utils.string_utils import generate_username
+from utils.format_utils import parse_float_from_comma_string, format_quantity_display
+
 # --- PULIZIA TMP ALL'AVVIO ---
 def cleanup_temp_on_startup():
     """Pulisce le directory temporanee di PyInstaller rimaste da precedenti esecuzioni."""
@@ -197,30 +214,6 @@ def get_config_file():
     app_dir = get_app_data_dir()
     os.makedirs(app_dir, exist_ok=True)
     return os.path.join(app_dir, 'config.ini')
-
-def _strip_accents(value):
-    """Rimuove gli accenti da una stringa mantenendo solo caratteri ASCII."""
-    if not value:
-        return ""
-    normalized = unicodedata.normalize('NFKD', value)
-    return ''.join(ch for ch in normalized if not unicodedata.combining(ch))
-
-def generate_username(first_name, last_name):
-    """
-    Genera lo username secondo le regole: prima lettera del nome + cognome,
-    senza spazi, senza accenti e tutto in minuscolo.
-    """
-    if not first_name or not last_name:
-        raise ValueError("Nome e cognome sono obbligatori per generare lo username.")
-    
-    first_clean = ''.join(ch for ch in _strip_accents(first_name).strip() if ch.isalpha())
-    last_clean = ''.join(ch for ch in _strip_accents(last_name) if ch.isalnum())
-    
-    if not first_clean or not last_clean:
-        raise ValueError("Nome e cognome devono contenere caratteri alfabetici validi.")
-    
-    username = (first_clean[0] + last_clean).lower()
-    return username
 
 def load_user_identity():
     """Carica nome, cognome e username dell'utente dal config."""
@@ -647,15 +640,14 @@ def calculate_center_position(win):
     # Limita le dimensioni alle dimensioni dello schermo
     if width > screen_w:
         width = screen_w
-    if height > screen_h - 100:  # TASKBAR_BUFFER
-        height = screen_h - 100
+    if height > screen_h - TASKBAR_BUFFER:
+        height = screen_h - TASKBAR_BUFFER
 
     # Calcola le coordinate per centrare la finestra
     x = max(0, (screen_w - width) // 2)
     y = max(0, (screen_h - height) // 2)
 
     # --- INIZIO BLOCCO DI CONTROLLO ANTI-TASKBAR ---
-    TASKBAR_BUFFER = 100 
     if y + height > screen_h - TASKBAR_BUFFER:
         y = screen_h - height - TASKBAR_BUFFER
     if y < 0:
@@ -666,17 +658,6 @@ def calculate_center_position(win):
 
 def calculate_optimal_window_size(win, num_suppliers, is_conto_lavoro=False):
     """Calcola la larghezza ottimale per ViewRequestWindow in base al numero di fornitori."""
-    # Dimensioni base delle colonne
-    BASE_ARTICLE_WIDTH = 80 + 80 + 250 + 60  # Codice + Allegato + Descrizione + Q.tà = 470px
-    CONTO_LAVORO_WIDTH = 100 + 100 + 150  # Cod.Grezzo + Dis.Grezzo + Mat.C/L = 350px
-    SUPPLIER_COLUMN_WIDTH = 120  # Larghezza stimata per colonna fornitore
-    PADDING = 140  # Margini laterali, scrollbar, bordi finestra e safety margin per DPI scaling
-    
-    # Larghezza minima per contenere tutti i pulsanti in alto (incluso "Create SQDC Analysis")
-    # I pulsanti occupano circa: 6 pulsanti × 180px + spaziatura = ~1150px
-    # (aumentato da 150px a 180px per testi tradotti più lunghi, specialmente in .exe con DPI scaling)
-    BUTTONS_MIN_WIDTH = 1150
-    
     # Calcola larghezza necessaria
     article_width = BASE_ARTICLE_WIDTH
     if is_conto_lavoro:
@@ -690,22 +671,21 @@ def calculate_optimal_window_size(win, num_suppliers, is_conto_lavoro=False):
     screen_h = win.winfo_screenheight()
     
     # Limita la larghezza al 95% dello schermo (lascia spazio ai bordi)
-    max_width = int(screen_w * 0.95)
+    max_width = int(screen_w * SCREEN_WIDTH_PERCENTAGE)
     optimal_width = min(total_width, max_width)
     
     # Larghezza minima: il maggiore tra larghezza pulsanti e larghezza base
-    min_width = max(BUTTONS_MIN_WIDTH, 850)
+    min_width = max(BUTTONS_MIN_WIDTH, MIN_WINDOW_WIDTH)
     optimal_width = max(optimal_width, min_width)
     
     # Altezza ottimale (80% dello schermo, lasciando spazio per taskbar)
-    optimal_height = int(screen_h * 0.80)
+    optimal_height = int(screen_h * SCREEN_HEIGHT_PERCENTAGE)
     
     # Calcola posizione centrale
     x = max(0, (screen_w - optimal_width) // 2)
     y = max(0, (screen_h - optimal_height) // 2)
     
     # Anti-taskbar buffer
-    TASKBAR_BUFFER = 100
     if y + optimal_height > screen_h - TASKBAR_BUFFER:
         y = screen_h - optimal_height - TASKBAR_BUFFER
     if y < 0:
@@ -721,67 +701,6 @@ def center_window(win):
     win.deiconify()
 
 # --- NUOVA GESTIONE NUMERI E TESTO---
-def parse_float_from_comma_string(s):
-    """Converte una stringa con virgola decimale in float, con validazione robusta.
-    
-    BUG #5 FIX: Validazione completa per gestire None, stringhe vuote e malformate.
-    """
-    # Gestione None e tipi numerici
-    if s is None:
-        return 0.0
-    if isinstance(s, (int, float)):
-        return float(s)
-    
-    # Converti a stringa e pulisci
-    s = str(s).strip()
-    
-    # Gestione stringa vuota
-    if not s or s == '':
-        return 0.0
-    
-    # Validazione: accetta solo numeri, virgola e segno
-    if not all(c.isdigit() or c in ',-' for c in s):
-        raise ValueError(f"Formato numero non valido: '{s}'. Usare solo cifre e virgola come separatore decimale.")
-    
-    # Validazione: no punto decimale
-    if '.' in s:
-        raise ValueError("Usare la virgola, non il punto, come separatore decimale.")
-    
-    # Validazione: massimo una virgola
-    if s.count(',') > 1:
-        raise ValueError(f"Formato numero non valido: '{s}'. Troppi separatori decimali.")
-    
-    # Conversione sicura
-    try:
-        return float(s.replace(',', '.'))
-    except ValueError as e:
-        raise ValueError(f"Impossibile convertire '{s}' in numero: {e}")
-
-def format_quantity_display(val):
-    """Formatta la quantità per la visualizzazione con gestione errori robusta.
-    
-    BUG #6 FIX: Gestione completa degli errori di conversione.
-    """
-    if val is None or val == '':
-        return ''
-    
-    # Se è già numero, formatta direttamente
-    if isinstance(val, (int, float)):
-        if val == int(val):
-            return str(int(val))
-        else:
-            return str(val).replace('.', ',')
-    
-    # Se è stringa, prova a convertire
-    try:
-        val_float = parse_float_from_comma_string(val)
-        if val_float == int(val_float):
-            return str(int(val_float))
-        else:
-            return str(val_float).replace('.', ',')
-    except (ValueError, TypeError):
-        # Se la conversione fallisce, restituisci la stringa originale
-        return str(val)
 
 def format_price_display(num):
     """Formatta il prezzo per la visualizzazione con 4 decimali e virgola.

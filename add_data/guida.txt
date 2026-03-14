@@ -505,26 +505,6 @@ Quando visualizzi RdO create da altri utenti puoi:
 [LIST] • Il backup della cartella condivisa venga eseguito regolarmente dall'amministratore IT
 
 [H2]Gestione Database
-[LIST] • [BOLD]Migra Database:[NORMAL] Nella cartella di installazione del programma (C:\Program Files\WindowsApps\…) troverai uno strumento "Database Migration Tool.exe" per importare i dati da un database creato con una versione precedente del programma (SQLite .db) al nuovo database DB personalizzato per utente (dataflow_db_[username].db) attualmente in uso.
-
-Quando usare la migrazione: [BOLD]
-Se stai aggiornando DataFlow dalla versione 1.x alla versione 2.0.0 (o successive) e hai già dei dati salvati nella versione precedente. La migrazione converte automaticamente il vecchio database SQLite nel nuovo formato DB, più performante e moderno.
-
-Cosa viene migrato: [BOLD]
-Tutte le RdO (complete con tutti i dati), fornitori, articoli, prezzi, allegati, note e tutte le informazioni associate vengono trasferite nel nuovo database senza perdite.
-
-Procedura passo-passo:
-[BOLD]1. [NORMAL]Chiudi DataFlow se è aperto
-[BOLD]2. [NORMAL]Assicurati di avere un backup del database attuale
-[BOLD]3. [NORMAL]Nella cartella di installazione del programma, avvia "Database Migration Tool.exe"
-[BOLD]4. [NORMAL]Clicca il pulsante [CODE]📂 Seleziona Database Vecchio[CODE] e scegli il file database SQLite della versione precedente (tipicamente [CODE]gestione_offerte.db[CODE])
-[BOLD]5. [NORMAL]Clicca il pulsante [CODE]📂 Seleziona Config.ini[CODE] e scegli il file [CODE]config.ini[CODE] di DataFlow 2.0.0 (si trova in C:\Users\[nome_utente]\AppData\Local\DataFlow)
-[BOLD]6. [NORMAL]Clicca [CODE]🔄 Avvia Migrazione[CODE] per avviare la conversione
-[BOLD]7. [NORMAL]Il tool copierà automaticamente tutti i dati nel nuovo formato DB nella cartella Documents\DataFlow
-[BOLD]8. [NORMAL]Al termine, riavvia DataFlow e verifica che i dati siano stati migrati correttamente aprendo alcune RdO
-
-[BOLD]IMPORTANTE: [WARNING]L'operazione è sicura e non modifica il database originale. Tutti i dati vengono copiati nel nuovo database mantenendo il formato corretto. Il tool estrae anche gli allegati salvati come BLOB nel vecchio database e li salva come file nella cartella Attachments.
-
 [LIST] • [BOLD]Cartella DataFlow Personalizzata:[NORMAL] Permette di cambiare la posizione dell'intera struttura DataFlow (database, allegati, backup).
 
 Per impostazione predefinita, DataFlow crea una cartella personalizzata per ogni utente in:

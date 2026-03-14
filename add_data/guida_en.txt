@@ -509,26 +509,6 @@ When viewing RFQs created by other users you can:
 [LIST] • The shared folder backup is performed regularly by the IT administrator
 
 [H2]Database Management
-[LIST] • [BOLD]Migrate Database:[NORMAL] In the program installation folder (C:\Program Files\WindowsApps\...) you will find a tool "Database Migration Tool.exe" to import data from a database created with a previous version of the program (SQLite .db) to the new user-specific DB database (dataflow_db_[username].db) currently in use.
-
-When to use migration: [BOLD]
-If you are updating DataFlow from version 1.x to version 2.0.0 (or later) and already have data saved in the previous version. The migration automatically converts the old SQLite database to the new DB format, which is more performant and modern.
-
-What gets migrated: [BOLD]
-All RFQs (complete with all data), suppliers, items, prices, attachments, notes and all associated information are transferred to the new database without loss.
-
-Step-by-step procedure:
-[BOLD]1. [NORMAL]Close DataFlow if it is open
-[BOLD]2. [NORMAL]Make sure you have a backup of the current database
-[BOLD]3. [NORMAL]In the program installation folder, launch "Database Migration Tool.exe"
-[BOLD]4. [NORMAL]Click the [CODE]📂 Select Old Database[CODE] button and choose the SQLite database file from the previous version (typically [CODE]gestione_offerte.db[CODE])
-[BOLD]5. [NORMAL]Click the [CODE]📂 Select Config.ini[CODE] button and choose the [CODE]config.ini[CODE] file of DataFlow 2.0.0 (located in C:\Users\[username]\AppData\Local\DataFlow)
-[BOLD]6. [NORMAL]Click [CODE]🔄 Start Migration[CODE] to start the conversion
-[BOLD]7. [NORMAL]The tool will automatically copy all data to the new DB format in the Documents\DataFlow folder
-[BOLD]8. [NORMAL]When complete, restart DataFlow and verify that the data has been migrated correctly by opening some RFQs
-
-[BOLD]IMPORTANT: [WARNING]The operation is safe and does not modify the original database. All data is copied to the new database maintaining the correct format. The tool also extracts attachments saved as BLOBs in the old database and saves them as files in the Attachments folder.
-
 [LIST] • [BOLD]Custom DataFlow Folder:[NORMAL] Allows you to change the location of the entire DataFlow structure (database, attachments, backups).
 
 By default, DataFlow creates a personalized folder for each user in:

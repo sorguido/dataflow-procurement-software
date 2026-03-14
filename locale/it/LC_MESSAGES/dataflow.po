@@ -111,9 +111,6 @@ msgstr "   - Recupero da Backup"
 msgid "   - Scorciatoie da Tastiera"
 msgstr "   - Scorciatoie da Tastiera"
 
-msgid "  - Colonne migrate: {}"
-msgstr "  - Colonne migrate: {}"
-
 msgid "  - Nuove colonne non popolate: {}"
 msgstr "  - Nuove colonne non popolate: {}"
 
