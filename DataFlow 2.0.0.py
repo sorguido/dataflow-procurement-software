@@ -84,6 +84,7 @@ from utils.i18n_utils import (
     normalize_rfq_type,
     translate_rfq_type
 )
+from utils.validation_utils import sanitize_filename, format_date_for_db, format_price_display
 
 # --- PULIZIA TMP ALL'AVVIO ---
 def cleanup_temp_on_startup():
@@ -399,26 +400,6 @@ def get_db_path():
 
 # --- NUOVA GESTIONE NUMERI E TESTO---
 
-def format_price_display(num):
-    """Formatta il prezzo per la visualizzazione con 4 decimali e virgola.
-    
-    BUG #6 FIX: Gestione completa degli errori di conversione.
-    """
-    if num is None or num == '':
-        return ''
-    
-    # Converti in float gestendo errori
-    try:
-        if isinstance(num, str):
-            num_float = parse_float_from_comma_string(num)
-        else:
-            num_float = float(num)
-        return f"{num_float:.4f}".replace('.', ',')
-    except (ValueError, TypeError) as e:
-        # In caso di errore, restituisci stringa vuota o valore originale
-        logger.warning(f"Impossibile formattare prezzo '{num}': {e}")
-        return str(num) if num else ''
-
 # ------------------------------------------------------------------------------------
 # DATABASE SETUP
 # ------------------------------------------------------------------------------------
@@ -672,9 +653,6 @@ class AttachmentWindow(tk.Toplevel):
             except Exception as destroy_error:
                 logger.debug(f"Errore destroy() durante chiusura: {destroy_error}")
 
-    def _sanitize_filename(self, name):
-        return re.sub(r'[\\/*?:"<>|]', "", name)
-
     def delete_attachment(self):
         # Blocca se in modalità read-only
         if self.read_only:
@@ -847,7 +825,7 @@ class AttachmentWindow(tk.Toplevel):
 
         try:
             file_ext = os.path.splitext(filepath)[1]
-            sanitized_supplier = self._sanitize_filename(supplier)
+            sanitized_supplier = sanitize_filename(supplier)
             db_manager_temp = DatabaseManager(self.db_path, read_only=self.read_only)
             try:
                 next_id = db_manager_temp.get_max_allegato_id() + 1
@@ -3374,12 +3352,6 @@ class ViewRequestWindow(tk.Toplevel):
         self.wait_window(win)
 
 # --- INIZIO NUOVI METODI AGGIUNTI ---
-    def _format_date_for_db(self, display_date):
-        """Converte una data 'dd/mm/yyyy' in 'YYYY-MM-DD' per il DB."""
-        if not display_date: return None
-        try: return datetime.strptime(display_date, '%d/%m/%Y').strftime('%Y-%m-%d')
-        except (ValueError, TypeError): return None
-
     # BUG #16 FIX: Metodi dedicati invece di lambda per evitare memory leak
     def _on_date_changed(self, event=None):
         """Handler per eventi di cambio data."""
@@ -3398,8 +3370,8 @@ class ViewRequestWindow(tk.Toplevel):
         self._date_save_pending = True
         
         try:
-            new_date_em = self._format_date_for_db(self.entry_data_emissione.get())
-            new_date_sc = self._format_date_for_db(self.entry_data_scadenza.get())
+            new_date_em = format_date_for_db(self.entry_data_emissione.get())
+            new_date_sc = format_date_for_db(self.entry_data_scadenza.get())
             
             # BUG #46 FIX: Usa context manager per garantire chiusura DB anche su eccezione
             with self._get_db_manager() as db_manager:
@@ -3430,8 +3402,8 @@ class ViewRequestWindow(tk.Toplevel):
         """Salva la data di emissione e scadenza modificate."""
         try:
             # Usa la funzione helper per convertire, gestisce anche i campi vuoti
-            new_date_em = self._format_date_for_db(self.entry_data_emissione.get())
-            new_date_sc = self._format_date_for_db(self.entry_data_scadenza.get())
+            new_date_em = format_date_for_db(self.entry_data_emissione.get())
+            new_date_sc = format_date_for_db(self.entry_data_scadenza.get())
         except Exception as e:
             messagebox.showerror(_("Errore Formato Data"), _("Date non valide: {}").format(e), parent=self)
             return
@@ -4658,8 +4630,6 @@ class SettingsWindow(tk.Toplevel):
                         _("Il backup è stato completato, ma non è stato possibile riaprire la connessione principale.\nSi consiglia di riavviare l'applicazione."),
                         parent=self
                     )
-
-    def _sanitize_filename(self, name): return re.sub(r'[\\/*?:"<>|]', "", name)
 
     def select_standard_dataflow_location(self):
         """
@@ -6989,7 +6959,7 @@ class MainWindow:
         
         # Validazione rimossa: ora il numero RdO supporta ricerca parziale come gli altri filtri
         
-        dates = {k: self._format_date_for_db(v.get().strip()) for k, v in self.date_entries.items()}
+        dates = {k: format_date_for_db(v.get().strip()) for k, v in self.date_entries.items()}
         base = "SELECT DISTINCT ro.id_richiesta, ro.tipo_rdo, ro.data_emissione, ro.data_scadenza, ro.riferimento FROM richieste_offerta ro LEFT JOIN dettagli_richiesta dr ON ro.id_richiesta=dr.id_richiesta LEFT JOIN richiesta_fornitori rf ON ro.id_richiesta=rf.id_richiesta"
         clauses, params = ["ro.stato=?"], [status]
         if crit['num']: clauses.append("CAST(ro.id_richiesta AS TEXT) LIKE ?"); params.append(f"%{crit['num']}%")
@@ -7490,7 +7460,7 @@ class MainWindow:
                 
                 username_filter = self._get_active_username_filter()
                 crit = {k: v.get().strip() for k, v in self.search_vars.items()}
-                dates = {k: self._format_date_for_db(v.get().strip()) for k, v in self.date_entries.items()}
+                dates = {k: format_date_for_db(v.get().strip()) for k, v in self.date_entries.items()}
                 
                 # Gestione tipo RdO
                 tipo_rdo = None
@@ -7773,10 +7743,6 @@ class MainWindow:
         if not db_date: return ""
         try: return datetime.strptime(db_date, '%Y-%m-%d').strftime('%d/%m/%Y')
         except (ValueError, TypeError): return db_date
-    def _format_date_for_db(self, display_date):
-        if not display_date: return None
-        try: return datetime.strptime(display_date, '%d/%m/%Y').strftime('%Y-%m-%d')
-        except (ValueError, TypeError): return None
 
 class UserIdentityDialog(tk.Toplevel):
     """Finestra modale che forza l'inserimento di nome e cognome."""
