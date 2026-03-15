@@ -509,7 +509,17 @@ class AttachmentWindow(tk.Toplevel):
             )
             return
         
-        filepath = filedialog.askopenfilename(title=_("Seleziona file da allegare"))
+        # Rilascia temporaneamente il grab per permettere al dialog di aprirsi sopra
+        self.grab_release()
+        try:
+            filepath = filedialog.askopenfilename(
+                title=_("Seleziona file da allegare"),
+                parent=self
+            )
+        finally:
+            # Riacquisisce il grab dopo il dialog
+            self.grab_set()
+        
         if not filepath: return
         supplier = self.combo_suppliers.get() if self.attachment_type == "Offerta Fornitore" else "Interno"
         if not supplier and self.attachment_type == "Offerta Fornitore":
@@ -718,11 +728,17 @@ class AttachmentWindow(tk.Toplevel):
             return
 
         # 2. Chiedi all'utente dove salvare il file
-        save_path = filedialog.asksaveasfilename(
-            title=_("Salva allegato come..."),
-            initialfile=nome_file,  # Propone il nome file originale
-            parent=self
-        )
+        # Rilascia temporaneamente il grab per permettere al dialog di aprirsi sopra
+        self.grab_release()
+        try:
+            save_path = filedialog.asksaveasfilename(
+                title=_("Salva allegato come..."),
+                initialfile=nome_file,  # Propone il nome file originale
+                parent=self
+            )
+        finally:
+            # Riacquisisce il grab dopo il dialog
+            self.grab_set()
         
         if not save_path:
             return  # L'utente ha annullato
