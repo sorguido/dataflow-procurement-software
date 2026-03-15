@@ -2,8 +2,6 @@
 """
 HelpWindow - Finestra Guida Utente per DataFlow Procurement Software
 Fornisce documentazione interattiva con sommario navigabile, ricerca full-text e formattazione avanzata.
-
-ESTRATTO DAL MONOLITE: Versione originale funzionante prima del refactoring.
 """
 
 import tkinter as tk
@@ -11,17 +9,11 @@ from tkinter import ttk
 import webbrowser
 import configparser
 import os
-import builtins
 
-# Import utility functions dal progetto
 from utils.window_utils import center_window
 from utils.user_utils import get_config_file
 from utils.resource_utils import resource_path, set_window_icon
-
-# IMPORTANTE: La funzione _() è installata in builtins da init_i18n() nel main
-# Se non esiste (ad esempio nei test), usa una funzione dummy
-if not hasattr(builtins, '_'):
-    builtins._ = lambda x: x
+from utils.i18n_utils import get_current_language
 
 
 class HelpWindow(tk.Toplevel):
@@ -31,6 +23,7 @@ class HelpWindow(tk.Toplevel):
         set_window_icon(self)
         
         # Leggi la lingua corrente per la traduzione del sommario
+        import configparser
         config = configparser.ConfigParser(interpolation=None)
         config_file = get_config_file()
         current_language = "en"  # default
@@ -44,56 +37,12 @@ class HelpWindow(tk.Toplevel):
         # Determina la traduzione corretta per "Analisi SQDC"
         sqdc_text = "   - Analysis SQDC" if current_language == "en" else _("   - Analisi SQDC")
         
-        self.title(_("Guida Utente - DataFlow Procurement Software"))
-        self.transient(parent)
-        self.grab_set()
-        
-        main_frame = ttk.Frame(self)
-        main_frame.pack(fill="both", expand=True)
-        
-        paned = ttk.PanedWindow(main_frame, orient=tk.HORIZONTAL)
-        paned.pack(fill="both", expand=True, padx=10, pady=10)
-        
-        # Frame sommario (TOC)
-        toc_frame = ttk.Frame(paned, padding=10)
-        paned.add(toc_frame, weight=1)
-        
+        self.title(_("Guida Utente - DataFlow Procurement Software")); self.transient(parent); self.grab_set()
+        main_frame = ttk.Frame(self); main_frame.pack(fill="both", expand=True)
+        paned = ttk.PanedWindow(main_frame, orient=tk.HORIZONTAL); paned.pack(fill="both", expand=True, padx=10, pady=10)
+        toc_frame = ttk.Frame(paned, padding=10); paned.add(toc_frame, weight=1)
         ttk.Label(toc_frame, text=_("Sommario"), font=("Helvetica", 12, "bold")).pack(anchor="w", pady=(0, 10))
-        
-        self.topics = [
-            (_("0. Primi Passi"), "quick_start"),
-            (_("   - Benvenuto in DataFlow"), "welcome"),
-            (_("   - Primo Avvio"), "first_run"),
-            (_("   - Prima RdO di Prova"), "first_rdo"),
-            (_("1. Schermata Principale"), "main_screen"),
-            (_("   - Interfaccia e Pulsanti Principali"), "main_interface"),
-            (_("   - Scorciatoie da Tastiera"), "keyboard_shortcuts"),
-            (_("   - Ordinamento delle Colonne"), "column_sorting"),
-            (_("   - Filtri di Ricerca"), "main_filters"),
-            (_("2. Creare una Nuova RdO"), "new_rdo"),
-            (_("   - Inserimento Manuale degli Articoli"), "new_rdo_data"),
-            (_("   - Importazione da Excel"), "new_rdo_excel"),
-            (_("3. Gestire una RdO Esistente"), "manage_rdo"),
-            (_("   - La Griglia Prezzi"), "manage_grid"),
-            (_("   - Modifica Dati e Aggiunta Note"), "manage_edit"),
-            (_("   - Gestione Numeri Ordine (PO)"), "manage_po"),
-            (_("   - Gestione Allegati"), "manage_attachments"),
-            (sqdc_text, "manage_sqdc"),
-            (_("   - Esportazione Excel"), "manage_export"),
-            (_("4. Impostazioni e Manutenzione"), "settings"),
-            (_("   - Gestione Database"), "settings_db"),
-            (_("   - Backup"), "settings_backup"),
-            (_("   - Avanzate"), "settings_advanced"),
-            (_("5. Problemi Comuni e Soluzioni"), "troubleshooting"),
-            (_("   - Database Bloccato"), "ts_db_locked"),
-            (_("   - Errori Importazione Excel"), "ts_import"),
-            (_("   - Allegati Non Trovati"), "ts_attachments"),
-            (_("   - Recupero da Backup"), "ts_backup"),
-            (_("6. Requisiti di Sistema e Limiti"), "requirements"),
-            (_("7. Glossario"), "glossary"),
-            (_("8. Contatti e Supporto"), "support")
-        ]
-        
+        self.topics = [(_("0. Primi Passi"), "quick_start"), (_("   - Benvenuto in DataFlow"), "welcome"), (_("   - Primo Avvio"), "first_run"), (_("   - Prima RdO di Prova"), "first_rdo"), (_("1. Schermata Principale"), "main_screen"), (_("   - Interfaccia e Pulsanti Principali"), "main_interface"), (_("   - Scorciatoie da Tastiera"), "keyboard_shortcuts"), (_("   - Ordinamento delle Colonne"), "column_sorting"), (_("   - Filtri di Ricerca"), "main_filters"), (_("2. Creare una Nuova RdO"), "new_rdo"), (_("   - Inserimento Manuale degli Articoli"), "new_rdo_data"), (_("   - Importazione da Excel"), "new_rdo_excel"), (_("3. Gestire una RdO Esistente"), "manage_rdo"), (_("   - La Griglia Prezzi"), "manage_grid"), (_("   - Modifica Dati e Aggiunta Note"), "manage_edit"), (_("   - Gestione Numeri Ordine (PO)"), "manage_po"), (_("   - Gestione Allegati"), "manage_attachments"), (sqdc_text, "manage_sqdc"), (_("   - Esportazione Excel"), "manage_export"), (_("4. Impostazioni e Manutenzione"), "settings"), (_("   - Gestione Database"), "settings_db"), (_("   - Backup"), "settings_backup"), (_("   - Avanzate"), "settings_advanced"), (_("5. Problemi Comuni e Soluzioni"), "troubleshooting"), (_("   - Database Bloccato"), "ts_db_locked"), (_("   - Errori Importazione Excel"), "ts_import"), (_("   - Allegati Non Trovati"), "ts_attachments"), (_("   - Recupero da Backup"), "ts_backup"), (_("6. Requisiti di Sistema e Limiti"), "requirements"), (_("7. Glossario"), "glossary"), (_("8. Contatti e Supporto"), "support")]
         # Creiamo una mappa di ricerca veloce (Testo del titolo -> tag_ancoraggio)
         self.topic_anchor_map = {}
         for text, tag in self.topics:
@@ -104,31 +53,27 @@ class HelpWindow(tk.Toplevel):
             self.topic_anchor_map[clean_text] = tag
         
         # Aggiungi anche le chiavi alternative per "Analisi SQDC" quando la lingua è inglese
+        # Il file guida inglese contiene "SQDC Analysis" invece di "Analysis SQDC"
+        # e potrebbe contenere anche "Analisi SQDC" se non è stato ancora aggiornato
         if current_language == "en":
             self.topic_anchor_map["Analisi SQDC"] = "manage_sqdc"
             self.topic_anchor_map["SQDC Analysis"] = "manage_sqdc"
+            # Aggiungi anche la traduzione per la gestione PO
             self.topic_anchor_map["Purchase Order Number Management"] = "manage_po"
+            # Aggiungi mappatura alternativa per "Managing an Existing RFQ" (RFQ maiuscolo)
             self.topic_anchor_map["3. Managing an Existing RFQ"] = "manage_rdo"
+            # Aggiungi mappatura alternativa per "First Test RFQ" (RFQ maiuscolo)
             self.topic_anchor_map["First Test RFQ"] = "first_rdo"
+            # Aggiungi mappatura alternativa per "Creating a New RFQ" (RFQ maiuscolo + numero)
             self.topic_anchor_map["2. Creating a New RFQ"] = "new_rdo"
         
         # Aggiungi mappatura per titolo completo della sezione PO (italiano)
         self.topic_anchor_map["Gestione Numeri Ordine di Acquisto (PO)"] = "manage_po"
-        
-        # Crea i link del sommario
         for text, tag in self.topics:
-            link = ttk.Label(toc_frame, text=text, foreground="blue", cursor="hand2")
-            if text.strip().startswith(('0','1','2','3','4','5','6','7','8')):
-                link.pack(anchor="w", pady=2)
-            else:
-                link.pack(anchor="w", pady=1)
-            link.bind("<Button-1>", lambda e, t=tag: self.text_content.see(f"{t}.first"))
+            link = ttk.Label(toc_frame, text=text, foreground="blue", cursor="hand2"); link.pack(anchor="w", pady=2 if text.strip().startswith(('0','1','2','3','4','5','6','7','8')) else 1); link.bind("<Button-1>", lambda e, t=tag: self.text_content.see(f"{t}.first"))
+        content_frame = ttk.Frame(paned); paned.add(content_frame, weight=4)
         
-        # Frame contenuto
-        content_frame = ttk.Frame(paned)
-        paned.add(content_frame, weight=4)
-        
-        # --- SEARCH BAR ---
+        # --- INIZIO SEARCH BAR ---
         # Inizializza variabili per la ricerca
         self.search_var = tk.StringVar()
         self.search_matches = []  # Lista di posizioni dei match trovati
@@ -141,34 +86,42 @@ class HelpWindow(tk.Toplevel):
         self.setup_search_functionality(search_frame)
         # --- FINE SEARCH BAR ---
         
-        # Widget Text per il contenuto
-        scrollbar = ttk.Scrollbar(content_frame)
-        self.text_content = tk.Text(
-            content_frame,
-            wrap=tk.WORD,
-            yscrollcommand=scrollbar.set,
-            padx=15,
-            pady=10,
-            relief="flat",
-            background="#FFFFFF",
-            font=("Arial", 10)
-        )
-        
-        scrollbar.config(command=self.text_content.yview)
-        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-        self.text_content.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        
+        scrollbar = ttk.Scrollbar(content_frame); self.text_content = tk.Text(content_frame, wrap=tk.WORD, yscrollcommand=scrollbar.set, padx=15, pady=10, relief="flat", background="#FFFFFF", font=("Arial", 10))
+        scrollbar.config(command=self.text_content.yview); scrollbar.pack(side=tk.RIGHT, fill=tk.Y); self.text_content.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         self.text_content.insert(tk.END, _("Caricamento della guida in corso...\n\n"), "normal")
-        self.text_content.config(state="disabled")
+        
+        # Rendi il widget read-only catturando eventi tastiera invece di state="disabled"
+        # FIX: state="disabled" causa segmentation fault con see() in Tcl/Tk
+        self._make_readonly()
         
         center_window(self)
-        # Carica il contenuto in modo asincrono
+        # Carica il contenuto in modo asincrono ma più robusto
         self.after(100, self.populate_content)
+    
+    def _make_readonly(self):
+        """Rende il Text widget read-only senza usare state='disabled' (causa segfault)"""
+        # Blocca tutte le modifiche da tastiera
+        self.text_content.bind("<Key>", lambda e: "break")
+        # Permetti comunque di selezionare il testo
+        self.text_content.bind("<Control-c>", lambda e: None)  # Permetti copia
+        self.text_content.bind("<Control-a>", lambda e: None)  # Permetti seleziona tutto
+    
+    def _make_open_url_handler(self, url):
+        """Crea un handler sicuro per aprire URL (evita problemi con lambda closure)"""
+        def handler(event):
+            try:
+                webbrowser.open(url)
+            except Exception as e:
+                print(f"[HelpWindow] Errore apertura URL {url}: {e}")
+        return handler
 
+
+    ### CORREZIONE: La funzione 'populate_content' è stata indentata per diventare un metodo della classe 'HelpWindow'.
     def populate_content(self):
         try:
             # Riabilita il widget per inserire il contenuto
-            self.text_content.config(state="normal")
+            # NON usare state="normal" - il widget è già normale, solo read-only via bindings
+            
             # Pulisci il messaggio di caricamento
             self.text_content.delete("1.0", tk.END)
             
@@ -183,26 +136,29 @@ class HelpWindow(tk.Toplevel):
                 "warning": ("Arial", 10, "italic"),
                 "code": ("Arial", 9),
                 "info": ("Arial", 9, "italic"),
-                "warning_red": ("Arial", 10, "bold")
+                "warning_red": ("Arial", 10, "bold") 
             }
             for t, f_tuple in tags.items():
+                # Assicura che la tupla del font sia passata correttamente
                 self.text_content.tag_configure(t, font=f_tuple)
             
-            # Configurazione colori
+            # --- CONFIGURAZIONE COLORE PER I TAG ---
             self.text_content.tag_configure("warning_red", foreground="red")
             self.text_content.tag_configure("info", foreground="gray")
             
-            # Configurazione tag di ancoraggio
+            # --- CONFIGURAZIONE TAG DI ANCORAGGIO ---
+            # Configura tutti i tag di ancoraggio usati nel sommario
             for _, tag in self.topics:
                 self.text_content.tag_configure(tag, underline=False)
             
-            # Configurazione tag per ricerca
+            # --- CONFIGURAZIONE TAG PER RICERCA ---
             self.text_content.tag_configure("search_highlight", background="yellow", foreground="black")
             
             # Carica il contenuto dal file esterno in base alla lingua
+            import configparser
             config = configparser.ConfigParser(interpolation=None)
             config_file = get_config_file()
-            current_language = "en"  # default
+            current_language = "en"  # default, coerente con init_i18n
             if os.path.exists(config_file):
                 config.read(config_file, encoding='utf-8')
                 if 'Settings' in config and config.has_option('Settings', 'language'):
@@ -234,21 +190,30 @@ class HelpWindow(tk.Toplevel):
                 self.text_content.insert(tk.END, error_msg, "normal")
                 print(f"[HelpWindow] ERRORE: File non trovato: {guida_path}")
             
-            # Disabilita il widget dopo il caricamento
-            self.text_content.config(state="disabled")
+            # NON disabilitare il widget - è già read-only via bindings
             
         except Exception as e:
             # In caso di errore, mostra un messaggio di errore
-            self.text_content.config(state="normal")
             self.text_content.delete("1.0", tk.END)
             self.text_content.insert(tk.END, _("Errore caricamento guida: {}\n\nContatta l'amministratore.").format(e), "normal")
-            self.text_content.config(state="disabled")
+            # Widget rimane "normal" - è read-only via bindings
     
     def _parse_and_insert_content(self, content):
         """Analizza il contenuto del file e lo inserisce nel widget con la formattazione corretta"""
         lines = content.split('\n')
         
+        # FIX: Disabilita aggiornamenti visuali durante inserimento massivo (performance + stabilità)
+        try:
+            self.text_content.config(state="normal")  # Assicura stato modificabile
+        except tk.TclError:
+            pass
+        
+        # FIX: Batch processing per evitare crash - aggiorna UI ogni N righe
+        update_interval = 100
+        line_count = 0
+        
         for line in lines:
+            line_count += 1
             if not line.strip():
                 self.text_content.insert(tk.END, "\n")
                 continue
@@ -309,6 +274,13 @@ class HelpWindow(tk.Toplevel):
             else:
                 # Nessun tag speciale, è testo normale con possibili tag inline
                 self._insert_formatted_line(line)
+            
+            # FIX: Update periodico per evitare freeze/crash Tk
+            if line_count % update_interval == 0:
+                try:
+                    self.text_content.update_idletasks()
+                except tk.TclError:
+                    pass
     
     def _insert_formatted_line(self, line):
         """Inserisce una riga con formattazione inline"""
@@ -410,28 +382,48 @@ class HelpWindow(tk.Toplevel):
             # Se non c'è nessun testo, aggiungi una stringa vuota
             parts.append(("", "normal", None))
         
-        # Inserisce tutti i pezzi
+        # Inserisce tutti i pezzi con protezione errori
         for item in parts:
-            if len(item) == 3:
-                text, tag, url = item
-                if tag == "hyperlink" and url:
-                    # Crea un tag univoco per questo link
-                    link_tag = f"link_{id(url)}"
-                    # Configura il tag con lo stile del link
-                    self.text_content.tag_configure(link_tag, foreground="blue", underline=True)
-                    # Bind del click per aprire l'URL
-                    self.text_content.tag_bind(link_tag, "<Button-1>", lambda e, u=url: webbrowser.open(u))
-                    self.text_content.tag_bind(link_tag, "<Enter>", lambda e: self.text_content.config(cursor="hand2"))
-                    self.text_content.tag_bind(link_tag, "<Leave>", lambda e: self.text_content.config(cursor=""))
-                    # Inserisce il testo con il tag del link
-                    self.text_content.insert(tk.END, text, link_tag)
+            try:
+                if len(item) == 3:
+                    text, tag, url = item
+                    if tag == "hyperlink" and url:
+                        # Crea un tag univoco per questo link
+                        link_tag = f"link_{id(url)}"
+                        # FIX: Proteggi configurazione e bind tag
+                        try:
+                            self.text_content.tag_configure(link_tag, foreground="blue", underline=True)
+                            # Bind con protezioni - evita closure problems
+                            self.text_content.tag_bind(link_tag, "<Button-1>", self._make_open_url_handler(url))
+                            self.text_content.tag_bind(link_tag, "<Enter>", lambda e: self.text_content.config(cursor="hand2"))
+                            self.text_content.tag_bind(link_tag, "<Leave>", lambda e: self.text_content.config(cursor=""))
+                        except (tk.TclError, Exception) as e:
+                            print(f"[HelpWindow] Warning: impossibile configurare link tag: {e}")
+                            # Fallback: inserisci come testo normale
+                            self.text_content.insert(tk.END, text, "normal")
+                            continue
+                        # Inserisce il testo con il tag del link
+                        self.text_content.insert(tk.END, text, link_tag)
+                    else:
+                        self.text_content.insert(tk.END, text, tag)
                 else:
-                    self.text_content.insert(tk.END, text, tag)
-            else:
-                # Fallback per compatibilità
-                self.text_content.insert(tk.END, item[0], item[1])
+                    # Fallback per compatibilità
+                    self.text_content.insert(tk.END, item[0], item[1])
+            except (tk.TclError, IndexError, Exception) as e:
+                # FIX: Se inserimento fallisce, log e continua
+                print(f"[HelpWindow] Warning: errore inserimento testo: {e}")
+                try:
+                    # Tenta inserimento semplice come fallback
+                    if len(item) >= 1:
+                        self.text_content.insert(tk.END, str(item[0]), "normal")
+                except:
+                    pass
         
-        self.text_content.insert(tk.END, "\n")
+        # FIX: Proteggi inserimento newline
+        try:
+            self.text_content.insert(tk.END, "\n")
+        except tk.TclError:
+            pass
     
     def _insert_formatted_line_with_anchor(self, line, anchor_tags):
         """Inserisce una riga con formattazione inline e tag di ancoraggio"""
@@ -532,36 +524,53 @@ class HelpWindow(tk.Toplevel):
         elif not parts:
             parts.append(("", "normal", None))
         
-        # Inserisce tutti i pezzi con i tag di ancoraggio
+        # Inserisce tutti i pezzi con i tag di ancoraggio e protezione errori
         for item in parts:
-            if len(item) == 3:
-                text, tag, url = item
-                if tag == "hyperlink" and url:
-                    # Crea un tag univoco per questo link
-                    link_tag = f"link_{id(url)}"
-                    # Configura il tag con lo stile del link
-                    self.text_content.tag_configure(link_tag, foreground="blue", underline=True)
-                    # Bind del click per aprire l'URL
-                    self.text_content.tag_bind(link_tag, "<Button-1>", lambda e, u=url: webbrowser.open(u))
-                    self.text_content.tag_bind(link_tag, "<Enter>", lambda e: self.text_content.config(cursor="hand2"))
-                    self.text_content.tag_bind(link_tag, "<Leave>", lambda e: self.text_content.config(cursor=""))
-                    # Combina anchor_tags con il tag del link
-                    combined_tags = list(anchor_tags) + [link_tag]
-                    self.text_content.insert(tk.END, text, tuple(combined_tags))
-                else:
-                    # Combina il tag di formattazione con i tag di ancoraggio
-                    combined_tags = list(anchor_tags) + [tag]
-                    self.text_content.insert(tk.END, text, tuple(combined_tags))
-            else:
-                # Fallback per compatibilità
-                combined_tags = list(anchor_tags) + [item[1]]
-                self.text_content.insert(tk.END, item[0], tuple(combined_tags))
+            try:
+                if len(item) == 3:
+                    text, tag, url = item
+                    if tag == "hyperlink" and url:
+                        # Crea un tag univoco per questo link
+                        link_tag = f"link_{id(url)}"
+                        # FIX: Proteggi configurazione e bind tag
+                        try:
+                            self.text_content.tag_configure(link_tag, foreground="blue", underline=True)
+                            # Bind con protezioni
+                            self.text_content.tag_bind(link_tag, "<Button-1>", self._make_open_url_handler(url))
+                            self.text_content.tag_bind(link_tag, "<Enter>", lambda e: self.text_content.config(cursor="hand2"))
+                            self.text_content.tag_bind(link_tag, "<Leave>", lambda e: self.text_content.config(cursor=""))
+                        except (tk.TclError, Exception) as e:
+                            print(f"[HelpWindow] Warning: impossibile configurare link tag con anchor: {e}")
+                            # Fallback: usa solo anchor_tags
+                            combined_tags = list(anchor_tags)
+                            self.text_content.insert(tk.END, text, tuple(combined_tags) if combined_tags else "normal")
+                            continue
+                        # Combina anchor_tags con il tag del link
+                        combined_tags = list(anchor_tags) + [link_tag]
+                        self.text_content.insert(tk.END, text, tuple(combined_tags))
+                    else:
+                        # Combina il tag di formattazione con i tag di ancoraggio
+                        combined_tags = list(anchor_tags) + [tag]
+                        self.text_content.insert(tk.END, text, tuple(combined_tags))
+            except (tk.TclError, IndexError, Exception) as e:
+                # FIX: Gestione errore inserimento con anchor
+                print(f"[HelpWindow] Warning: errore inserimento testo con anchor: {e}")
+                try:
+                    if len(item) >= 1:
+                        self.text_content.insert(tk.END, str(item[0]), tuple(anchor_tags) if anchor_tags else "normal")
+                except:
+                    pass
         
-        self.text_content.insert(tk.END, "\n")
+        # FIX: Proteggi inserimento newline
+        try:
+            self.text_content.insert(tk.END, "\n")
+        except tk.TclError:
+            pass
     
     def setup_search_functionality(self, parent_frame):
         """Crea l'interfaccia di ricerca con Entry, pulsanti e contatore risultati"""
         # Determina la lingua corrente per le traduzioni
+        import configparser
         config = configparser.ConfigParser(interpolation=None)
         config_file = get_config_file()
         current_language = "en"  # default
@@ -597,66 +606,152 @@ class HelpWindow(tk.Toplevel):
         self.search_result_label.pack(side=tk.LEFT, padx=(10, 5))
     
     def search_text(self):
-        """Cerca il testo nel widget e evidenzia tutti i match (case-insensitive)
-        
-        STRATEGIA ANTI-SEGFAULT: Non usa Text.search() (nativo Tcl/Tk) ma ricerca Python pura.
-        """
+        """Cerca il testo nel widget e evidenzia tutti i match (case-insensitive)"""
         # Pulisci ricerca precedente
         self.clear_search()
         
         search_term = self.search_var.get().strip()
-        if not search_term:
+        # FIX: Validazione robusta della stringa di ricerca
+        if not search_term or len(search_term) == 0:
             return
         
-        # FASE 1: Estrai contenuto completo e cerca in Python puro (NO Text.search()!)
-        full_text = self.text_content.get("1.0", tk.END)
-        search_lower = search_term.lower()
-        text_lower = full_text.lower()
+        # Limite massimo di risultati per evitare crash
+        MAX_MATCHES = 500
         
-        # Trova tutti gli offset dei match usando str.find() in loop
-        matches_offsets = []
-        start_offset = 0
-        max_matches = 1000
-        
-        while len(matches_offsets) < max_matches:
-            offset = text_lower.find(search_lower, start_offset)
-            if offset == -1:
-                break
-            matches_offsets.append(offset)
-            start_offset = offset + 1  # Continua dopo il carattere corrente per trovare overlapping matches
-        
-        # FASE 2: Converti offset Python -> indici Tkinter e applica tag
-        if matches_offsets:
-            self.text_content.config(state="normal")
-            try:
-                for offset in matches_offsets:
-                    # Converti offset in indice Tk: "1.0" + N caratteri
-                    start_idx = f"1.0+{offset}c"
-                    end_idx = f"1.0+{offset + len(search_term)}c"
+        try:
+            # Il widget è già in modalità "normal" (read-only via bindings, non state)
+            # Non serve abilitarlo/disabilitarlo
+            
+            # Cerca tutti i match (case-insensitive usando opzione nocase)
+            start_pos = "1.0"
+            match_count = 0
+            
+            # FIX: Ottieni l'indice finale del testo per validazione
+            # Usa compare() invece di confronti diretti per sicurezza
+            text_end = self.text_content.index(tk.END)
+            
+            while match_count < MAX_MATCHES:
+                # tk.Text.search con nocase=1 per ricerca case-insensitive
+                pos = self.text_content.search(search_term, start_pos, stopindex=tk.END, nocase=1)
+                
+                # FIX: Validazione robusta del risultato
+                if not pos or pos == "":
+                    break
+                
+                # FIX: Verifica che la posizione sia valida (non oltre la fine)
+                try:
+                    if self.text_content.compare(pos, ">=", tk.END):
+                        break
+                except tk.TclError:
+                    # Indice invalido, interrompi
+                    break
+                
+                # Calcola la posizione finale del match
+                # FIX: Assicurati che end_pos avanzi SEMPRE di almeno 1 carattere
+                end_pos = f"{pos}+{max(1, len(search_term))}c"
+                
+                # FIX: Valida che end_pos non superi la fine del testo
+                try:
+                    if self.text_content.compare(end_pos, ">", tk.END):
+                        end_pos = tk.END
+                except tk.TclError:
+                    end_pos = tk.END
+                
+                # Aggiungi il tag di evidenziazione
+                try:
+                    self.text_content.tag_add("search_highlight", pos, end_pos)
+                except tk.TclError as e:
+                    # Tag operation fallita, loggalo e continua
+                    print(f"[HelpWindow] Warning: tag_add fallito per {pos}-{end_pos}: {e}")
+                    # Avanza comunque per evitare loop infinito
+                    start_pos = f"{pos}+1c"
+                    continue
+                
+                # Salva la posizione per la navigazione
+                self.search_matches.append(pos)
+                match_count += 1
+                
+                # FIX: Avanza SEMPRE almeno di 1 carattere per evitare loop infinito
+                # Usa end_pos calcolato, ma assicurati che avanzi
+                start_pos = end_pos
+                
+                # FIX: Sicurezza extra - verifica che start_pos sia avanzato rispetto a pos
+                try:
+                    if self.text_content.compare(start_pos, "<=", pos):
+                        # Non è avanzato, forza avanzamento di 1 carattere
+                        start_pos = f"{pos}+1c"
+                except tk.TclError:
+                    # Errore confronto, avanza comunque
+                    start_pos = f"{pos}+1c"
+            
+            # Widget rimane in stato "normal" - è read-only via keyboard bindings
+            
+            # IMPORTANTE: Scroll e update PRIMA di disabilitare il widget
+            # Se ci sono match, vai al primo e aggiorna il contatore
+            if self.search_matches:
+                self.current_match_index = 0
+                # FIX: Scrolla al primo match con gestione errori
+                try:
+                    first_pos = self.search_matches[0]
+                    # Valida l'indice prima di fare see()
+                    if self.text_content.compare(first_pos, "<", tk.END):
+                        self.text_content.see(first_pos)
+                except (tk.TclError, IndexError) as e:
+                    print(f"[HelpWindow] Warning: impossibile scrollare al primo match: {e}")
+                
+                # Mostra avviso se raggiunti troppi risultati
+                if match_count >= MAX_MATCHES:
+                    import configparser
+                    config = configparser.ConfigParser(interpolation=None)
+                    config_file = get_config_file()
+                    current_language = "en"
+                    if os.path.exists(config_file):
+                        config.read(config_file, encoding='utf-8')
+                        if 'Settings' in config and config.has_option('Settings', 'language'):
+                            current_language = config.get('Settings', 'language', fallback='en')
+                    if current_language not in ['en', 'it']:
+                        current_language = "en"
                     
-                    self.text_content.tag_add("search_highlight", start_idx, end_idx)
-                    self.search_matches.append(start_idx)
-            finally:
-                self.text_content.config(state="disabled")
-            
-            # Vai al primo match
-            self.current_match_index = 0
-            self.text_content.see(self.search_matches[0])
-            self.update_search_counter()
-        else:
-            # Nessun risultato trovato
-            config = configparser.ConfigParser(interpolation=None)
-            config_file = get_config_file()
-            current_language = "en"
-            if os.path.exists(config_file):
-                config.read(config_file, encoding='utf-8')
-                if 'Settings' in config and config.has_option('Settings', 'language'):
-                    current_language = config.get('Settings', 'language', fallback='en')
-            if current_language not in ['en', 'it']:
+                    too_many_text = f"Risultato 1 di {MAX_MATCHES}+" if current_language == 'it' else f"Result 1 of {MAX_MATCHES}+"
+                    self.search_result_label.config(text=too_many_text, foreground="orange")
+                else:
+                    self.update_search_counter()
+            else:
+                # Nessun risultato trovato
+                import configparser
+                config = configparser.ConfigParser(interpolation=None)
+                config_file = get_config_file()
                 current_language = "en"
+                if os.path.exists(config_file):
+                    config.read(config_file, encoding='utf-8')
+                    if 'Settings' in config and config.has_option('Settings', 'language'):
+                        current_language = config.get('Settings', 'language', fallback='en')
+                if current_language not in ['en', 'it']:
+                    current_language = "en"
+                
+                no_result_text = "Nessun risultato" if current_language == 'it' else "No results"
+                self.search_result_label.config(text=no_result_text, foreground="blue")
             
-            no_result_text = "Nessun risultato" if current_language == 'it' else "No results"
-            self.search_result_label.config(text=no_result_text)
+            # Widget rimane "normal" - è già read-only via bindings
+        
+        except tk.TclError as e:
+            # FIX: Gestione specifica per errori Tk nativi
+            print(f"[HelpWindow] Errore Tk durante ricerca: {e}")
+            import traceback
+            traceback.print_exc()
+            self.search_result_label.config(text="Search error", foreground="red")
+            # Reset completo dello stato per sicurezza
+            self.search_matches = []
+            self.current_match_index = -1
+        except Exception as e:
+            # In caso di errore generico mostra errore
+            print(f"[HelpWindow] Errore durante ricerca: {e}")
+            import traceback
+            traceback.print_exc()
+            self.search_result_label.config(text="Search error", foreground="red")
+            # Reset completo dello stato per sicurezza
+            self.search_matches = []
+            self.current_match_index = -1
     
     def search_next(self):
         """Naviga al risultato successivo nella lista dei match"""
@@ -665,12 +760,24 @@ class HelpWindow(tk.Toplevel):
             self.search_text()
             return
         
+        # FIX: Validazione robusta dell'indice
+        if len(self.search_matches) == 0:
+            return
+        
         # Incrementa l'indice con wrap-around
         self.current_match_index = (self.current_match_index + 1) % len(self.search_matches)
         
-        # Scrolla al match corrente
-        current_pos = self.search_matches[self.current_match_index]
-        self.text_content.see(current_pos)
+        # FIX: Scroll con gestione errori
+        try:
+            current_pos = self.search_matches[self.current_match_index]
+            # Valida l'indice prima di fare see()
+            if self.text_content.compare(current_pos, "<", tk.END):
+                self.text_content.see(current_pos)
+            else:
+                print(f"[HelpWindow] Warning: indice match invalido: {current_pos}")
+        except (tk.TclError, IndexError) as e:
+            print(f"[HelpWindow] Errore navigazione match: {e}")
+            return
         
         # Aggiorna il contatore
         self.update_search_counter()
@@ -678,10 +785,11 @@ class HelpWindow(tk.Toplevel):
     def update_search_counter(self):
         """Aggiorna la label con il contatore dei risultati"""
         if not self.search_matches:
-            self.search_result_label.config(text="")
+            self.search_result_label.config(text="", foreground="blue")
             return
         
         # Determina la lingua per il formato del contatore
+        import configparser
         config = configparser.ConfigParser(interpolation=None)
         config_file = get_config_file()
         current_language = "en"
@@ -696,22 +804,31 @@ class HelpWindow(tk.Toplevel):
         total = len(self.search_matches)
         current = self.current_match_index + 1
         
-        if current_language == 'it':
-            counter_text = f"Risultato {current} di {total}"
+        # Mostra "500+" se abbiamo raggiunto il limite
+        if total >= 500:
+            if current_language == 'it':
+                counter_text = f"Risultato {current} di 500+"
+            else:
+                counter_text = f"Result {current} of 500+"
         else:
-            counter_text = f"Result {current} of {total}"
-        
-        self.search_result_label.config(text=counter_text)
+            if current_language == 'it':
+                counter_text = f"Risultato {current} di {total}"
+            else:
+                counter_text = f"Result {current} of {total}"
+        self.search_result_label.config(text=counter_text, foreground="blue")
     
     def clear_search(self):
         """Pulisce le evidenziazioni della ricerca precedente"""
-        # Tag remove richiede ancora il toggle state per funzionare su widget disabled
-        self.text_content.config(state="normal")
-        self.text_content.tag_remove("search_highlight", "1.0", tk.END)
-        self.text_content.config(state="disabled")
+        # FIX: Rimozione tag con gestione errori
+        try:
+            self.text_content.tag_remove("search_highlight", "1.0", tk.END)
+        except tk.TclError as e:
+            print(f"[HelpWindow] Warning: impossibile rimuovere tag highlight: {e}")
         
-        # Reset variabili
+        # FIX: Reset COMPLETO dello stato
         self.search_matches = []
         self.current_match_index = -1
+        
+        # FIX: Reset label risultati
         if self.search_result_label:
-            self.search_result_label.config(text="")
+            self.search_result_label.config(text="", foreground="blue")

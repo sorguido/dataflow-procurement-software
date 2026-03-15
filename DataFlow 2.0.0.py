@@ -84,9 +84,25 @@ from utils.i18n_utils import (
     normalize_rfq_type,
     translate_rfq_type
 )
+from utils.format_utils import parse_float_from_comma_string, format_quantity_display
+from utils.window_utils import calculate_center_position, calculate_optimal_window_size, center_window
+from utils.user_utils import get_app_data_dir, get_config_file, load_user_identity, save_user_identity
+from utils.resource_utils import resource_path, set_window_icon
+from utils.i18n_utils import (
+    init_i18n,
+    get_current_language,
+    get_pos_column_text,
+    get_qty_column_text,
+    normalize_rfq_type,
+    translate_rfq_type
+)
 from utils.validation_utils import sanitize_filename, format_date_for_db, format_price_display
 
-# Importa UI components
+# !!!!! IMPORTANTE: Inizializza le traduzioni PRIMA di importare moduli UI !!!!!
+# I moduli UI usano _() durante l'import, quindi init_i18n() DEVE essere chiamato prima
+init_i18n('it')
+
+# Importa UI components (DOPO init_i18n per avere _() disponibile)
 from ui.help_window import HelpWindow
 
 # REFACTORING: Import moduli estratti
@@ -125,9 +141,6 @@ logger = setup_logging()
 # - initialize_dataflow_directory_structure()
 # - get_db_path()
 # - reset_db_cache()
-
-# Inizializza le traduzioni all'avvio (importato da utils.i18n_utils)
-init_i18n('it')
 
 # REFACTORING: Database helpers estratti in database.db_helpers
 # - crea_database_v4()
