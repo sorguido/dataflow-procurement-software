@@ -176,7 +176,7 @@ The complete license text must be included in the repository in the `LICENSE` fi
 ## Windows version note
 
 A Windows version of DataFlow also exists and has been published on the Microsoft Store  
-```https://apps.microsoft.com/detail/9nt3bbg1w0k7?hl=it-IT&gl=IT)```
+```https://apps.microsoft.com/detail/9nt3bbg1w0k7?hl=en-EN&gl=EN)```
 
 The Linux edition is the open-source GNU GPLv3 release. If future Windows releases are aligned with the same licensing model, they may also be distributed through this repository or a related packaging workflow.
 
