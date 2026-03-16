@@ -38,7 +38,7 @@ Enter prices item by item to obtain an immediate and transparent comparison betw
 
 ---
 
-Originally developed for Windows and also published on the Microsoft Store (https://apps.microsoft.com/detail/9NT3BBG1W0K7), the project is now being released as an open-source Linux edition under the **GNU GPLv3** license.  
+Originally developed for Windows and also published on the Microsoft Store (https://apps.microsoft.com/detail/9nt3bbg1w0k7?hl=en-EN&gl=EN), the project is now being released as an open-source Linux edition under the **GNU GPLv3** license.  
 
 The application is written in **Python** with a **Tkinter** GUI and uses **SQLite** as its local database engine.  
 The current Linux port already includes cross-platform path handling, Linux window icon support, multilingual support (Italian and English), Excel import/export, attachment management, purchaseer the **GNU GPL order tracking, notes, and SQDC analysis support.  
