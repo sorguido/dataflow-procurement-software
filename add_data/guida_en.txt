@@ -22,7 +22,7 @@ On first launch, you will be asked to enter your [BOLD]First Name [NORMAL]and [B
 [LIST] • This username will be associated with the RFQs you create and can be used to filter requests
 
 Subsequently, you will be shown the End User License Agreement window.
-[LIST] • Read the Freeware license terms carefully
+[LIST] • Read the GNU GPLv3 license terms carefully
 [LIST] • Click 'Accept' to continue or 'Exit' to close the program
 
 The program will automatically create a user-specific database in the folder:

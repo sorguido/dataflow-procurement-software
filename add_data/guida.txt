@@ -22,7 +22,7 @@ Al primo avvio, ti verrà chiesto di inserire il tuo [BOLD]Nome [NORMAL]e [BOLD]
 [LIST] • Questo username verrà associato alle RdO che creerai e potrà essere utilizzato per filtrare le richieste
 
 Successivamente, ti verrà mostrata la finestra della Licenza d'Uso.
-[LIST] • Leggi attentamente i termini della licenza Freeware
+[LIST] • Leggi attentamente i termini della licenza GNU GPLv3
 [LIST] • Clicca 'Accetto' per continuare o 'Esci' per chiudere il programma
 
 Il programma creerà automaticamente un database specifico per il tuo utente nella cartella:

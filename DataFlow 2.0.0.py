@@ -5239,7 +5239,7 @@ class MainWindow:
             'cod_g': "Cod. Grezzo" if is_ita else "Raw Code",
             'dis_g': "Dis. Grezzo" if is_ita else "Raw Dwg",
             'mat_cl': "Mat. C/L" if is_ita else "Work Order Mat.",
-            'vs_best': "VS. MIGLIORE" if is_ita else "VS. BEST",
+            'vs_best': "VS. MIGLIORE" if is_ita else "YOUR BEST",
             'rdo_num': "Richiesta N°" if is_ita else "RfQ N°",
             'date': "Del" if is_ita else "Date",
             'type': "Tipo" if is_ita else "Type"
