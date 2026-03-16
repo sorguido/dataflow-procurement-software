@@ -6,7 +6,7 @@ This document is intended for developers who want to understand the internal str
 
 ------------------------------------------------------------
 
-1. PROJECT OVERVIEW
+## 1. PROJECT OVERVIEW
 
 DataFlow is a desktop application written in Python using Tkinter for the graphical interface and SQLite as the database backend.
 
@@ -30,30 +30,30 @@ The application was originally developed as a single-file monolithic script (~85
 
 ------------------------------------------------------------
 
-2. HIGH-LEVEL ARCHITECTURE
+## 2. HIGH-LEVEL ARCHITECTURE
 
 The project now follows a modular structure.
 
-dataflow/
-│
-├─ DataFlow 2.0.0.py        Application entry point (bootstrap)
-├─ constants.py             Global UI constants and configuration
-├─ database_manager.py      Main database interaction layer
-│
-├─ utils/                   Generic reusable helper functions
-├─ services/                Application services
-├─ database/                Database helpers and query utilities
-├─ ui/                      User interface modules
-│   ├─ dialogs/
-│   └─ windows/
-│
-├─ locale/                  Translation files
-├─ docs/                    Documentation
-└─ add_data/                Static resources (help files etc.)
+dataflow/  
+│  
+├─ DataFlow 2.0.0.py        Application entry point (bootstrap)  
+├─ constants.py             Global UI constants and configuration  
+├─ database_manager.py      Main database interaction layer  
+│  
+├─ utils/                   Generic reusable helper functions  
+├─ services/                Application services  
+├─ database/                Database helpers and query utilities  
+├─ ui/                      User interface modules  
+│   ├─ dialogs/  
+│   └─ windows/  
+│  
+├─ locale/                  Translation files  
+├─ docs/                    Documentation  
+└─ add_data/                Static resources (help files etc.)  
 
 ------------------------------------------------------------
 
-3. APPLICATION ENTRY POINT
+## 3. APPLICATION ENTRY POINT
 
 File: DataFlow 2.0.0.py
 
@@ -70,21 +70,21 @@ Responsibilities:
 
 Logical startup flow:
 
-initialize application
-↓
-load configuration
-↓
-initialize i18n
-↓
-initialize services
-↓
-launch MainWindow
+initialize application  
+↓  
+load configuration  
+↓  
+initialize i18n  
+↓  
+initialize services  
+↓  
+launch MainWindow  
 
 This file should remain as lightweight as possible and mainly orchestrate the application startup.
 
 ------------------------------------------------------------
 
-4. CORE MODULES
+## 4. CORE MODULES
 
 constants.py
 
@@ -120,7 +120,7 @@ This module acts as the main data access layer.
 
 ------------------------------------------------------------
 
-5. UTILITIES (utils)
+## 5. UTILITIES (utils)
 
 The utils package contains reusable helper functions independent from business logic.
 
@@ -237,7 +237,7 @@ The _() translation function is installed globally during application startup.
 
 ------------------------------------------------------------
 
-6. SERVICES
+## 6. SERVICES
 
 The services package contains application-level services.
 
@@ -252,7 +252,7 @@ Services encapsulate operational logic independent from the user interface.
 
 ------------------------------------------------------------
 
-7. DATABASE HELPERS
+## 7. DATABASE HELPERS
 
 The database directory contains lower-level helpers related to database interaction.
 
@@ -266,21 +266,21 @@ The database_manager module orchestrates these helpers.
 
 ------------------------------------------------------------
 
-8. USER INTERFACE (ui)
+## 8. USER INTERFACE (ui)
 
 The UI is built with Tkinter.
 
 The UI layer is divided into two main parts:
 
-ui/
-├─ dialogs/
-└─ windows/
+ui/  
+├─ dialogs/  
+└─ windows/  
 
 ------------------------------------------------------------
 
-9. UI WINDOWS
+## 9. UI WINDOWS
 
-ui/windows/
+ui/windows/  
 
 Contains large application windows.
 
@@ -303,7 +303,7 @@ This window represents one of the core workflows of the application.
 
 ------------------------------------------------------------
 
-10. UI DIALOGS
+## 10. UI DIALOGS
 
 ui/dialogs/
 
@@ -320,15 +320,15 @@ These dialogs are designed to be self-contained UI components.
 
 ------------------------------------------------------------
 
-11. INTERNATIONALIZATION
+## 11. INTERNATIONALIZATION
 
 The application uses gettext for translations.
 
 Structure:
 
-locale/
-    it/
-    en/
+locale/  
+    it/  
+    en/  
 
 Translation files are loaded during application startup using:
 
@@ -342,7 +342,7 @@ _("Save")
 
 ------------------------------------------------------------
 
-12. ATTACHMENTS AND FILE MANAGEMENT
+## 12. ATTACHMENTS AND FILE MANAGEMENT
 
 The application supports attachments associated with RFQs.
 
@@ -360,7 +360,7 @@ Operations supported:
 
 ------------------------------------------------------------
 
-13. REFACTORING HISTORY
+## 13. REFACTORING HISTORY
 
 Originally the application consisted of:
 
@@ -381,7 +381,7 @@ Goals of the refactoring:
 
 ------------------------------------------------------------
 
-14. DEVELOPMENT GUIDELINES
+## 14. DEVELOPMENT GUIDELINES
 
 When contributing to the project:
 
@@ -400,7 +400,7 @@ Avoid:
 
 ------------------------------------------------------------
 
-15. TESTING STRATEGY
+## 15. TESTING STRATEGY
 
 Manual testing should verify:
 
@@ -415,7 +415,7 @@ Manual testing should verify:
 
 ------------------------------------------------------------
 
-16. VERSIONING
+## 16. VERSIONING
 
 Example version scheme:
 
@@ -430,7 +430,7 @@ MAJOR   breaking changes
 
 ------------------------------------------------------------
 
-17. CONTRIBUTING
+## 17. CONTRIBUTING
 
 Contributors are encouraged to:
 
@@ -441,7 +441,7 @@ Contributors are encouraged to:
 
 ------------------------------------------------------------
 
-18. LICENSE
+## 18. LICENSE
 
 The Linux version of DataFlow is released under the GNU GPLv3 license.
 
