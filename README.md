@@ -197,7 +197,7 @@ Developers interested in improving or adapting the software, including future Wi
 
 For developers interested in understanding the internal architecture of DataFlow, please refer to the technical documentation.
 
-➡️ [Developer Guide](docs/ARCHITECTURE_DEVELOPER_GUIDE.md)
+➡️ [Developer Guide](https://github.com/sorguido/dataflow-procurement-software/wiki)
 
 This document explains:
 
