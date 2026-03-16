@@ -86,6 +86,7 @@ Recent work on the port includes:
 - update of licensing from Freeware to GNU GPLv3 for the Linux release
 - multilingual updates in both the application and documentation
 - footer/documentation cleanup aligned with the new license
+- final refactoring done
 
 ---
 
@@ -188,6 +189,23 @@ DataFlow is now available as an open-source project.
 The Linux version of the application has been released under the GNU GPLv3 license and the source code is available on GitHub.
 
 Developers interested in improving or adapting the software, including future Windows versions, are welcome to contribute.
+
+---
+
+## Developer Documentation
+
+For developers interested in understanding the internal architecture of DataFlow, please refer to the technical documentation.
+
+➡️ [Developer Guide](docs/DEVELOPER_GUIDE.md)
+
+This document explains:
+
+- project architecture
+- module structure
+- utilities and services
+- UI organization
+- database interaction
+- development guidelines
 
 ---
 
