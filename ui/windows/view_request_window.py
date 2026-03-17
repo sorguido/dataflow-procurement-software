@@ -651,6 +651,9 @@ class ViewRequestWindow(tk.Toplevel):
         chosen_language = prompt.choice
         
         if not chosen_language:
+            # BUG FIX: Riporta focus a ViewRequestWindow in caso di annullamento
+            self.lift()
+            self.focus_force()
             return
             
         try:
@@ -754,12 +757,22 @@ class ViewRequestWindow(tk.Toplevel):
                             p_cell.number_format = '@'
                     p_cell.border = border
 
+            # BUG FIX: Assicura che ViewRequestWindow sia in primo piano prima di aprire il file dialog
+            # Questo previene che asksaveasfilename si apra dietro altre finestre
+            self.lift()
+            self.focus_force()
+            self.update_idletasks()  # Forza aggiornamento UI prima del dialog
+            
             filepath = filedialog.asksaveasfilename(defaultextension=".xlsx", filetypes=[(_("File Excel"), "*.xlsx")], title=texts["save_title"], initialfile=texts["initial_file"])
             
             if filepath: 
                 wb.save(filepath)
                 logger.info(f"Excel esportato: {filepath}")
                 messagebox.showinfo(_("Successo"), _("File salvato in:\n{}").format(filepath), parent=self)
+            else:
+                # BUG FIX: Se annullato, riporta focus a ViewRequestWindow
+                self.lift()
+                self.focus_force()
         except Exception as e: 
             logger.error(f"Errore esportazione Excel: {e}", exc_info=True)
             messagebox.showerror(_("Errore Esportazione"), _("Errore: {}").format(e), parent=self)
