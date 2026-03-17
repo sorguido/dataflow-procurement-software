@@ -3,8 +3,9 @@ set -euo pipefail
 
 APP_NAME="dataflow"
 APP_DISPLAY_NAME="DataFlow Procurement Software"
-VERSION="2.0.0"
+VERSION="2.0.1"
 ARCH="amd64"
+MAIN_SCRIPT="dataflow.py"
 
 BUILD_DIR="dataflow-deb"
 INSTALL_ROOT="$BUILD_DIR/usr"
@@ -18,26 +19,52 @@ rm -rf "$BUILD_DIR"
 rm -f ./*.deb
 
 echo "==> Creazione struttura cartelle..."
-mkdir -p "$APP_DIR"
-mkdir -p "$BIN_DIR"
-mkdir -p "$DESKTOP_DIR"
-mkdir -p "$ICON_DIR"
+mkdir -p "$APP_DIR" "$BIN_DIR" "$DESKTOP_DIR" "$ICON_DIR"
 
-echo "==> Copia file applicazione..."
-cp "DataFlow 2.0.0.py" "$APP_DIR/"
-cp "database_manager.py" "$APP_DIR/"
-cp "requirements.txt" "$APP_DIR/"
+echo "==> Verifica entrypoint..."
+if [ ! -f "$MAIN_SCRIPT" ]; then
+    echo "ERRORE: file principale non trovato: $MAIN_SCRIPT"
+    exit 1
+fi
 
-cp -r "locale" "$APP_DIR/"
-cp -r "docs" "$APP_DIR/"
-cp -r "add_data" "$APP_DIR/"
-cp -r "Database_Migration_Tool" "$APP_DIR/"
+if [ ! -f "requirements.txt" ]; then
+    echo "ERRORE: requirements.txt non trovato."
+    exit 1
+fi
 
-for optional in LICENSE README.md; do
-    if [ -e "$optional" ]; then
-        cp -r "$optional" "$APP_DIR/"
-    fi
-done
+if [ ! -f "add_data/Logo_150x150.png" ]; then
+    echo "ERRORE: icona non trovata: add_data/Logo_150x150.png"
+    exit 1
+fi
+
+echo "==> Verifica presenza rsync..."
+if ! command -v rsync >/dev/null 2>&1; then
+    echo ""
+    echo "ERRORE: rsync non trovato."
+    echo ""
+    echo "Installa con:"
+    echo "sudo apt install rsync"
+    exit 1
+fi
+
+echo "==> Copia progetto..."
+rsync -av ./ "$APP_DIR/" \
+  --exclude '.git/' \
+  --exclude '.github/' \
+  --exclude '.venv/' \
+  --exclude 'venv/' \
+  --exclude '__pycache__/' \
+  --exclude '*.pyc' \
+  --exclude '*.pyo' \
+  --exclude '*.deb' \
+  --exclude "$BUILD_DIR/" \
+  --exclude 'build/' \
+  --exclude '.mypy_cache/' \
+  --exclude '.pytest_cache/' \
+  --exclude '.idea/' \
+  --exclude '.vscode/' \
+  --exclude '.DS_Store' \
+  --exclude '*.backup_broken'
 
 echo "==> Creazione virtual environment..."
 python3 -m venv "$APP_DIR/venv"
@@ -46,12 +73,12 @@ echo "==> Aggiornamento pip nella venv..."
 "$APP_DIR/venv/bin/pip" install --upgrade pip setuptools wheel
 
 echo "==> Installazione dipendenze Python..."
-"$APP_DIR/venv/bin/pip" install -r requirements.txt
+"$APP_DIR/venv/bin/pip" install -r "$APP_DIR/requirements.txt"
 
 echo "==> Creazione launcher..."
-cat > "$BIN_DIR/dataflow" << 'EOF'
+cat > "$BIN_DIR/dataflow" << EOF
 #!/usr/bin/env bash
-exec /usr/share/dataflow/venv/bin/python "/usr/share/dataflow/DataFlow 2.0.0.py"
+exec /usr/share/dataflow/venv/bin/python "/usr/share/dataflow/$MAIN_SCRIPT"
 EOF
 chmod +x "$BIN_DIR/dataflow"
 
@@ -70,7 +97,6 @@ Categories=Office;
 Keywords=procurement;rfq;purchase;acquisti;
 StartupNotify=true
 EOF
-
 chmod 644 "$DESKTOP_DIR/dataflow.desktop"
 
 echo "==> Installazione icona..."
@@ -109,4 +135,4 @@ ls -lh ./*.deb
 
 echo ""
 echo "==> Installazione suggerita:"
-echo "sudo dpkg -i dataflow_${VERSION}_${ARCH}.deb"
+echo "sudo apt install ./dataflow_${VERSION}_${ARCH}.deb"
