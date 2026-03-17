@@ -1,0 +1,11 @@
+Create:
+~/AppImage
+
+Put inside:
+
+~/AppImage/
+├── appimagetool-x86_64.AppImage
+├── dataflow_2.0.X_amd64.deb
+├── dataflow.desktop
+├── Logo_250x250.png
+├── create_dataflow_appimage.sh
