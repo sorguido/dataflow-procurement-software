@@ -3650,10 +3650,10 @@ class MainWindow:
         self.tab_attive = ttk.Frame(self.notebook); self.tab_archiviate = ttk.Frame(self.notebook)
         self.notebook.add(self.tab_attive, text=_("RdO Attive")); self.notebook.add(self.tab_archiviate, text=_("RdO Archiviate"))
         footer_frame = ttk.Frame(self.root); footer_frame.pack(side="bottom", fill="x", padx=10, pady=5)
-        ttk.Label(footer_frame, text=_("v2.0.0 - Sviluppato da ")).pack(side="left")
+        ttk.Label(footer_frame, text=_("v2.0.1 - Sviluppato da ")).pack(side="left")
         name_label = ttk.Label(footer_frame, text="Guido Sorarù", foreground="blue", cursor="hand2"); name_label.pack(side="left")
         name_label.bind("<Button-1>", lambda e: webbrowser.open("https://www.linkedin.com/in/guido-soraru-buyer/"))
-        ttk.Label(footer_frame, text=_(" © 2025 - Edizione Linux rilasciata sotto licenza GNU GPLv3")).pack(side="left")
+        ttk.Label(footer_frame, text=_(" © 2025 - Rilasciato sotto licenza GNU GPLv3")).pack(side="left")
         # --- RIMOSSO: etichetta warning DB provvisorio ---
         self.tree_attive = self.create_request_treeview(self.tab_attive); self.tree_archiviate = self.create_request_treeview(self.tab_archiviate)
         # NOTA: La configurazione dei tag (oddrow, scaduta) non è più necessaria

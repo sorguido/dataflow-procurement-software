@@ -749,7 +749,7 @@ Email: [BOLD]sorguido@gmail.com
 
 [H2]Bug Reporting
 If you encounter a bug or abnormal behavior, please use the dedicated bug report form:
-[LINK:https://forms.gle/u7qPHZ6ZGRp3k3SGA]Report a bug[/LINK]
+[LINK:https://github.com/sorguido/dataflow-procurement-software/issues]Report a bug[/LINK]
 
 For faster resolution, please include in your report:
 [LIST] • Detailed description of the problem

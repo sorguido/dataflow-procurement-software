@@ -491,9 +491,6 @@ msgstr "DataFlow"
 msgid "DataFlow Procurement Software - Cruscotto Principale"
 msgstr "DataFlow Procurement Software - Main Dashboard"
 
-msgid "DataFlow Procurement Software v1.1.0 - Sviluppato da "
-msgstr "DataFlow Procurement Software v1.1.0 - Developed by "
-
 msgid "Database"
 msgstr "Database"
 
@@ -2461,8 +2458,8 @@ msgstr ""
 msgid "Allegato eliminato."
 msgstr "Attachment deleted."
 
-msgid "v2.0.0 - Sviluppato da "
-msgstr "v2.0.0 - Developed by "
+msgid "v2.0.1 - Sviluppato da "
+msgstr "v2.0.1 - Developed by "
 
 msgid "Dati non validi"
 msgstr "Invalid data"
@@ -2901,8 +2898,8 @@ msgstr "© 2025"
 msgid "✓ Username aggiornato da '{}' a '{}'"
 msgstr "✓ Username aggiornato da '{}' a '{}'"
 
-msgid " © 2025 - Edizione Linux rilasciata sotto licenza GNU GPLv3"
-msgstr " © 2025 - Linux edition released under GNU GPLv3 license"
+msgid " © 2025 - Rilasciato sotto licenza GNU GPLv3"
+msgstr " © 2025 - Released under GNU GPLv3 license"
 
 msgid ""
 "Contratto di Licenza per l'Utente Finale (GNU GPLv3) - DataFlow Procurement Software\n"

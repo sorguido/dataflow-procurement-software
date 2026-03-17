@@ -120,8 +120,8 @@ msgstr "  - Righe importate: {}"
 msgid "  - Righe saltate (già esistenti): {}"
 msgstr "  - Righe saltate (già esistenti): {}"
 
-msgid " © 2025 - Edizione Linux rilasciata sotto licenza GNU GPLv3"
-msgstr " © 2025 - Edizione Linux rilasciata sotto licenza GNU GPLv3"
+msgid " © 2025 - Rilasciato sotto licenza GNU GPLv3"
+msgstr " © 2025 - Rilasciato sotto licenza GNU GPLv3"
 
 msgid "0. Primi Passi"
 msgstr "0. Primi Passi"
@@ -412,9 +412,6 @@ msgstr "DataFlow"
 
 msgid "DataFlow Procurement Software - Cruscotto Principale"
 msgstr "DataFlow Procurement Software - Cruscotto Principale"
-
-msgid "DataFlow Procurement Software v1.1.0 - Sviluppato da "
-msgstr "DataFlow Procurement Software v1.1.0 - Sviluppato da "
 
 msgid "Date aggiornate."
 msgstr "Date aggiornate."
@@ -1679,8 +1676,8 @@ msgstr ""
 msgid "Nessun file da copiare nella cartella sorgente"
 msgstr "Nessun file da copiare nella cartella sorgente"
 
-msgid "v2.0.0 - Sviluppato da "
-msgstr "v2.0.0 - Sviluppato da "
+msgid "v2.0.1 - Sviluppato da "
+msgstr "v2.0.1 - Sviluppato da "
 
 msgid ""
 "Licenza d'Uso (GNU GPLv3) - DataFlow Procurement Software\n"
@@ -2543,8 +2540,8 @@ msgstr "- Esportazione Excel"
 msgid "Dati non validi"
 msgstr "Dati non validi"
 
-msgid "DataFlow Procurement Software v2.0.0 - Sviluppato da"
-msgstr "DataFlow Procurement Software v2.0.0 - Sviluppato da"
+msgid "DataFlow Procurement Software v2.0.1 - Sviluppato da"
+msgstr "DataFlow Procurement Software v2.0.1 - Sviluppato da"
 
 msgid "Errore durante l'esportazione: {}"
 msgstr "Errore durante l'esportazione: {}"

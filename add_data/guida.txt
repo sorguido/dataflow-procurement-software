@@ -741,7 +741,7 @@ Email: [BOLD]sorguido@gmail.com
 
 [H2]Segnalazione Bug
 Se incontri un bug o un comportamento anomalo, utilizza il form di segnalazione apposito:
-[LINK:https://forms.gle/u7qPHZ6ZGRp3k3SGA]Report a bug[/LINK]
+[LINK:https://github.com/sorguido/dataflow-procurement-software/issues]Report a bug[/LINK]
 
 Per una risoluzione più rapida, includi nella segnalazione:
 [LIST] • Descrizione dettagliata del problema
