@@ -1,0 +1,112 @@
+name: Bug report
+description: Report a problem or unexpected behavior in DataFlow
+title: "[BUG] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug 🙏
+        Please fill in the details below as clearly as possible.
+
+  - type: input
+    id: version
+    attributes:
+      label: DataFlow version
+      description: What version are you using?
+      placeholder: "e.g. 2.0.1"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - Windows 11
+        - Windows 10
+        - Linux Mint
+        - Ubuntu
+        - Debian
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: module
+    attributes:
+      label: Area / module
+      description: Where did the problem occur?
+      options:
+        - RfQ
+        - VSM
+        - Excel Export
+        - Translations
+        - UI / UX
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: frequency
+    attributes:
+      label: Frequency
+      options:
+        - Always
+        - Sometimes
+        - Rarely
+        - Happened once
+    validations:
+      required: true
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      options:
+        - Low (minor issue)
+        - Medium (annoying but usable)
+        - High (blocks workflow)
+        - Critical (app unusable)
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: What is happening?
+      placeholder: "Describe the issue..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open...
+        2. Click...
+        3. Do...
+        4. Error appears
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      placeholder: "What did you expect to happen?"
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / error messages
+      description: Paste any traceback or error message
+      render: shell
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Additional context
+      description: Screenshots or extra info (you can drag & drop images)
