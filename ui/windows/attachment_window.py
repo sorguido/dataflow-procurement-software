@@ -1,0 +1,588 @@
+"""AttachmentWindow - Finestra per la gestione degli allegati di una RdO.
+Estratta da dataflow.py per compatibilità con PyInstaller.
+"""
+
+import tkinter as tk
+from tkinter import ttk, messagebox, filedialog
+import logging
+import os
+import time
+import shutil
+import tempfile
+import webbrowser
+import threading
+from tksheet import Sheet
+from datetime import datetime
+
+from database_manager import DatabaseManager, DatabaseError
+from services.app_paths import get_db_path, get_fixed_attachments_dir
+from utils.window_utils import center_window
+from utils.resource_utils import set_window_icon
+from utils.i18n_utils import _
+from utils.validation_utils import sanitize_filename
+
+logger = logging.getLogger(__name__)
+
+
+class AttachmentWindow(tk.Toplevel):
+    def __init__(self, parent, request_id, attachment_type, read_only=False, source_db_path=None):
+        super().__init__(parent)
+        self.withdraw()
+        set_window_icon(self)
+        self.transient(parent)
+        self.grab_set()
+        self.request_id = request_id
+        self.attachment_type = attachment_type
+        self.read_only = read_only
+        
+        # Determina quale database usare (locale o remoto) e la cartella Attachments
+        if source_db_path and os.path.exists(source_db_path):
+            self.db_path = source_db_path
+            logger.info(f"[AttachmentWindow] Usando DB remoto: {source_db_path}")
+            
+            # Calcola path Attachments con fallback robusto
+            try:
+                db_parent = os.path.dirname(self.db_path)
+                dataflow_root = os.path.dirname(db_parent)
+                self.attachments_base = os.path.join(dataflow_root, 'Attachments')
+                
+                if not os.path.isdir(self.attachments_base):
+                    logger.warning(f"Cartella Attachments non trovata: {self.attachments_base}")
+                    self.attachments_base = None
+                else:
+                    logger.info(f"[AttachmentWindow] Path Attachments remoto: {self.attachments_base}")
+            except Exception as e:
+                logger.error(f"Errore calcolo path Attachments remoto: {e}")
+                self.attachments_base = None
+        else:
+            self.db_path = get_db_path()
+            logger.info(f"[AttachmentWindow] Usando DB locale: {self.db_path}")
+            self.attachments_base = get_fixed_attachments_dir()
+        
+        # Titolo con suffisso SOLA LETTURA se applicabile
+        if self.attachment_type == "Offerta Fornitore":
+            title_base = _("Gestione Offerta Fornitore")
+        else:
+            title_base = _("Gestione Documento Interno")
+        
+        if self.read_only:
+            title_base += _(" [SOLA LETTURA]")
+        
+        self.title(title_base)
+        
+        # Lista per tracciare file temporanei creati
+        self.temp_files = []
+        
+        # Lista per memorizzare gli ID degli allegati (non visibili nella tabella)
+        self.attachment_ids = []
+        
+        # Handler per cleanup alla chiusura
+        self.protocol("WM_DELETE_WINDOW", self.on_closing)
+        
+        # Frame per avviso (solo per Offerta Fornitore)
+        if self.attachment_type == "Offerta Fornitore":
+            frame_warning = ttk.Frame(self)
+            frame_warning.pack(side="bottom", fill="x", padx=10, pady=(0, 5))
+            warning_label = tk.Label(frame_warning, 
+                                    text=_("⚠️ Seleziona prima un fornitore dall'elenco sottostante prima di aggiungere un allegato"), 
+                                    fg="red", 
+                                    font=("Calibri", 10, "bold"))
+            warning_label.pack()
+        
+        # Frame per i pulsanti (SEMPRE IN FONDO, non espandibile)
+        frame_buttons = ttk.Frame(self)
+        frame_buttons.pack(side="bottom", fill="x", padx=10, pady=10)
+        
+        # Pulsanti con gestione read-only
+        self.btn_delete = ttk.Button(frame_buttons, text=_("❌ Elimina Selezionato"), command=self.delete_attachment)
+        self.btn_delete.pack(side="right")
+
+        self.btn_add = ttk.Button(frame_buttons, text=_("➕ Aggiungi..."), command=self.add_attachment)
+        self.btn_add.pack(side="left")
+        
+        ttk.Button(frame_buttons, text=_("📂 Apri Selezionato"), command=self.open_attachment).pack(side="left", padx=10)
+        ttk.Button(frame_buttons, text=_("⬇️ Download..."), command=self.download_attachment).pack(side="left")
+
+        if self.attachment_type == "Offerta Fornitore":
+            self.combo_suppliers = ttk.Combobox(frame_buttons, state="readonly")
+            self.combo_suppliers.pack(side="left", padx=10)
+            self.load_suppliers_for_request()
+            
+        # Disabilita pulsanti di modifica se in modalità read-only
+        if self.read_only:
+            self.btn_add.config(state='disabled')
+            self.btn_delete.config(state='disabled')
+            if hasattr(self, 'combo_suppliers'):
+                self.combo_suppliers.config(state='disabled')
+        
+        # Frame contenuto principale (ESPANDIBILE, sopra i pulsanti)
+        frame_main = ttk.Frame(self)
+        frame_main.pack(side="top", fill="both", expand=True, padx=10, pady=(10, 0))
+        
+        # Creiamo un frame per contenere il foglio
+        sheet_frame = ttk.Frame(frame_main)
+        sheet_frame.pack(fill="both", expand=True)
+        
+        # Creiamo il widget tksheet
+        self.sheet_attachments = Sheet(sheet_frame,
+                                       theme="light blue",
+                                       header_font=("Calibri", 11, "bold"),
+                                       font=("Calibri", 11, "normal"))
+        
+        # Abilita solo i binding necessari, ESCLUDE edit_cell per impedire modifiche
+        self.sheet_attachments.enable_bindings(
+            "single_select",
+            "row_select",
+            "column_width_resize",
+            "double_click_column_resize",
+            "arrowkeys",
+            "right_click_popup_menu",
+            "rc_select",
+            "copy"
+        )
+        
+        self.sheet_attachments.pack(fill="both", expand=True)
+            
+        self.load_attachments()
+        
+        # Imposta dimensione minima per mostrare tutte le colonne
+        self.geometry("850x450")
+        self.minsize(800, 400)
+        
+        center_window(self)
+        self.deiconify()
+
+    def on_closing(self):
+        """Pulisce i file temporanei prima di chiudere la finestra con gestione sicura."""
+        # Disabilita i pulsanti per evitare nuove operazioni durante la chiusura
+        try:
+            for widget in self.winfo_children():
+                if isinstance(widget, (ttk.Button, tk.Button)):
+                    widget.config(state='disabled')
+        except:
+            pass
+        
+        # Garbage collection UNA SOLA VOLTA all'inizio
+        import sys
+        if sys.platform == 'win32':
+            try:
+                import gc
+                gc.collect()
+            except:
+                pass
+        
+        # Attendi eventuali operazioni DB in corso con gestione robusta
+        max_wait = 30
+        wait_count = 0
+        window_destroyed = False
+        
+        while wait_count < max_wait:
+            active_db_threads = [t for t in threading.enumerate() 
+                                if 'database' in t.name.lower()]
+            if not active_db_threads:
+                break
+            
+            try:
+                self.update()
+            except Exception as update_error:
+                logger.debug(f"Errore update() durante chiusura: {update_error}")
+                window_destroyed = True
+                break
+            
+            time.sleep(0.1)
+            wait_count += 1
+        
+        # Pulisci i file temporanei
+        for temp_path in self.temp_files:
+            try:
+                if os.path.exists(temp_path):
+                    os.remove(temp_path)
+                    logger.info(f"File temporaneo eliminato: {temp_path}")
+            except PermissionError:
+                logger.debug(f"File temporaneo in uso, verrà eliminato dal cleanup automatico: {temp_path}")
+            except Exception as e:
+                logger.warning(f"Impossibile eliminare file temporaneo {temp_path}: {e}")
+        
+        if not window_destroyed:
+            try:
+                self.destroy()
+            except Exception as destroy_error:
+                logger.debug(f"Errore destroy() durante chiusura: {destroy_error}")
+
+    def delete_attachment(self):
+        if self.read_only:
+            messagebox.showwarning(
+                _("Operazione Non Consentita"),
+                _("Non puoi eliminare allegati di RdO di altri utenti."),
+                parent=self
+            )
+            return
+        
+        selected = self.sheet_attachments.get_currently_selected()
+        if not selected or selected.row is None:
+            messagebox.showwarning(_("Attenzione"), _("Seleziona un allegato da eliminare."), parent=self)
+            return
+            
+        if messagebox.askyesno(_("Conferma Eliminazione"), _("Sei sicuro di voler eliminare questo allegato?"), parent=self):
+            row_idx = selected.row
+            
+            if row_idx < 0 or row_idx >= len(self.attachment_ids):
+                logger.error(f"Indice riga non valido in delete: {row_idx}, totale: {len(self.attachment_ids)}")
+                messagebox.showerror(_("Errore"), _("Impossibile identificare l'allegato selezionato."), parent=self)
+                return
+            
+            attachment_id = self.attachment_ids[row_idx]
+            try:
+                file_to_delete = None
+                db_manager = DatabaseManager(self.db_path, read_only=self.read_only)
+                try:
+                    try:
+                        result = db_manager.get_allegato_file_data(attachment_id)
+                        if result:
+                            nome_file, dati_file, percorso_esterno = result
+                            if percorso_esterno:
+                                base_path = self.attachments_base
+                                if base_path:
+                                    file_to_delete = os.path.join(base_path, percorso_esterno)
+                    except DatabaseError as fetch_error:
+                        logger.warning(f"Impossibile recuperare informazioni allegato da eliminare: {fetch_error}")
+                    db_manager.delete_allegato(attachment_id)
+                finally:
+                    try:
+                        db_manager.close()
+                    except Exception as close_error:
+                        logger.warning(f"Errore chiusura DB in delete_attachment: {close_error}")
+
+                if file_to_delete and os.path.exists(file_to_delete):
+                    try:
+                        os.remove(file_to_delete)
+                        logger.info(f"Allegato eliminato dal disco: {file_to_delete}")
+                    except Exception as disk_error:
+                        logger.warning(f"Impossibile eliminare il file allegato {file_to_delete}: {disk_error}")
+                
+                messagebox.showinfo(_("Eliminazione"), _("Allegato eliminato."), parent=self)
+                self.load_attachments()
+                
+                # Se è stato eliminato un documento SQDC, aggiorna il pulsante nella finestra parent
+                if self.attachment_type == "Documento Interno":
+                    if hasattr(self.master, 'check_sqdc_status_and_update_button'):
+                        try:
+                            self.master.check_sqdc_status_and_update_button()
+                        except Exception as e:
+                            logger.warning(f"Impossibile aggiornare pulsante SQDC nel parent: {e}")
+                
+            except DatabaseError as e: 
+                messagebox.showerror(_("Errore Database"), _("Impossibile eliminare l'allegato: {}").format(e), parent=self)
+
+    def load_attachments(self):
+        try:
+            with DatabaseManager(self.db_path, read_only=self.read_only) as db_manager:
+                has_date_column = db_manager.check_table_has_column('allegati_richiesta', 'data_inserimento')
+                rows = db_manager.get_allegati_by_richiesta(self.request_id, self.attachment_type, has_date_column)
+            
+            if has_date_column:
+                self.attachment_ids = [id_allegato for id_allegato, nf, nfile, di in rows]
+                
+                data_rows = []
+                for id_all, nome_fornitore, nome_file, data_inserimento in rows:
+                    data_formattata = ""
+                    if data_inserimento:
+                        date_formats = [
+                            '%Y-%m-%d %H:%M:%S',
+                            '%Y-%m-%d',
+                            '%d/%m/%Y'
+                        ]
+                        
+                        for fmt in date_formats:
+                            try:
+                                dt = datetime.strptime(str(data_inserimento).strip(), fmt)
+                                data_formattata = dt.strftime('%d/%m/%Y')
+                                break
+                            except (ValueError, TypeError):
+                                continue
+                        
+                        if not data_formattata:
+                            logger.warning(f"Formato data non riconosciuto per allegato {id_all}: '{data_inserimento}'")
+                            data_formattata = str(data_inserimento) if data_inserimento else ""
+                    
+                    data_rows.append([str(nome_fornitore), str(nome_file), data_formattata])
+                
+                headers = [_("Fornitore"), _("Nome File"), _("Data Inserimento")]
+                self.sheet_attachments.headers(headers)
+                self.sheet_attachments.set_sheet_data(data_rows)
+                
+                self.sheet_attachments.column_width(column=0, width=200)
+                self.sheet_attachments.column_width(column=1, width=350)
+                self.sheet_attachments.column_width(column=2, width=150)
+            else:
+                self.attachment_ids = [id_allegato for id_allegato, nf, nfile in rows]
+                data_rows = [[str(nome_fornitore), str(nome_file)] for id_all, nome_fornitore, nome_file in rows]
+                
+                headers = [_("Fornitore"), _("Nome File")]
+                self.sheet_attachments.headers(headers)
+                self.sheet_attachments.set_sheet_data(data_rows)
+                
+                self.sheet_attachments.column_width(column=0, width=200)
+                self.sheet_attachments.column_width(column=1, width=400)
+            
+        except DatabaseError as e:
+            logger.error(f"Errore database in load_attachments: {e}", exc_info=True)
+            messagebox.showerror("Errore Database", f"Impossibile caricare gli allegati: {e}", parent=self)
+
+    def load_suppliers_for_request(self):
+        try:
+            with DatabaseManager(self.db_path, read_only=self.read_only) as db_manager:
+                rows = db_manager.get_fornitori_by_richiesta(self.request_id)
+            self.combo_suppliers['values'] = [row[0] for row in rows]
+        except DatabaseError as e:
+            logger.error(f"Errore database in load_suppliers_for_request: {e}", exc_info=True)
+            messagebox.showerror(_("Errore Database"), _("Impossibile caricare i fornitori: {}").format(e), parent=self)
+
+    def add_attachment(self):
+        if self.read_only:
+            messagebox.showwarning(
+                _("Operazione Non Consentita"),
+                _("Non puoi aggiungere allegati a RdO di altri utenti."),
+                parent=self
+            )
+            return
+        
+        self.grab_release()
+        try:
+            filepath = filedialog.askopenfilename(
+                title=_("Seleziona file da allegare"),
+                parent=self
+            )
+        finally:
+            self.grab_set()
+        
+        if not filepath: return
+        supplier = self.combo_suppliers.get() if self.attachment_type == "Offerta Fornitore" else "Interno"
+        if not supplier and self.attachment_type == "Offerta Fornitore":
+            messagebox.showwarning(_("Attenzione"), _("Seleziona un fornitore."), parent=self)
+            return
+        
+        archive_path = self.attachments_base
+        if not archive_path:
+            messagebox.showerror(_("Errore"), _("Percorso allegati non disponibile."), parent=self)
+            return
+
+        try:
+            file_ext = os.path.splitext(filepath)[1]
+            sanitized_supplier = sanitize_filename(supplier)
+            db_manager_temp = DatabaseManager(self.db_path, read_only=self.read_only)
+            try:
+                next_id = db_manager_temp.get_max_allegato_id() + 1
+            finally:
+                try:
+                    db_manager_temp.close()
+                except Exception:
+                    pass
+            
+            if self.attachment_type == "Documento Interno":
+                new_filename = f"RfQ{self.request_id}_ID{next_id}{file_ext}"
+            else:
+                new_filename = f"RfQ{self.request_id}_{sanitized_supplier}_ID{next_id}{file_ext}"
+            dest_path = os.path.join(archive_path, new_filename)
+            shutil.copy(filepath, dest_path)
+            
+            with DatabaseManager(self.db_path, read_only=self.read_only) as db_manager:
+                db_manager.insert_allegato_richiesta_link(self.request_id, os.path.basename(filepath), self.attachment_type, supplier, new_filename)
+        except Exception as e:
+            messagebox.showerror(_("Errore"), _("Impossibile aggiungere l'allegato: {}").format(e), parent=self)
+        
+        self.load_attachments()
+    
+    def open_attachment(self):
+        selected = self.sheet_attachments.get_currently_selected()
+        if not selected or selected.row is None:
+            messagebox.showwarning(_("Attenzione"), _("Seleziona un allegato da aprire."), parent=self)
+            return
+
+        row_idx = selected.row
+        
+        if row_idx < 0 or row_idx >= len(self.attachment_ids):
+            logger.error(f"Indice riga non valido: {row_idx}, totale attachment_ids: {len(self.attachment_ids)}")
+            messagebox.showerror(_("Errore"), _("Impossibile identificare l'allegato selezionato. Prova a ricaricare la finestra."), parent=self)
+            return
+        
+        attachment_id = self.attachment_ids[row_idx]
+        
+        try:
+            with DatabaseManager(self.db_path, read_only=self.read_only) as db_manager:
+                result = db_manager.get_allegato_file_data(attachment_id)
+            
+            if not result:
+                messagebox.showerror(_("Errore"), _("Allegato non trovato."), parent=self)
+                return
+                
+            nome_file, dati_file, percorso_esterno = result
+        except DatabaseError as e:
+            logger.error(f"Errore database in open_attachment: {e}", exc_info=True)
+            messagebox.showerror(_("Errore Database"), _("Impossibile recuperare l'allegato: {}").format(e), parent=self)
+            return
+
+        try:
+            if percorso_esterno:
+                logger.info(f"Apertura allegato esterno: {nome_file}")
+                base_path = self.attachments_base
+                if not base_path:
+                    logger.error("Percorso archivio non configurato")
+                    messagebox.showerror(_("Errore"), _("Percorso di archivio non configurato."), parent=self)
+                    return
+                
+                full_path = os.path.join(base_path, percorso_esterno)
+                
+                real_base = os.path.realpath(base_path)
+                real_full = os.path.realpath(full_path)
+                
+                if not real_full.startswith(real_base + os.sep) and real_full != real_base:
+                    logger.error(f"Tentativo di accesso non autorizzato a: {real_full}")
+                    messagebox.showerror(_("Errore Sicurezza"), 
+                                        _("Percorso file non valido. Possibile tentativo di accesso non autorizzato."), 
+                                        parent=self)
+                    return
+                
+                if not os.path.exists(real_full):
+                    logger.error(f"File esterno non trovato: {real_full}")
+                    messagebox.showerror(_("Errore"), _("File sorgente non trovato:\n{}").format(real_full), parent=self)
+                    return
+                
+                webbrowser.open(f'file:///{real_full}')
+
+            elif dati_file:
+                logger.info(f"Apertura allegato interno: {nome_file}")
+                file_ext = os.path.splitext(nome_file)[1]
+                
+                with tempfile.NamedTemporaryFile(mode='wb', suffix=file_ext, delete=False) as temp_file:
+                    temp_file.write(dati_file)
+                    temp_path = temp_file.name
+                
+                self.temp_files.append(temp_path)
+                
+                def delayed_cleanup(path, delay=60):
+                    """Elimina il file temporaneo dopo delay secondi con retry se locked."""
+                    try:
+                        time.sleep(delay)
+                        
+                        if not os.path.exists(path):
+                            return
+                        
+                        max_retries = 3
+                        for attempt in range(max_retries):
+                            try:
+                                os.remove(path)
+                                logger.info(f"File temporaneo pulito automaticamente: {path}")
+                                break
+                            except (PermissionError, OSError) as e:
+                                if attempt < max_retries - 1:
+                                    logger.debug(f"File temporaneo ancora in uso, retry {attempt+1}/{max_retries}: {e}")
+                                    time.sleep(5)
+                                else:
+                                    logger.warning(f"File temporaneo non eliminabile dopo {max_retries} tentativi (in uso?): {path}")
+                    except Exception as e:
+                        logger.warning(f"Impossibile pulire file temporaneo {path}: {e}")
+                
+                cleanup_thread = threading.Thread(
+                    target=delayed_cleanup,
+                    args=(temp_path,),
+                    name=f"TempFileCleanup-{os.path.basename(temp_path)}",
+                    daemon=True
+                )
+                cleanup_thread.start()
+                
+                webbrowser.open(f'file:///{temp_path}')
+            else:
+                logger.error("Allegato senza dati né percorso esterno")
+                messagebox.showerror(_("Errore"), _("Dati allegato non disponibili (né interni, né esterni)."), parent=self)
+
+        except FileNotFoundError as e:
+            logger.error(f"File non trovato in open_attachment: {e}", exc_info=True)
+            messagebox.showerror(_("Errore Apertura"), _("File non trovato: {}").format(e), parent=self)
+        except PermissionError as e:
+            logger.error(f"Permessi insufficienti in open_attachment: {e}", exc_info=True)
+            messagebox.showerror(_("Errore Apertura"), _("Permessi insufficienti per aprire il file: {}").format(e), parent=self)
+        except OSError as e:
+            logger.error(f"Errore sistema operativo in open_attachment: {e}", exc_info=True)
+            messagebox.showerror(_("Errore Apertura"), _("Errore sistema operativo: {}").format(e), parent=self)
+        except Exception as e:
+            logger.error(f"Errore imprevisto in open_attachment: {e}", exc_info=True)
+            messagebox.showerror(_("Errore Apertura"), _("Impossibile aprire il file: {}").format(e), parent=self)
+    
+    def download_attachment(self):
+        selected = self.sheet_attachments.get_currently_selected()
+        if not selected or selected.row is None:
+            messagebox.showwarning(_("Attenzione"), _("Seleziona un allegato da scaricare."), parent=self)
+            return
+
+        row_idx = selected.row
+        
+        if row_idx < 0 or row_idx >= len(self.attachment_ids):
+            logger.error(f"Indice riga non valido in download: {row_idx}, totale: {len(self.attachment_ids)}")
+            messagebox.showerror(_("Errore"), _("Impossibile identificare l'allegato selezionato."), parent=self)
+            return
+        
+        attachment_id = self.attachment_ids[row_idx]
+        
+        try:
+            with DatabaseManager(self.db_path) as db_manager:
+                result = db_manager.get_allegato_file_data(attachment_id)
+            
+            if not result:
+                messagebox.showerror(_("Errore"), _("Allegato non trovato."), parent=self)
+                return
+                
+            nome_file, dati_file, percorso_esterno = result
+        except DatabaseError as e:
+            logger.error(f"Errore database in download_attachment: {e}", exc_info=True)
+            messagebox.showerror(_("Errore Database"), _("Impossibile recuperare l'allegato: {}").format(e), parent=self)
+            return
+
+        self.grab_release()
+        try:
+            save_path = filedialog.asksaveasfilename(
+                title=_("Salva allegato come..."),
+                initialfile=nome_file,
+                parent=self
+            )
+        finally:
+            self.grab_set()
+        
+        if not save_path:
+            return
+
+        try:
+            if percorso_esterno:
+                base_path = self.attachments_base
+                if not base_path:
+                    messagebox.showerror(_("Errore"), _("Percorso di archivio non configurato."), parent=self)
+                    return
+                
+                full_path = os.path.join(base_path, percorso_esterno)
+                
+                real_base = os.path.realpath(base_path)
+                real_full = os.path.realpath(full_path)
+                
+                if not real_full.startswith(real_base + os.sep) and real_full != real_base:
+                    messagebox.showerror(_("Errore Sicurezza"), 
+                                        _("Percorso file non valido. Possibile tentativo di accesso non autorizzato."), 
+                                        parent=self)
+                    return
+                
+                if not os.path.exists(real_full):
+                    messagebox.showerror(_("Errore"), _("File sorgente non trovato:\n{}").format(real_full), parent=self)
+                    return
+                
+                shutil.copy(real_full, save_path)
+
+            elif dati_file:
+                with open(save_path, 'wb') as f:
+                    f.write(dati_file)
+            else:
+                messagebox.showerror(_("Errore"), _("Dati allegato non disponibili (né interni, né esterni)."), parent=self)
+                return
+
+            messagebox.showinfo(_("Successo"), _("File scaricato con successo in:\n{}").format(save_path), parent=self)
+
+        except Exception as e:
+            messagebox.showerror(_("Errore Download"), _("Impossibile salvare il file: {}").format(e), parent=self)

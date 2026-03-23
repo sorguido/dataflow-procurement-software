@@ -1,0 +1,68 @@
+"""
+Utility per formattazione numeri secondo convenzioni italiane.
+Gestione conversione virgola/punto decimale.
+"""
+
+
+def parse_float_from_comma_string(s):
+    """Converte una stringa con virgola decimale in float, con validazione robusta.
+    
+    BUG #5 FIX: Validazione completa per gestire None, stringhe vuote e malformate.
+    """
+    # Gestione None e tipi numerici
+    if s is None:
+        return 0.0
+    if isinstance(s, (int, float)):
+        return float(s)
+    
+    # Converti a stringa e pulisci
+    s = str(s).strip()
+    
+    # Gestione stringa vuota
+    if not s or s == '':
+        return 0.0
+    
+    # Validazione: accetta solo numeri, virgola e segno
+    if not all(c.isdigit() or c in ',-' for c in s):
+        raise ValueError(f"Formato numero non valido: '{s}'. Usare solo cifre e virgola come separatore decimale.")
+    
+    # Validazione: no punto decimale
+    if '.' in s:
+        raise ValueError("Usare la virgola, non il punto, come separatore decimale.")
+    
+    # Validazione: massimo una virgola
+    if s.count(',') > 1:
+        raise ValueError(f"Formato numero non valido: '{s}'. Troppi separatori decimali.")
+    
+    # Conversione sicura
+    try:
+        return float(s.replace(',', '.'))
+    except ValueError as e:
+        raise ValueError(f"Impossibile convertire '{s}' in numero: {e}")
+
+
+def format_quantity_display(val):
+    """Formatta la quantità per la visualizzazione con gestione errori robusta.
+    
+    BUG #6 FIX: Gestione completa degli errori di conversione.
+    """
+    if val is None or val == '':
+        return ''
+    
+    # Se è già numero, formatta direttamente
+    if isinstance(val, (int, float)):
+        if val == int(val):
+            return str(int(val))
+        else:
+            return str(val).replace('.', ',')
+    
+    # Se è stringa, prova a convertire
+    try:
+        val_float = parse_float_from_comma_string(val)
+        if val_float == int(val_float):
+            return str(int(val_float))
+        else:
+            return str(val_float).replace('.', ',')
+    except (ValueError, TypeError):
+        # Se la conversione fallisce, restituisci la stringa originale
+        return str(val)

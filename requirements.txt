@@ -1,0 +1,5 @@
+openpyxl==3.1.5
+Pillow==12.1.1
+polib==1.2.0
+tkcalendar==1.6.1
+tksheet==7.6.0
