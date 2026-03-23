@@ -196,6 +196,58 @@ class DatabaseManager:
             except Exception:
                 pass  # Colonna già esistente
             
+            # ========== TABELLE VSM (Value Stream Mapping) ==========
+            
+            # Tabella eventi VSM
+            self.cursor.execute('''
+                CREATE TABLE IF NOT EXISTS vsm_events (
+                    event_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    username TEXT NOT NULL,
+                    event_date TEXT,
+                    buyer TEXT,
+                    event_type TEXT,
+                    action TEXT,
+                    description TEXT,
+                    reference TEXT,
+                    importo_bdg REAL,
+                    importo_negoziato REAL,
+                    importo_richiesto_iniziale REAL,
+                    quantita_annua REAL,
+                    percent_realizzo REAL,
+                    driver TEXT,
+                    giorni_pagamento_attuali INTEGER,
+                    giorni_pagamento_negoziati INTEGER,
+                    spending_annuo REAL,
+                    opex_ripetitivo INTEGER NOT NULL DEFAULT 0,
+                    note TEXT,
+                    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (username) REFERENCES utenti(username)
+                )
+            ''')
+            
+            # Tabella impatti mensili VSM
+            self.cursor.execute('''
+                CREATE TABLE IF NOT EXISTS vsm_impacts (
+                    impact_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    event_id INTEGER NOT NULL,
+                    username TEXT NOT NULL,
+                    anno INTEGER NOT NULL,
+                    mese INTEGER NOT NULL,
+                    tipo_valore TEXT NOT NULL,
+                    valore_teorico REAL NOT NULL,
+                    valore_effettivo REAL NOT NULL,
+                    FOREIGN KEY (event_id) REFERENCES vsm_events(event_id),
+                    FOREIGN KEY (username) REFERENCES utenti(username)
+                )
+            ''')
+            
+            # Indici per performance VSM
+            self.cursor.execute('CREATE INDEX IF NOT EXISTS idx_vsm_impacts_event_id ON vsm_impacts(event_id)')
+            self.cursor.execute('CREATE INDEX IF NOT EXISTS idx_vsm_impacts_period ON vsm_impacts(anno, mese)')
+            self.cursor.execute('CREATE INDEX IF NOT EXISTS idx_vsm_impacts_username ON vsm_impacts(username)')
+            self.cursor.execute('CREATE INDEX IF NOT EXISTS idx_vsm_events_username ON vsm_events(username)')
+            
             # Commit finale
             self.conn.commit()
             
@@ -1776,3 +1828,287 @@ class DatabaseManager:
         except Exception as e:
             print(f"[DB Manager] Errore scansione username: {e}")
             return []
+    
+    # ========== METODI VSM (Value Stream Mapping) ==========
+    
+    def insert_vsm_event(self, event) -> int:
+        """
+        Inserisce un nuovo evento VSM e ritorna l'ID assegnato.
+        
+        Args:
+            event: VSMEvent da inserire (senza event_id)
+        
+        Returns:
+            int: event_id assegnato dal database
+        """
+        try:
+            self.cursor.execute("""
+                INSERT INTO vsm_events (
+                    username, event_date, buyer, event_type, action,
+                    description, reference, importo_bdg, importo_negoziato,
+                    importo_richiesto_iniziale, quantita_annua, percent_realizzo,
+                    driver, giorni_pagamento_attuali, giorni_pagamento_negoziati,
+                    spending_annuo, opex_ripetitivo, note, created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                event.username,
+                event.event_date.isoformat() if event.event_date else None,
+                event.buyer,
+                event.event_type,
+                event.action,
+                event.description,
+                event.reference,
+                event.importo_bdg,
+                event.importo_negoziato,
+                event.importo_richiesto_iniziale,
+                event.quantita_annua,
+                event.percent_realizzo,
+                event.driver,
+                event.giorni_pagamento_attuali,
+                event.giorni_pagamento_negoziati,
+                event.spending_annuo,
+                1 if event.opex_ripetitivo else 0,
+                event.note,
+                event.created_at.isoformat() if event.created_at else None,
+                event.updated_at.isoformat() if event.updated_at else None
+            ))
+            self.conn.commit()
+            return self._get_last_insert_id()
+        except Exception as e:
+            print(f"[DB Manager] Errore insert_vsm_event: {e}")
+            raise DatabaseError(str(e)) from e
+    
+    def update_vsm_event(self, event) -> None:
+        """
+        Aggiorna un evento VSM esistente.
+        
+        Args:
+            event: VSMEvent con event_id valido
+        """
+        try:
+            self.cursor.execute("""
+                UPDATE vsm_events SET
+                    username = ?, event_date = ?, buyer = ?, event_type = ?, action = ?,
+                    description = ?, reference = ?, importo_bdg = ?, importo_negoziato = ?,
+                    importo_richiesto_iniziale = ?, quantita_annua = ?, percent_realizzo = ?,
+                    driver = ?, giorni_pagamento_attuali = ?, giorni_pagamento_negoziati = ?,
+                    spending_annuo = ?, opex_ripetitivo = ?, note = ?, updated_at = ?
+                WHERE event_id = ?
+            """, (
+                event.username,
+                event.event_date.isoformat() if event.event_date else None,
+                event.buyer,
+                event.event_type,
+                event.action,
+                event.description,
+                event.reference,
+                event.importo_bdg,
+                event.importo_negoziato,
+                event.importo_richiesto_iniziale,
+                event.quantita_annua,
+                event.percent_realizzo,
+                event.driver,
+                event.giorni_pagamento_attuali,
+                event.giorni_pagamento_negoziati,
+                event.spending_annuo,
+                1 if event.opex_ripetitivo else 0,
+                event.note,
+                datetime.now().isoformat(),
+                event.id
+            ))
+            self.conn.commit()
+        except Exception as e:
+            print(f"[DB Manager] Errore update_vsm_event: {e}")
+            raise DatabaseError(str(e)) from e
+    
+    def delete_vsm_event(self, event_id: int) -> None:
+        """
+        Elimina un evento VSM per ID.
+        
+        Args:
+            event_id: ID dell'evento da eliminare
+        """
+        try:
+            self.cursor.execute("DELETE FROM vsm_events WHERE event_id = ?", (event_id,))
+            self.conn.commit()
+        except Exception as e:
+            print(f"[DB Manager] Errore delete_vsm_event: {e}")
+            raise DatabaseError(str(e)) from e
+    
+    def get_vsm_event_by_id(self, event_id: int):
+        """
+        Recupera un evento VSM per ID.
+        
+        Args:
+            event_id: ID dell'evento da recuperare
+        
+        Returns:
+            VSMEvent o None se non trovato
+        """
+        try:
+            self.cursor.execute("""
+                SELECT event_id, username, event_date, buyer, event_type, action,
+                       description, reference, importo_bdg, importo_negoziato,
+                       importo_richiesto_iniziale, quantita_annua, percent_realizzo,
+                       driver, giorni_pagamento_attuali, giorni_pagamento_negoziati,
+                       spending_annuo, opex_ripetitivo, note, created_at, updated_at
+                FROM vsm_events WHERE event_id = ?
+            """, (event_id,))
+            row = self.cursor.fetchone()
+            if not row:
+                return None
+            
+            # Importa qui per evitare circular imports
+            from models.vsm_event import VSMEvent
+            
+            return VSMEvent(
+                id=row[0],
+                username=row[1],
+                event_date=datetime.fromisoformat(row[2]) if row[2] else None,
+                buyer=row[3],
+                event_type=row[4],
+                action=row[5],
+                description=row[6],
+                reference=row[7],
+                importo_bdg=row[8],
+                importo_negoziato=row[9],
+                importo_richiesto_iniziale=row[10],
+                quantita_annua=row[11],
+                percent_realizzo=row[12],
+                driver=row[13],
+                giorni_pagamento_attuali=row[14],
+                giorni_pagamento_negoziati=row[15],
+                spending_annuo=row[16],
+                opex_ripetitivo=bool(row[17]),
+                note=row[18],
+                created_at=datetime.fromisoformat(row[19]) if row[19] else datetime.now(),
+                updated_at=datetime.fromisoformat(row[20]) if row[20] else datetime.now()
+            )
+        except Exception as e:
+            print(f"[DB Manager] Errore get_vsm_event_by_id: {e}")
+            raise DatabaseError(str(e)) from e
+    
+    def insert_vsm_impacts_batch(self, impacts: list) -> None:
+        """
+        Inserisce un batch di impatti VSM con transazione.
+        
+        Args:
+            impacts: Lista di VSMImpact da inserire
+        """
+        try:
+            self.cursor.execute("BEGIN TRANSACTION")
+            for impact in impacts:
+                self.cursor.execute("""
+                    INSERT INTO vsm_impacts (
+                        event_id, username, anno, mese, tipo_valore,
+                        valore_teorico, valore_effettivo
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                """, (
+                    impact.event_id,
+                    impact.username,
+                    impact.year,
+                    impact.month,
+                    impact.value_type,
+                    impact.valore_teorico,
+                    impact.valore_effettivo
+                ))
+            self.conn.commit()
+        except Exception as e:
+            self.conn.rollback()
+            print(f"[DB Manager] Errore insert_vsm_impacts_batch: {e}")
+            raise DatabaseError(str(e)) from e
+    
+    def delete_vsm_impacts_by_event_id(self, event_id: int) -> None:
+        """
+        Elimina tutti gli impatti VSM per un determinato event_id.
+        
+        Args:
+            event_id: ID dell'evento di cui eliminare gli impatti
+        """
+        try:
+            self.cursor.execute("DELETE FROM vsm_impacts WHERE event_id = ?", (event_id,))
+            self.conn.commit()
+        except Exception as e:
+            print(f"[DB Manager] Errore delete_vsm_impacts_by_event_id: {e}")
+            raise DatabaseError(str(e)) from e
+    
+    def get_vsm_impacts_by_event_id(self, event_id: int) -> list:
+        """
+        Recupera tutti gli impatti VSM per un determinato event_id.
+        
+        Args:
+            event_id: ID dell'evento di cui recuperare gli impatti
+        
+        Returns:
+            list: Lista di VSMImpact
+        """
+        try:
+            self.cursor.execute("""
+                SELECT impact_id, event_id, username, anno, mese, tipo_valore,
+                       valore_teorico, valore_effettivo
+                FROM vsm_impacts WHERE event_id = ?
+                ORDER BY anno, mese
+            """, (event_id,))
+            rows = self.cursor.fetchall()
+            
+            # Importa qui per evitare circular imports
+            from models.vsm_impact import VSMImpact
+            
+            impacts = []
+            for row in rows:
+                impacts.append(VSMImpact(
+                    id=row[0],
+                    event_id=row[1],
+                    username=row[2],
+                    year=row[3],
+                    month=row[4],
+                    value_type=row[5],
+                    valore_teorico=row[6],
+                    valore_effettivo=row[7]
+                ))
+            return impacts
+        except Exception as e:
+            print(f"[DB Manager] Errore get_vsm_impacts_by_event_id: {e}")
+            raise DatabaseError(str(e)) from e
+    
+    def get_vsm_impacts_by_period(self, anno: int, mese: int, username: str) -> list:
+        """
+        Recupera tutti gli impatti VSM per un determinato periodo e username.
+        
+        Args:
+            anno: Anno del periodo
+            mese: Mese del periodo (1-12)
+            username: Username del proprietario
+        
+        Returns:
+            list: Lista di VSMImpact
+        """
+        try:
+            self.cursor.execute("""
+                SELECT impact_id, event_id, username, anno, mese, tipo_valore,
+                       valore_teorico, valore_effettivo
+                FROM vsm_impacts 
+                WHERE anno = ? AND mese = ? AND username = ?
+                ORDER BY event_id
+            """, (anno, mese, username))
+            rows = self.cursor.fetchall()
+            
+            # Importa qui per evitare circular imports
+            from models.vsm_impact import VSMImpact
+            
+            impacts = []
+            for row in rows:
+                impacts.append(VSMImpact(
+                    id=row[0],
+                    event_id=row[1],
+                    username=row[2],
+                    year=row[3],
+                    month=row[4],
+                    value_type=row[5],
+                    valore_teorico=row[6],
+                    valore_effettivo=row[7]
+                ))
+            return impacts
+        except Exception as e:
+            print(f"[DB Manager] Errore get_vsm_impacts_by_period: {e}")
+            raise DatabaseError(str(e)) from e
