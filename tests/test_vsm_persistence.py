@@ -359,6 +359,110 @@ class TestVSMPersistence(unittest.TestCase):
         # Tentativo inserimento tramite batch
         with self.assertRaises(Exception):  # SQLite solleverà IntegrityError
             self.db_manager.insert_vsm_impacts_batch([impact])
+    
+    # ========================================================================
+    # TEST ATOMICITÀ TRANSAZIONI
+    # ========================================================================
+    
+    def test_save_rollback_on_impact_insert_failure(self):
+        """
+        Test ATOMICITÀ save: se inserimento impacts fallisce,
+        anche l'evento deve essere annullato (rollback completo).
+        """
+        # Crea evento valido
+        event = self._create_test_event_repetitive()
+        
+        # Memorizza conteggio eventi prima del test
+        self.db_manager.cursor.execute("SELECT COUNT(*) FROM vsm_events")
+        events_before = self.db_manager.cursor.fetchone()[0]
+        
+        # Forza errore manomettendo l'evento per causare failure in generate_impacts
+        # Usa un event_date None per forzare errore durante generazione impatti
+        event.event_date = None  # Questo causerà errore in generate_impacts_for_event
+        
+        # Tentativo di salvataggio deve fallire
+        with self.assertRaises(Exception):
+            save_event_with_impacts(self.db_manager, event)
+        
+        # VERIFICA ROLLBACK: nessun evento salvato nel database
+        self.db_manager.cursor.execute("SELECT COUNT(*) FROM vsm_events")
+        events_after = self.db_manager.cursor.fetchone()[0]
+        
+        self.assertEqual(events_before, events_after, 
+                        "Evento NON dovrebbe esistere dopo rollback")
+        
+        # VERIFICA: nessun impact orfano nel database
+        self.db_manager.cursor.execute("SELECT COUNT(*) FROM vsm_impacts")
+        impacts_count = self.db_manager.cursor.fetchone()[0]
+        self.assertEqual(impacts_count, 0, 
+                        "Nessun impact dovrebbe esistere dopo rollback")
+    
+    def test_update_rollback_preserves_original_state(self):
+        """
+        Test ATOMICITÀ update: se aggiornamento fallisce,
+        evento e impacts devono rimanere nello stato originale.
+        """
+        # Setup: crea e salva evento originale
+        original_event = self._create_test_event_repetitive()
+        event_id = save_event_with_impacts(self.db_manager, original_event)
+        
+        # Memorizza stato originale
+        original_saved = self.db_manager.get_vsm_event_by_id(event_id)
+        original_impacts = self.db_manager.get_vsm_impacts_by_event_id(event_id)
+        original_impacts_count = len(original_impacts)
+        original_percent = original_saved.percent_realizzo
+        
+        # Prepara update con dati che causeranno errore
+        updated_event = self._create_test_event_repetitive()
+        updated_event.id = event_id
+        updated_event.percent_realizzo = 50.0  # Modifica valida
+        updated_event.event_date = None  # Questo causerà errore durante regenerate_impacts
+        
+        # Tentativo di update deve fallire
+        with self.assertRaises(Exception):
+            update_event_with_impacts(self.db_manager, updated_event)
+        
+        # VERIFICA ROLLBACK: evento rimane con valori originali
+        current_event = self.db_manager.get_vsm_event_by_id(event_id)
+        self.assertEqual(current_event.percent_realizzo, original_percent,
+                        "Evento dovrebbe mantenere percent_realizzo originale dopo rollback")
+        
+        # VERIFICA: impacts rimangono nella versione originale
+        current_impacts = self.db_manager.get_vsm_impacts_by_event_id(event_id)
+        self.assertEqual(len(current_impacts), original_impacts_count,
+                        "Conteggio impacts dovrebbe rimanere invariato dopo rollback")
+        
+        # VERIFICA: valori degli impacts non modificati
+        for orig_imp, curr_imp in zip(original_impacts, current_impacts):
+            self.assertAlmostEqual(orig_imp.valore_effettivo, curr_imp.valore_effettivo,
+                                  places=2, 
+                                  msg="Valori impacts NON dovrebbero cambiare dopo rollback")
+    
+    def test_save_atomicity_no_orphan_events(self):
+        """
+        Test ATOMICITÀ: verifica che non rimangano eventi orfani
+        senza impacts in caso di fallimento parziale.
+        """
+        # Crea evento con dati che causeranno errore in fase di impacts
+        event = self._create_test_event_repetitive()
+        event.spending_annuo = 0  # Causerà divisione per zero o errore in calcolo impatti
+        event.importo_negoziato = None  # Valore non valido
+        
+        # Tentativo salvataggio
+        with self.assertRaises(Exception):
+            save_event_with_impacts(self.db_manager, event)
+        
+        # VERIFICA: query per eventi senza impacts correlati
+        self.db_manager.cursor.execute("""
+            SELECT e.event_id
+            FROM vsm_events e
+            LEFT JOIN vsm_impacts i ON e.event_id = i.event_id
+            WHERE i.impact_id IS NULL
+        """)
+        orphan_events = self.db_manager.cursor.fetchall()
+        
+        self.assertEqual(len(orphan_events), 0,
+                        f"Trovati {len(orphan_events)} eventi orfani senza impacts")
 
 
 if __name__ == '__main__':

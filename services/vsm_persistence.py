@@ -33,11 +33,16 @@ def save_event_with_impacts(db_manager, event: VSMEvent) -> int:
     """
     Salva un nuovo evento VSM e genera automaticamente gli impatti mensili.
     
+    ATOMICITÀ: Tutte le operazioni sono eseguite in UNA SINGOLA TRANSAZIONE.
+    Se qualsiasi step fallisce, viene eseguito ROLLBACK completo.
+    
     Pattern di esecuzione:
-    1. INSERT vsm_event (senza event_id)
-    2. Ottieni event_id da lastrowid
-    3. Genera impatti con VSM Engine
-    4. Batch INSERT impatti con transazione
+    1. BEGIN TRANSACTION
+    2. INSERT vsm_event (senza commit)
+    3. Ottieni event_id da lastrowid
+    4. Genera impatti con VSM Engine
+    5. INSERT impatti in batch (senza commit)
+    6. COMMIT unico
     
     Args:
         db_manager: Istanza di DatabaseManager
@@ -63,8 +68,13 @@ def save_event_with_impacts(db_manager, event: VSMEvent) -> int:
     )
     
     try:
-        # Step 1: INSERT evento
-        event_id = db_manager.insert_vsm_event(event)
+        # ========================================
+        # TRANSAZIONE ATOMICA
+        # ========================================
+        db_manager.cursor.execute("BEGIN TRANSACTION")
+        
+        # Step 1: INSERT evento (SENZA COMMIT)
+        event_id = db_manager._insert_vsm_event_no_commit(event)
         logger.debug(f"Evento inserito con ID {event_id}")
         
         # Step 2: Genera impatti con VSM Engine
@@ -72,9 +82,9 @@ def save_event_with_impacts(db_manager, event: VSMEvent) -> int:
         impacts = generate_impacts_for_event(event)
         logger.debug(f"Generati {len(impacts)} impatti per evento {event_id}")
         
-        # Step 3: Batch INSERT impatti
+        # Step 3: INSERT impatti in batch (SENZA COMMIT)
         if impacts:
-            db_manager.insert_vsm_impacts_batch(impacts)
+            db_manager._insert_vsm_impacts_no_commit(impacts)
             logger.info(
                 f"Salvati {len(impacts)} impatti per evento {event_id} "
                 f"(periodo: {impacts[0].year}/{impacts[0].month} - "
@@ -83,30 +93,38 @@ def save_event_with_impacts(db_manager, event: VSMEvent) -> int:
         else:
             logger.warning(f"Nessun impatto generato per evento {event_id}")
         
+        # COMMIT UNICO: tutte le operazioni hanno successo
+        db_manager.conn.commit()
+        
         return event_id
         
-    except DatabaseError as e:
-        logger.error(f"Errore database durante salvataggio evento: {e}")
-        raise
     except Exception as e:
-        logger.error(f"Errore imprevisto durante salvataggio evento: {e}")
-        raise VSMError(f"Errore durante salvataggio evento VSM: {e}")
+        # ROLLBACK: annulla TUTTE le operazioni
+        db_manager.conn.rollback()
+        logger.error(f"Errore durante salvataggio atomico, ROLLBACK eseguito: {e}")
+        raise VSMError(f"Errore durante salvataggio evento VSM: {e}") from e
 
 
 def update_event_with_impacts(db_manager, event: VSMEvent) -> None:
     """
     Aggiorna un evento VSM esistente e rigenera tutti gli impatti mensili.
     
-    Pattern obbligatorio DELETE-REGENERATE-SAVE:
-    1. UPDATE vsm_event (event deve avere event_id valido)
-    2. DELETE vecchi impatti per event_id
-    3. REGENERATE impatti con VSM Engine
-    4. Batch INSERT nuovi impatti con transazione
+    ATOMICITÀ: Tutte le operazioni sono eseguite in UNA SINGOLA TRANSAZIONE.
+    Se qualsiasi step fallisce, viene eseguito ROLLBACK completo.
+    
+    Pattern obbligatorio DELETE-REGENERATE-SAVE (protetto da transazione):
+    1. BEGIN TRANSACTION
+    2. UPDATE vsm_event (senza commit)
+    3. DELETE vecchi impatti (senza commit)
+    4. REGENERATE impatti con VSM Engine
+    5. INSERT nuovi impatti in batch (senza commit)
+    6. COMMIT unico
     
     Questo pattern garantisce:
     - Nessun duplicato (vecchi impatti sempre eliminati)
     - Idempotenza (multiple chiamate producono stesso risultato)
     - Consistenza (impatti sempre allineati con evento)
+    - Atomicità (tutto-o-niente, no stati intermedi)
     
     Args:
         db_manager: Istanza di DatabaseManager
@@ -129,21 +147,26 @@ def update_event_with_impacts(db_manager, event: VSMEvent) -> None:
     )
     
     try:
-        # Step 1: UPDATE evento
-        db_manager.update_vsm_event(event)
+        # ========================================
+        # TRANSAZIONE ATOMICA
+        # ========================================
+        db_manager.cursor.execute("BEGIN TRANSACTION")
+        
+        # Step 1: UPDATE evento (SENZA COMMIT)
+        db_manager._update_vsm_event_no_commit(event)
         logger.debug(f"Evento {event.id} aggiornato")
         
-        # Step 2: DELETE vecchi impatti
-        db_manager.delete_vsm_impacts_by_event_id(event.id)
+        # Step 2: DELETE vecchi impatti (SENZA COMMIT)
+        db_manager._delete_vsm_impacts_no_commit(event.id)
         logger.debug(f"Vecchi impatti eliminati per evento {event.id}")
         
         # Step 3: REGENERATE impatti
         impacts = generate_impacts_for_event(event)
         logger.debug(f"Rigenerati {len(impacts)} impatti per evento {event.id}")
         
-        # Step 4: SAVE nuovi impatti
+        # Step 4: INSERT nuovi impatti (SENZA COMMIT)
         if impacts:
-            db_manager.insert_vsm_impacts_batch(impacts)
+            db_manager._insert_vsm_impacts_no_commit(impacts)
             logger.info(
                 f"Rigenerati e salvati {len(impacts)} impatti per evento {event.id} "
                 f"(periodo: {impacts[0].year}/{impacts[0].month} - "
@@ -151,13 +174,15 @@ def update_event_with_impacts(db_manager, event: VSMEvent) -> None:
             )
         else:
             logger.warning(f"Nessun impatto generato per evento {event.id}")
+        
+        # COMMIT UNICO: tutte le operazioni hanno successo
+        db_manager.conn.commit()
             
-    except DatabaseError as e:
-        logger.error(f"Errore database durante aggiornamento evento {event.id}: {e}")
-        raise
     except Exception as e:
-        logger.error(f"Errore imprevisto durante aggiornamento evento {event.id}: {e}")
-        raise VSMError(f"Errore durante aggiornamento evento VSM: {e}")
+        # ROLLBACK: ripristina stato precedente completo
+        db_manager.conn.rollback()
+        logger.error(f"Errore durante aggiornamento atomico evento {event.id}, ROLLBACK eseguito: {e}")
+        raise VSMError(f"Errore durante aggiornamento evento VSM: {e}") from e
 
 
 def delete_event_and_impacts(db_manager, event_id: int) -> None:

@@ -1935,6 +1935,128 @@ class DatabaseManager:
             print(f"[DB Manager] Errore delete_vsm_event: {e}")
             raise DatabaseError(str(e)) from e
     
+    # ========================================================================
+    # HELPER PRIVATI PER OPERAZIONI ATOMICHE (senza autocommit)
+    # ========================================================================
+    
+    def _insert_vsm_event_no_commit(self, event) -> int:
+        """
+        Inserisce un nuovo evento VSM SENZA fare commit.
+        Usato per operazioni transazionali atomiche.
+        
+        Args:
+            event: VSMEvent da inserire
+        
+        Returns:
+            int: event_id assegnato dal database
+        """
+        self.cursor.execute("""
+            INSERT INTO vsm_events (
+                username, event_date, buyer, event_type, action,
+                description, reference, importo_bdg, importo_negoziato,
+                importo_richiesto_iniziale, quantita_annua, percent_realizzo,
+                driver, giorni_pagamento_attuali, giorni_pagamento_negoziati,
+                spending_annuo, opex_ripetitivo, note, created_at, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (
+            event.username,
+            event.event_date.isoformat() if event.event_date else None,
+            event.buyer,
+            event.event_type,
+            event.action,
+            event.description,
+            event.reference,
+            event.importo_bdg,
+            event.importo_negoziato,
+            event.importo_richiesto_iniziale,
+            event.quantita_annua,
+            event.percent_realizzo,
+            event.driver,
+            event.giorni_pagamento_attuali,
+            event.giorni_pagamento_negoziati,
+            event.spending_annuo,
+            1 if event.opex_ripetitivo else 0,
+            event.note,
+            event.created_at.isoformat() if event.created_at else None,
+            event.updated_at.isoformat() if event.updated_at else None
+        ))
+        return self._get_last_insert_id()
+    
+    def _update_vsm_event_no_commit(self, event) -> None:
+        """
+        Aggiorna un evento VSM SENZA fare commit.
+        Usato per operazioni transazionali atomiche.
+        
+        Args:
+            event: VSMEvent con event_id valido
+        """
+        self.cursor.execute("""
+            UPDATE vsm_events SET
+                username = ?, event_date = ?, buyer = ?, event_type = ?, action = ?,
+                description = ?, reference = ?, importo_bdg = ?, importo_negoziato = ?,
+                importo_richiesto_iniziale = ?, quantita_annua = ?, percent_realizzo = ?,
+                driver = ?, giorni_pagamento_attuali = ?, giorni_pagamento_negoziati = ?,
+                spending_annuo = ?, opex_ripetitivo = ?, note = ?, updated_at = ?
+            WHERE event_id = ?
+        """, (
+            event.username,
+            event.event_date.isoformat() if event.event_date else None,
+            event.buyer,
+            event.event_type,
+            event.action,
+            event.description,
+            event.reference,
+            event.importo_bdg,
+            event.importo_negoziato,
+            event.importo_richiesto_iniziale,
+            event.quantita_annua,
+            event.percent_realizzo,
+            event.driver,
+            event.giorni_pagamento_attuali,
+            event.giorni_pagamento_negoziati,
+            event.spending_annuo,
+            1 if event.opex_ripetitivo else 0,
+            event.note,
+            datetime.now().isoformat(),
+            event.id
+        ))
+    
+    def _delete_vsm_impacts_no_commit(self, event_id: int) -> None:
+        """
+        Elimina tutti gli impatti VSM per un event_id SENZA fare commit.
+        Usato per operazioni transazionali atomiche.
+        
+        Args:
+            event_id: ID dell'evento di cui eliminare gli impatti
+        """
+        self.cursor.execute("DELETE FROM vsm_impacts WHERE event_id = ?", (event_id,))
+    
+    def _insert_vsm_impacts_no_commit(self, impacts: list) -> None:
+        """
+        Inserisce un batch di impatti VSM SENZA fare commit.
+        Usato per operazioni transazionali atomiche.
+        
+        Args:
+            impacts: Lista di VSMImpact da inserire
+        """
+        for impact in impacts:
+            self.cursor.execute("""
+                INSERT INTO vsm_impacts (
+                    event_id, username, anno, mese, tipo_valore,
+                    valore_teorico, valore_effettivo
+                ) VALUES (?, ?, ?, ?, ?, ?, ?)
+            """, (
+                impact.event_id,
+                impact.username,
+                impact.year,
+                impact.month,
+                impact.value_type,
+                impact.valore_teorico,
+                impact.valore_effettivo
+            ))
+    
+    # ========================================================================
+    
     def get_vsm_event_by_id(self, event_id: int):
         """
         Recupera un evento VSM per ID.
