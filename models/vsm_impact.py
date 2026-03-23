@@ -15,12 +15,13 @@ class VSMImpact:
     """
     Classe che rappresenta un impatto economico mensile di un evento VSM.
     
-    Gli impatti sono generati automaticamente per distribuire il valore
-    dell'evento nel tempo (riverbero fino a 24 mesi per OPEX ripetitivo).
+    Gli impatti sono generati automaticamente:
+    - Eventi ripetitivi (OPEX): distribuzione fino a 24 mesi con primo mese pro-rata
+    - Eventi one-shot (CAPEX): un solo impatto nel mese dell'evento
     
     Attributi:
         id: Identificativo univoco dell'impatto
-        event_id: ID dell'evento VSM di riferimento
+        event_id: ID dell'evento VSM di riferimento (None se evento non persistito)
         username: Username del creatore dell'evento (propagato per multiutenza)
         year: Anno di riferimento dell'impatto
         month: Mese di riferimento dell'impatto (1-12)
@@ -31,7 +32,7 @@ class VSMImpact:
     
     # Campi obbligatori
     id: Optional[int] = None
-    event_id: int = 0  # Riferimento all'evento VSM
+    event_id: Optional[int] = None  # Riferimento all'evento VSM (None se non persistito)
     username: str = ""  # Propagato dall'evento per multiutenza
     
     # Periodo di riferimento

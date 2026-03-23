@@ -1,8 +1,40 @@
-# VSM Engine - Implementazione Completata
+# VSM Engine - Implementazione Completata (v1.1 - Corretta)
 
-**Data**: 23 marzo 2026  
+**Data Implementazione Iniziale**: 23 marzo 2026  
+**Data Correzione**: 23 marzo 2026  
 **Modulo**: VSM (Value Stream Mapping) Engine  
-**Status**: ✅ Completo e Testato
+**Status**: ✅ Completo, Testato e Corretto
+
+---
+
+## 🔄 CORREZIONI APPLICATE (v1.1)
+
+### CORREZIONE 1: Eventi Non Ripetitivi = ONE-SHOT
+
+**Problema**: La logica originale distribuiva eventi non ripetitivi fino a dicembre dell'anno evento (errata dal punto di vista business).
+
+**Soluzione Corretta**:
+- Evento non ripetitivo (`opex_ripetitivo=False`): **un solo impatto** nel mese dell'evento
+- Tipicamente eventi CAPEX che impattano una sola volta
+- **NO distribuzione** su mesi successivi
+- **NO pro-rata** per eventi one-shot: valore intero assegnato all'unico mese
+
+**Comportamento Corretto**:
+- `opex_ripetitivo=True`: distribuzione multi-mese (max 24), primo mese con pro-rata
+- `opex_ripetitivo=False`: **un solo VSMImpact** nel mese evento, valore intero
+
+### CORREZIONE 2: event_id=None Mantenuto
+
+**Problema**: La logica originale convertiva `event.id=None` in `event_id=0` negli impatti.
+
+**Soluzione Corretta**:
+- Se `event.id` è `None`, **mantenere `event_id=None`** nei `VSMImpact`
+- NO placeholder tipo `0`, `-1` o simili
+- Gestione ID definitivo è responsabilità del layer di persistenza
+- Evita collisioni logiche tra eventi non ancora persistiti
+
+**Modifiche al Modello**:
+- `VSMImpact.event_id`: cambiato da `int = 0` a `Optional[int] = None`
 
 ---
 
@@ -58,7 +90,7 @@
 
 **`_calculate_distribution_months(event)`**
 - Evento ripetitivo: massimo 24 mesi dal mese evento
-- Evento non ripetitivo: solo fino a dicembre anno evento
+- **Evento non ripetitivo (one-shot): un solo mese (il mese dell'evento)**
 - Output: lista `[(year, month)]` ordinata cronologicamente
 
 **`_distribute_value(total_value, months, first_month_coeff)`**
@@ -79,9 +111,12 @@
   - **Saving**: genera impatti economici distribuiti
   - **Cost Avoidance**: genera impatti economici distribuiti
   - **Derisking**: restituisce lista vuota `[]`
+- Comportamento per opex_ripetitivo:
+  - **True**: distribuzione multi-mese (max 24), primo mese con pro-rata
+  - **False**: **un solo impatto** nel mese evento (one-shot), valore intero, **NO pro-rata**
 - Propagazione `event.id`, `event.username` in ogni impatto
 - Ordinamento cronologico garantito
-- Accetta `event_id=None` (eventi non ancora persistiti)
+- **Accetta `event_id=None` e lo mantiene** (eventi non ancora persistiti)
 - Logging sobrio: debug/info/warning ai punti chiave
 
 **`generate_impacts_for_events(events: List[VSMEvent]) -> Dict[int, List[VSMImpact]]`**
@@ -94,17 +129,19 @@
 
 ## ✅ Test Completati
 
-### Test Unitari: 23/23 Passed ✓
+### Test Unitari: 24/24 Passed ✓
 
-**Copertura completa degli 8 casi minimi richiesti:**
+**Copertura completa degli 8+ casi minimi richiesti:**
 
 1. ✅ **Saving ripetitivo 24 mesi**: verifica durata, propagazione dati, conservazione valore
-2. ✅ **Cost Avoidance non ripetitivo**: distribuzione solo fino a dicembre anno evento
-3. ✅ **Primo mese pro-rata**: calcolo corretto coefficiente giorno 16 → 0.5
+2. ✅ **Cost Avoidance non ripetitivo (one-shot)**: un solo impatto nel mese evento
+3. ✅ **Primo mese pro-rata**: calcolo corretto coefficiente giorno 16 → 0.5 (solo ripetitivi)
+3b. ✅ **One-shot NO pro-rata**: valore intero nel mese evento (test aggiunto)
 4. ✅ **Derisking → lista vuota**: nessun impatto economico generato
 5. ✅ **Propagazione username/event_id**: verifica corretta in tutti gli impatti
 6. ✅ **Ordinamento cronologico**: verifica strict ordering (year, month)
 7. ✅ **Errori dati mancanti**: VSMError per event_date, username, tipo evento non valido
+7b. ✅ **event_id=None mantenuto**: verifica che rimanga None negli impatti (test aggiornato)
 8. ✅ **Conservazione matematica**: verifica somma impatti = valore totale evento
 
 **Test aggiuntivi (oltre i minimi):**
@@ -116,16 +153,17 @@
 **Esecuzione:**
 ```bash
 python3 -m unittest tests.test_vsm_engine -v
-# Risultato: Ran 23 tests in 0.002s - OK
+# Risultato: Ran 24 tests in 0.003s - OK
 ```
 
 ### Test Manuali: Tutti Completati ✓
 
-Script `test_vsm_manual.py` con output visivo:
-- Saving ripetitivo 12 mesi → 24 impatti generati, conservazione €12,000
-- Cost Avoidance evento 15 marzo → pro-rata ~53% primo mese
-- Derisking → nessun impatto generato
-- Gestione errori → VSMError correttamente sollevati
+Script `test_vsm_manual.py` con output visivo (5 test):
+1. **Saving ripetitivo 24 mesi** → 24 impatti generati, conservazione €12,000
+2. **Cost Avoidance ripetitivo con pro-rata** → evento giorno 15, primo mese ~53%
+3. **Saving one-shot (CAPEX)** → 1 solo impatto, valore intero €8,000 (NO pro-rata)
+4. **Derisking** → nessun impatto generato
+5. **Gestione errori** → VSMError correttamente sollevati
 
 ---
 
@@ -134,18 +172,20 @@ Script `test_vsm_manual.py` con output visivo:
 ### Confermate dalla richiesta:
 
 1. **Convenzione pro-rata**: giorni residui incluso giorno evento / 30
-2. **Distribuzione matematica corretta**: coefficienti normalizzati (non semplice divisione)
-3. **Derisking**: lista vuota, nessun impatto fittizio
-4. **Tipo evento validazione stretta**: solo valori esatti, no normalizzazione
-5. **Logging minimale**: logger `'DataFlow.VSMEngine'`, uso sobrio
-6. **Location modulo**: `services/` (non root)
-7. **event_id=None**: accettato, convertito a 0 negli impatti
-8. **Arrotondamenti**: remainder accodato ultimo mese
+2. **Pro-rata solo per ripetitivi**: eventi one-shot NON hanno pro-rata, valore intero
+3. **Distribuzione matematica corretta**: coefficienti normalizzati (non semplice divisione)
+4. **Derisking**: lista vuota, nessun impatto fittizio
+5. **Tipo evento validazione stretta**: solo valori esatti, no normalizzazione
+6. **Logging minimale**: logger `'DataFlow.VSMEngine'`, uso sobrio
+7. **Location modulo**: `services/` (non root)
+8. **event_id=None**: **accettato e mantenuto** (non convertito a 0 o altro)
+9. **Arrotondamenti**: remainder accodato ultimo mese
 
 ### Implementative:
 
 - **Mese commerciale**: sempre 30 giorni (non giorni reali calendario)
-- **Eventi non ripetitivi**: distribuzione fino a dicembre anno evento (non solo 1 mese)
+- **Eventi non ripetitivi (one-shot)**: **un solo impatto nel mese evento** (CAPEX tipico)
+- **Eventi ripetitivi**: distribuzione su più mesi (max 24), primo mese con pro-rata (OPEX tipico)
 - **Batch processing**: continua su errori, esclude falliti dal risultato
 - **Nessuna dipendenza esterna**: solo stdlib Python
 
@@ -191,9 +231,9 @@ Nessuna modifica ai modelli dati è stata necessaria. Il design è robusto e sca
 
 ---
 
-## 📊 Esempio Output Test Manuali
+## 📊 Esempio Output Test Manuali (v1.1 Corretta)
 
-### TEST 1: Saving Ripetitivo (12 mesi)
+### TEST 1: Saving Ripetitivo (24 mesi)
 
 ```
 📋 EVENTO VSM:
@@ -210,7 +250,7 @@ Nessuna modifica ai modelli dati è stata necessaria. Il design è robusto e sca
 └── Conservazione totale: €12,000.00 = €12,000.00 ✓
 ```
 
-### TEST 2: Cost Avoidance con Pro-rata (evento 15 marzo)
+### TEST 2: Cost Avoidance Ripetitivo con Pro-rata (evento 15 marzo)
 
 ```
 📋 EVENTO VSM:
@@ -218,24 +258,45 @@ Nessuna modifica ai modelli dati è stata necessaria. Il design è robusto e sca
    Tipo: Cost Avoidance
    Data: 15/03/2026
    Username: laura.bianchi
-   Ripetitivo: No
+   Ripetitivo: Sì
    Valore teorico totale: €5,000.00
    Valore effettivo totale: €4,000.00
    % Realizzo: 80.0%
 
-💰 IMPATTI GENERATI: 10 mesi
+💰 IMPATTI GENERATI: 24 mesi
 
 📊 Dettaglio primo mese (pro-rata):
-   Marzo (giorno 15): €279.72
-   Aprile (mese pieno): €524.48
+   Marzo (giorno 15): €113.31
+   Aprile (mese pieno): €212.46
    Rapporto: 53.33%
 ```
 
-### TEST 3: Derisking (solo statistico)
+### TEST 3: Saving One-Shot (CAPEX, impatto unico) ⭐ NUOVO
 
 ```
 📋 EVENTO VSM:
    ID: 3
+   Tipo: Saving
+   Data: 15/04/2026
+   Username: paolo.verdi
+   Ripetitivo: No
+   Valore teorico totale: €8,000.00
+   Valore effettivo totale: €8,000.00
+   % Realizzo: 100.0%
+
+💰 IMPATTI GENERATI: 1 mese
+
+📊 Verifica One-Shot:
+   Numero impatti: 1 (deve essere 1)
+   Mese impatto: April 2026
+   Valore intero (NO pro-rata): €8,000.00
+```
+
+### TEST 4: Derisking (solo statistico)
+
+```
+📋 EVENTO VSM:
+   ID: 4
    Tipo: Derisking
 
 ⚠️  Nessun impatto economico generato

@@ -63,7 +63,7 @@ class TestVSMEngineHelpers(unittest.TestCase):
         self.assertAlmostEqual(coeff, 1/30, places=4)
     
     def test_calculate_distribution_months_non_repetitive(self):
-        """Test calcolo mesi per evento non ripetitivo (solo anno corrente)."""
+        """Test calcolo mesi per evento non ripetitivo (one-shot)."""
         event = VSMEvent(
             event_date=datetime(2026, 3, 15),
             username="test_user",
@@ -73,10 +73,9 @@ class TestVSMEngineHelpers(unittest.TestCase):
         
         months = _calculate_distribution_months(event)
         
-        # Da marzo a dicembre = 10 mesi
-        self.assertEqual(len(months), 10)
+        # One-shot: un solo mese (quello dell'evento)
+        self.assertEqual(len(months), 1)
         self.assertEqual(months[0], (2026, 3))
-        self.assertEqual(months[-1], (2026, 12))
     
     def test_calculate_distribution_months_repetitive_24_months(self):
         """Test calcolo mesi per evento ripetitivo (24 mesi)."""
@@ -157,7 +156,7 @@ class TestGenerateImpactsForEvent(unittest.TestCase):
         self.assertAlmostEqual(total_effettivo, 2000.0, places=2)  # 100% realizzo
     
     def test_cost_avoidance_non_repetitive_year_end(self):
-        """Test 2: Cost Avoidance non ripetitivo distribuito fino a dicembre anno evento."""
+        """Test 2: Cost Avoidance non ripetitivo (one-shot, impatto singolo)."""
         event = VSMEvent(
             id=2,
             event_date=datetime(2026, 3, 1),
@@ -171,12 +170,12 @@ class TestGenerateImpactsForEvent(unittest.TestCase):
         
         impacts = generate_impacts_for_event(event)
         
-        # Da marzo a dicembre = 10 mesi
-        self.assertEqual(len(impacts), 10)
+        # One-shot: un solo impatto nel mese dell'evento
+        self.assertEqual(len(impacts), 1)
         
-        # Verifica ultimo mese è dicembre 2026
-        self.assertEqual(impacts[-1].year, 2026)
-        self.assertEqual(impacts[-1].month, 12)
+        # Verifica che sia marzo 2026
+        self.assertEqual(impacts[0].year, 2026)
+        self.assertEqual(impacts[0].month, 3)
         
         # Verifica conservazione valore
         total_teorico = sum(imp.valore_teorico for imp in impacts)
@@ -189,13 +188,13 @@ class TestGenerateImpactsForEvent(unittest.TestCase):
         self.assertAlmostEqual(total_effettivo, expected_effettivo, places=2)
     
     def test_first_month_prorata(self):
-        """Test 3: Primo mese pro-rata corretto."""
+        """Test 3: Primo mese pro-rata corretto (solo per eventi ripetitivi)."""
         event = VSMEvent(
             id=3,
             event_date=datetime(2026, 3, 16),  # Metà mese
             username="buyer3",
             event_type="Saving",
-            opex_ripetitivo=False,
+            opex_ripetitivo=True,  # Ripetitivo per testare il pro-rata
             importo_bdg=10000.0,
             importo_negoziato=9000.0,
             percent_realizzo=100.0
@@ -203,13 +202,13 @@ class TestGenerateImpactsForEvent(unittest.TestCase):
         
         impacts = generate_impacts_for_event(event)
         
-        # Da marzo (pro-rata) a dicembre = 10 mesi
-        self.assertEqual(len(impacts), 10)
+        # Ripetitivo: 24 mesi
+        self.assertEqual(len(impacts), 24)
         
         # Primo impatto (marzo) dovrebbe essere circa metà del valore medio
-        # Coefficienti: 0.5 (marzo) + 9 * 1.0 = 9.5 totale
-        # Valore unitario = 1000 / 9.5 = 105.26
-        # Marzo = 105.26 * 0.5 = 52.63
+        # Coefficienti: 0.5 (marzo) + 23 * 1.0 = 23.5 totale
+        # Valore unitario = 1000 / 23.5 = 42.55
+        # Marzo = 42.55 * 0.5 = 21.28
         
         # Il primo mese deve essere significativamente più basso degli altri
         self.assertLess(impacts[0].valore_teorico, impacts[1].valore_teorico)
@@ -217,6 +216,33 @@ class TestGenerateImpactsForEvent(unittest.TestCase):
         # Verifica conservazione totale
         total_teorico = sum(imp.valore_teorico for imp in impacts)
         self.assertAlmostEqual(total_teorico, 1000.0, places=2)
+    
+    def test_one_shot_no_prorata(self):
+        """Test 3b: Eventi one-shot NON hanno pro-rata (valore intero nel mese evento)."""
+        event = VSMEvent(
+            id=30,
+            event_date=datetime(2026, 3, 16),  # Metà mese
+            username="buyer_oneshot",
+            event_type="Saving",
+            opex_ripetitivo=False,  # One-shot
+            importo_bdg=10000.0,
+            importo_negoziato=9000.0,
+            percent_realizzo=100.0
+        )
+        
+        impacts = generate_impacts_for_event(event)
+        
+        # One-shot: esattamente 1 impatto
+        self.assertEqual(len(impacts), 1)
+        
+        # Deve essere nel mese dell'evento (marzo)
+        self.assertEqual(impacts[0].year, 2026)
+        self.assertEqual(impacts[0].month, 3)
+        
+        # Valore intero (NO pro-rata): deve essere l'intero valore dell'evento
+        expected_value = 1000.0  # 10000 - 9000
+        self.assertAlmostEqual(impacts[0].valore_teorico, expected_value, places=2)
+        self.assertAlmostEqual(impacts[0].valore_effettivo, expected_value, places=2)
     
     def test_derisking_empty_impacts(self):
         """Test 4: Derisking restituisce lista vuota."""
@@ -452,7 +478,7 @@ class TestEdgeCases(unittest.TestCase):
     """Test per casi limite."""
     
     def test_event_id_none_accepted(self):
-        """Test che event_id=None sia accettato (evento non ancora persistito)."""
+        """Test che event_id=None sia accettato e mantenuto (evento non ancora persistito)."""
         event = VSMEvent(
             id=None,  # Non ancora persistito
             event_date=datetime(2026, 3, 15),
@@ -468,9 +494,9 @@ class TestEdgeCases(unittest.TestCase):
         # Deve generare impatti normalmente
         self.assertGreater(len(impacts), 0)
         
-        # event_id negli impatti sarà 0 (convertito da None)
+        # event_id negli impatti deve rimanere None (non convertito)
         for impact in impacts:
-            self.assertEqual(impact.event_id, 0)
+            self.assertIsNone(impact.event_id)
     
     def test_event_last_month_of_year(self):
         """Test evento a dicembre (non ripetitivo genera solo 1 impatto)."""

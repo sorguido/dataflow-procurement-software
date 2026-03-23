@@ -105,8 +105,8 @@ def test_saving_repetitive():
 
 
 def test_cost_avoidance_prorata():
-    """Test 2: Cost Avoidance con primo mese pro-rata."""
-    print_separator("TEST 2: Cost Avoidance con Pro-rata (evento 15 marzo)")
+    """Test 2: Cost Avoidance ripetitivo con primo mese pro-rata."""
+    print_separator("TEST 2: Cost Avoidance Ripetitivo con Pro-rata (evento 15 marzo)")
     
     event = VSMEvent(
         id=2,
@@ -114,11 +114,11 @@ def test_cost_avoidance_prorata():
         username="laura.bianchi",
         buyer="Laura Bianchi",
         event_type="Cost Avoidance",
-        opex_ripetitivo=False,
+        opex_ripetitivo=True,  # Ripetitivo per testare pro-rata
         importo_richiesto_iniziale=50000.0,
         importo_negoziato=45000.0,
         percent_realizzo=80.0,
-        description="Contenimento aumento prezzi materie prime"
+        description="Contenimento aumento prezzi materie prime (OPEX ricorrente)"
     )
     
     print_event_summary(event)
@@ -133,12 +133,41 @@ def test_cost_avoidance_prorata():
     print(f"   Rapporto: {impacts[0].valore_teorico / impacts[1].valore_teorico:.2%}")
 
 
-def test_derisking():
-    """Test 3: Derisking (nessun impatto economico)."""
-    print_separator("TEST 3: Derisking (solo statistico)")
+def test_saving_one_shot():
+    """Test 3: Saving one-shot (impatto singolo, nessun pro-rata)."""
+    print_separator("TEST 3: Saving One-Shot (CAPEX, impatto unico)")
     
     event = VSMEvent(
         id=3,
+        event_date=datetime(2026, 4, 15),
+        username="paolo.verdi",
+        buyer="Paolo Verdi",
+        event_type="Saving",
+        opex_ripetitivo=False,  # One-shot
+        importo_bdg=80000.0,
+        importo_negoziato=72000.0,
+        percent_realizzo=100.0,
+        description="Acquisto macchinario produzione (CAPEX)"
+    )
+    
+    print_event_summary(event)
+    
+    impacts = generate_impacts_for_event(event)
+    print_impacts_summary(impacts)
+    
+    # Verifica one-shot
+    print(f"\n📊 Verifica One-Shot:")
+    print(f"   Numero impatti: {len(impacts)} (deve essere 1)")
+    print(f"   Mese impatto: {datetime(impacts[0].year, impacts[0].month, 1).strftime('%B %Y')}")
+    print(f"   Valore intero (NO pro-rata): €{impacts[0].valore_teorico:,.2f}")
+
+
+def test_derisking():
+    """Test 4: Derisking (nessun impatto economico)."""
+    print_separator("TEST 4: Derisking (solo statistico)")
+    
+    event = VSMEvent(
+        id=4,
         event_date=datetime(2026, 4, 1),
         username="paolo.verdi",
         buyer="Paolo Verdi",
@@ -154,14 +183,14 @@ def test_derisking():
 
 
 def test_error_handling():
-    """Test 4: Gestione errori."""
-    print_separator("TEST 4: Gestione Errori")
+    """Test 5: Gestione errori."""
+    print_separator("TEST 5: Gestione Errori")
     
     # Test tipo evento non valido
     print("\n🔴 Test tipo evento non valido:")
     try:
         event = VSMEvent(
-            id=4,
+            id=5,
             event_date=datetime(2026, 5, 1),
             username="test.user",
             event_type="InvalidType"
@@ -175,7 +204,7 @@ def test_error_handling():
     print("\n🔴 Test username mancante:")
     try:
         event = VSMEvent(
-            id=5,
+            id=6,
             event_date=datetime(2026, 5, 1),
             username="",
             event_type="Saving"
@@ -196,6 +225,7 @@ def main():
     try:
         test_saving_repetitive()
         test_cost_avoidance_prorata()
+        test_saving_one_shot()
         test_derisking()
         test_error_handling()
         

@@ -109,7 +109,7 @@ def _calculate_distribution_months(event: VSMEvent) -> List[Tuple[int, int]]:
     
     Logica:
     - Se evento ripetitivo (opex_ripetitivo=True): massimo 24 mesi dal mese dell'evento
-    - Se evento non ripetitivo: solo fino a dicembre dell'anno dell'evento
+    - Se evento non ripetitivo (one-shot): un solo mese (il mese dell'evento)
     
     Args:
         event: Evento VSM
@@ -139,9 +139,9 @@ def _calculate_distribution_months(event: VSMEvent) -> List[Tuple[int, int]]:
                 current_month = 1
                 current_year += 1
     else:
-        # Evento non ripetitivo: solo fino a dicembre dell'anno dell'evento
-        for month in range(start_month, 13):
-            months.append((start_year, month))
+        # Evento non ripetitivo (one-shot): un solo impatto nel mese dell'evento
+        # Tipicamente eventi Capex che impattano una sola volta
+        months.append((start_year, start_month))
     
     logger.debug(
         f"Distribuzione mesi: evento {'ripetitivo' if event.opex_ripetitivo else 'non ripetitivo'}, "
@@ -224,6 +224,10 @@ def generate_impacts_for_event(event: VSMEvent) -> List[VSMImpact]:
     - "Cost Avoidance": genera impatti economici distribuiti
     - "Derisking": restituisce lista vuota (solo statistico)
     
+    Comportamento per opex_ripetitivo:
+    - True: distribuzione su più mesi (max 24), primo mese con pro-rata
+    - False: un solo impatto nel mese evento (one-shot, tipicamente Capex)
+    
     Args:
         event: Evento VSM da processare
         
@@ -234,7 +238,22 @@ def generate_impacts_for_event(event: VSMEvent) -> List[VSMImpact]:
         VSMError: Se l'evento non è valido o contiene dati insufficienti
         
     Examples:
-        >>> event = VSMEvent(
+        >>> # Evento ripetitivo (OPEX) - distribuzione multi-mese
+        >>> event_opex = VSMEvent(
+        ...     event_date=datetime(2026, 3, 16),
+        ...     username="buyer1",
+        ...     event_type="Saving",
+        ...     opex_ripetitivo=True,
+        ...     importo_bdg=10000,
+        ...     importo_negoziato=9000,
+        ...     percent_realizzo=100.0
+        ... )
+        >>> impacts = generate_impacts_for_event(event_opex)
+        >>> len(impacts)  # 24 mesi (ripetitivo)
+        24
+        
+        >>> # Evento one-shot (CAPEX) - impatto singolo
+        >>> event_capex = VSMEvent(
         ...     event_date=datetime(2026, 3, 16),
         ...     username="buyer1",
         ...     event_type="Saving",
@@ -243,9 +262,9 @@ def generate_impacts_for_event(event: VSMEvent) -> List[VSMImpact]:
         ...     importo_negoziato=9000,
         ...     percent_realizzo=100.0
         ... )
-        >>> impacts = generate_impacts_for_event(event)
-        >>> len(impacts)  # Da marzo a dicembre = 10 mesi
-        10
+        >>> impacts = generate_impacts_for_event(event_capex)
+        >>> len(impacts)  # 1 solo impatto (one-shot)
+        1
     """
     # Validazione evento
     _validate_event(event)
@@ -271,8 +290,13 @@ def generate_impacts_for_event(event: VSMEvent) -> List[VSMImpact]:
         logger.warning("Nessun mese di distribuzione calcolato")
         return []
     
-    # Calcola coefficiente pro-rata primo mese
-    first_month_coeff = _calculate_first_month_coefficient(event.event_date)
+    # Calcola coefficiente pro-rata primo mese (solo per eventi ripetitivi)
+    # Per eventi one-shot, il valore intero va assegnato all'unico mese
+    if event.opex_ripetitivo:
+        first_month_coeff = _calculate_first_month_coefficient(event.event_date)
+    else:
+        # One-shot: coefficiente 1.0 (valore intero)
+        first_month_coeff = 1.0
     
     # Distribuisci valori teorici ed effettivi
     valori_teorici_mensili = _distribute_value(
@@ -293,7 +317,7 @@ def generate_impacts_for_event(event: VSMEvent) -> List[VSMImpact]:
     for i, (year, month) in enumerate(months):
         impact = VSMImpact(
             id=None,  # Sarà assegnato dalla persistenza
-            event_id=event.id if event.id else 0,  # Accetta None, convertito a 0
+            event_id=event.id,  # Mantenere None se evento non persistito
             username=event.username,
             year=year,
             month=month,
