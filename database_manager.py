@@ -2110,6 +2110,76 @@ class DatabaseManager:
             print(f"[DB Manager] Errore get_vsm_event_by_id: {e}")
             raise DatabaseError(str(e)) from e
     
+    def get_all_vsm_events(self, username: str = None) -> list:
+        """
+        Recupera tutti gli eventi VSM, opzionalmente filtrati per username.
+        
+        Args:
+            username: Se specificato, filtra eventi per questo username (multiutenza)
+        
+        Returns:
+            list: Lista di VSMEvent ordinati per data decrescente
+        """
+        try:
+            if username:
+                self.cursor.execute("""
+                    SELECT event_id, username, event_date, buyer, event_type, action,
+                           description, reference, importo_bdg, importo_negoziato,
+                           importo_richiesto_iniziale, quantita_annua, percent_realizzo,
+                           driver, giorni_pagamento_attuali, giorni_pagamento_negoziati,
+                           spending_annuo, opex_ripetitivo, note, created_at, updated_at
+                    FROM vsm_events
+                    WHERE username = ?
+                    ORDER BY event_date DESC, event_id DESC
+                """, (username,))
+            else:
+                self.cursor.execute("""
+                    SELECT event_id, username, event_date, buyer, event_type, action,
+                           description, reference, importo_bdg, importo_negoziato,
+                           importo_richiesto_iniziale, quantita_annua, percent_realizzo,
+                           driver, giorni_pagamento_attuali, giorni_pagamento_negoziati,
+                           spending_annuo, opex_ripetitivo, note, created_at, updated_at
+                    FROM vsm_events
+                    ORDER BY event_date DESC, event_id DESC
+                """)
+            
+            rows = self.cursor.fetchall()
+            
+            # Importa qui per evitare circular imports
+            from models.vsm_event import VSMEvent
+            
+            events = []
+            for row in rows:
+                events.append(VSMEvent(
+                    id=row[0],
+                    username=row[1],
+                    event_date=datetime.fromisoformat(row[2]) if row[2] else None,
+                    buyer=row[3],
+                    event_type=row[4],
+                    action=row[5],
+                    description=row[6],
+                    reference=row[7],
+                    importo_bdg=row[8],
+                    importo_negoziato=row[9],
+                    importo_richiesto_iniziale=row[10],
+                    quantita_annua=row[11],
+                    percent_realizzo=row[12],
+                    driver=row[13],
+                    giorni_pagamento_attuali=row[14],
+                    giorni_pagamento_negoziati=row[15],
+                    spending_annuo=row[16],
+                    opex_ripetitivo=bool(row[17]),
+                    note=row[18],
+                    created_at=datetime.fromisoformat(row[19]) if row[19] else datetime.now(),
+                    updated_at=datetime.fromisoformat(row[20]) if row[20] else datetime.now()
+                ))
+            
+            return events
+            
+        except Exception as e:
+            print(f"[DB Manager] Errore get_all_vsm_events: {e}")
+            raise DatabaseError(str(e)) from e
+    
     def insert_vsm_impacts_batch(self, impacts: list) -> None:
         """
         Inserisce un batch di impatti VSM con transazione.

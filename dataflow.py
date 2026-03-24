@@ -94,6 +94,7 @@ init_i18n()
 # Importa UI components (DOPO init_i18n per avere _() disponibile)
 from ui.help_window import HelpWindow
 from ui.windows.view_request_window import ViewRequestWindow
+from ui.windows.vsm_management_window import VSMManagementWindow
 from ui.components.main_dashboard_toolbar import MainDashboardToolbar
 from ui.components.collapsible_filters import CollapsibleFilters
 
@@ -3678,6 +3679,10 @@ class MainWindow:
         self.notebook.grid(row=3, column=0, sticky="nsew", padx=10, pady=5)
         self.tab_attive = ttk.Frame(self.notebook); self.tab_archiviate = ttk.Frame(self.notebook)
         self.notebook.add(self.tab_attive, text=_("RdO Attive")); self.notebook.add(self.tab_archiviate, text=_("RdO Archiviate"))
+        
+        # Tab VSM (Step 4: UI Integration)
+        self.tab_vsm = VSMManagementWindow(self.notebook, self.current_username)
+        self.notebook.add(self.tab_vsm, text=_("VSM"))
         footer_frame = ttk.Frame(self.root); footer_frame.grid(row=4, column=0, sticky="ew", padx=10, pady=5)
         ttk.Label(footer_frame, text=_("v2.0.1 - Sviluppato da ")).pack(side="left")
         name_label = ttk.Label(footer_frame, text="Guido Sorarù", foreground="blue", cursor="hand2"); name_label.pack(side="left")
