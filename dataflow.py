@@ -94,7 +94,8 @@ init_i18n()
 # Importa UI components (DOPO init_i18n per avere _() disponibile)
 from ui.help_window import HelpWindow
 from ui.windows.view_request_window import ViewRequestWindow
-from ui.windows.vsm_management_window import VSMManagementWindow
+# DEPRECATED: VSM tabs now integrated directly in main notebook (Step 4A)
+# from ui.windows.vsm_management_window import VSMManagementWindow
 from ui.components.main_dashboard_toolbar import MainDashboardToolbar
 from ui.components.collapsible_filters import CollapsibleFilters
 
@@ -3680,9 +3681,19 @@ class MainWindow:
         self.tab_attive = ttk.Frame(self.notebook); self.tab_archiviate = ttk.Frame(self.notebook)
         self.notebook.add(self.tab_attive, text=_("RdO Attive")); self.notebook.add(self.tab_archiviate, text=_("RdO Archiviate"))
         
-        # Tab VSM (Step 4: UI Integration)
-        self.tab_vsm = VSMManagementWindow(self.notebook, self.current_username)
-        self.notebook.add(self.tab_vsm, text=_("VSM"))
+        # Tab VSM (Step 4A: Direct Tab Integration - Placeholder)
+        self.tab_saving = ttk.Frame(self.notebook)
+        self.tab_cost_avoidance = ttk.Frame(self.notebook)
+        self.tab_derisking = ttk.Frame(self.notebook)
+        self.notebook.add(self.tab_saving, text=_("Saving"))
+        self.notebook.add(self.tab_cost_avoidance, text=_("Cost Avoidance"))
+        self.notebook.add(self.tab_derisking, text=_("Derisking"))
+        
+        # Placeholder labels per visualizzazione struttura (Step 4A)
+        ttk.Label(self.tab_saving, text="📊 Saving Events - Coming Soon", font=('Arial', 16), foreground='gray').pack(expand=True)
+        ttk.Label(self.tab_cost_avoidance, text="📊 Cost Avoidance Events - Coming Soon", font=('Arial', 16), foreground='gray').pack(expand=True)
+        ttk.Label(self.tab_derisking, text="📊 Derisking Events - Coming Soon", font=('Arial', 16), foreground='gray').pack(expand=True)
+        
         footer_frame = ttk.Frame(self.root); footer_frame.grid(row=4, column=0, sticky="ew", padx=10, pady=5)
         ttk.Label(footer_frame, text=_("v2.0.1 - Sviluppato da ")).pack(side="left")
         name_label = ttk.Label(footer_frame, text="Guido Sorarù", foreground="blue", cursor="hand2"); name_label.pack(side="left")
@@ -4362,6 +4373,12 @@ class MainWindow:
     def update_button_visibility(self):
         """Aggiorna lo stato del pulsante Actions in base alla selezione e proprietà delle RfQ"""
         sheet, status = self.get_current_tree_and_status()
+        
+        # Step 4A: Skip logic for VSM placeholder tabs
+        if sheet is None or status == 'vsm_placeholder':
+            self.btn_actions.config(state="disabled")
+            return
+        
         selected_rows_indices = self._get_selected_row_indices(sheet)
         has_sel = bool(selected_rows_indices)
         num_selected = len(selected_rows_indices) if selected_rows_indices else 0
@@ -4462,7 +4479,16 @@ class MainWindow:
         self.update_button_visibility()
 
     def get_current_tree_and_status(self):
-        return (self.tree_attive, 'attiva') if self.notebook.index(self.notebook.select()) == 0 else (self.tree_archiviate, 'archiviata')
+        tab_index = self.notebook.index(self.notebook.select())
+        # Tab 0: RdO Attive, Tab 1: RdO Archiviate
+        if tab_index == 0:
+            return (self.tree_attive, 'attiva')
+        elif tab_index == 1:
+            return (self.tree_archiviate, 'archiviata')
+        else:
+            # Tab VSM (2=Saving, 3=Cost Avoidance, 4=Derisking) - placeholder return
+            # TODO Step 4B: implement VSM sheet logic
+            return (None, 'vsm_placeholder')
 
     def refresh_data(self):
         """Ricarica i dati preservando i filtri di ricerca attivi"""
@@ -4668,6 +4694,11 @@ class MainWindow:
 
     def search_requests(self):
         tree, status = self.get_current_tree_and_status()
+        
+        # Step 4A: Skip search for VSM placeholder tabs
+        if tree is None or status == 'vsm_placeholder':
+            return
+        
         username_filter = self._get_active_username_filter()
         
         # BUG #9 FIX: Validazione lunghezza input per evitare query troppo lente
@@ -5325,6 +5356,15 @@ class MainWindow:
         """
         # 1. Identifica quale tabella è attiva e recupera lo stato corrente
         current_tree, status = self.get_current_tree_and_status()
+        
+        # Step 4A: Skip export for VSM placeholder tabs
+        if current_tree is None or status == 'vsm_placeholder':
+            messagebox.showinfo(
+                _("Export Non Disponibile"),
+                _("La funzione Export per i tab VSM sarà disponibile in un prossimo aggiornamento."),
+                parent=self.root
+            )
+            return
         
         # 2. Recupera TUTTI gli ID che corrispondono ai filtri attivi (non solo quelli visualizzati nel sheet)
         # Questo è necessario perché il sheet potrebbe avere un limite di righe visualizzate
