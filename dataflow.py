@@ -3689,10 +3689,11 @@ class MainWindow:
         self.notebook.add(self.tab_cost_avoidance, text=_("Cost Avoidance"))
         self.notebook.add(self.tab_derisking, text=_("Derisking"))
         
-        # Placeholder labels per visualizzazione struttura (Step 4A)
-        ttk.Label(self.tab_saving, text="📊 Saving Events - Coming Soon", font=('Arial', 16), foreground='gray').pack(expand=True)
-        ttk.Label(self.tab_cost_avoidance, text="📊 Cost Avoidance Events - Coming Soon", font=('Arial', 16), foreground='gray').pack(expand=True)
-        ttk.Label(self.tab_derisking, text="📊 Derisking Events - Coming Soon", font=('Arial', 16), foreground='gray').pack(expand=True)
+        # Step 4B: Riutilizzo UI VSM esistente (estratta da VSMManagementWindow)
+        # Crea sheet VSM per ogni tab usando la stessa struttura della UI originale
+        self.sheet_saving = self._create_vsm_event_sheet(self.tab_saving)
+        self.sheet_cost_avoidance = self._create_vsm_event_sheet(self.tab_cost_avoidance)
+        self.sheet_derisking = self._create_vsm_event_sheet(self.tab_derisking)
         
         footer_frame = ttk.Frame(self.root); footer_frame.grid(row=4, column=0, sticky="ew", padx=10, pady=5)
         ttk.Label(footer_frame, text=_("v2.0.1 - Sviluppato da ")).pack(side="left")
@@ -4262,6 +4263,62 @@ class MainWindow:
             self.update_button_visibility()
         return handler
 
+    def _create_vsm_event_sheet(self, parent):
+        """
+        Crea un tksheet per visualizzare eventi VSM.
+        
+        ESTRATTO da VSMManagementWindow._create_event_sheet() (Step 4B).
+        Pattern identico a create_request_treeview() per coerenza visiva.
+        
+        Args:
+            parent: Widget parent (tab frame)
+        
+        Returns:
+            Sheet: Widget tksheet configurato con colonne VSM
+        """
+        frame = ttk.Frame(parent)
+        frame.pack(fill="both", expand=True)
+        
+        # Crea widget tksheet con colonne VSM
+        sheet = Sheet(
+            frame,
+            theme="light blue",
+            header_font=("Calibri", 11, "bold"),
+            font=("Calibri", 11, "normal"),
+            headers=[
+                _("Data"),
+                _("Tipo"),
+                _("Azione"),
+                _("Descrizione"),
+                _("Valore Teorico"),
+                _("Realizzo %"),
+                _("Ripetitivo"),
+                _("Utente")
+            ],
+            show_header=True,
+            show_row_index=False
+        )
+        
+        # Configura larghezze colonne (identiche all'originale VSMManagementWindow)
+        sheet.set_column_widths([100, 120, 120, 300, 120, 90, 90, 140])
+        
+        # Centra colonne numeriche e date (Descrizione rimane left-aligned)
+        sheet.align_columns(columns=[0, 1, 2, 4, 5, 6, 7], align="center")
+        
+        # Abilita bindings
+        sheet.enable_bindings()
+        
+        # Rendi readonly
+        for col_idx in range(8):
+            sheet.readonly_columns(columns=[col_idx], readonly=True)
+        
+        sheet.pack(fill="both", expand=True)
+        
+        # Metadata storage (come nell'originale)
+        sheet._event_metadata = []  # Lista di dict con event_id, username, is_mine
+        
+        return sheet
+
     # NOTA: I metodi sort_treeview_column e update_sort_indicators sono stati rimossi
     # perché tksheet ha funzionalità di ordinamento integrate che si abilitano automaticamente
     # con enable_bindings(). L'utente può cliccare sugli header delle colonne per ordinare.
@@ -4374,8 +4431,8 @@ class MainWindow:
         """Aggiorna lo stato del pulsante Actions in base alla selezione e proprietà delle RfQ"""
         sheet, status = self.get_current_tree_and_status()
         
-        # Step 4A: Skip logic for VSM placeholder tabs
-        if sheet is None or status == 'vsm_placeholder':
+        # Step 4B: Skip logic for VSM tabs (UI ready, logic not yet connected)
+        if sheet is None or status.startswith('vsm_'):
             self.btn_actions.config(state="disabled")
             return
         
@@ -4485,10 +4542,16 @@ class MainWindow:
             return (self.tree_attive, 'attiva')
         elif tab_index == 1:
             return (self.tree_archiviate, 'archiviata')
+        # Step 4B: VSM tabs con sheet reali (riutilizzati da VSMManagementWindow)
+        elif tab_index == 2:
+            return (self.sheet_saving, 'vsm_saving')
+        elif tab_index == 3:
+            return (self.sheet_cost_avoidance, 'vsm_cost_avoidance')
+        elif tab_index == 4:
+            return (self.sheet_derisking, 'vsm_derisking')
         else:
-            # Tab VSM (2=Saving, 3=Cost Avoidance, 4=Derisking) - placeholder return
-            # TODO Step 4B: implement VSM sheet logic
-            return (None, 'vsm_placeholder')
+            # Fallback per tab non previsti
+            return (None, 'unknown')
 
     def refresh_data(self):
         """Ricarica i dati preservando i filtri di ricerca attivi"""
@@ -4695,8 +4758,8 @@ class MainWindow:
     def search_requests(self):
         tree, status = self.get_current_tree_and_status()
         
-        # Step 4A: Skip search for VSM placeholder tabs
-        if tree is None or status == 'vsm_placeholder':
+        # Step 4B: Skip search for VSM tabs (UI ready, logic not yet connected)
+        if tree is None or status.startswith('vsm_'):
             return
         
         username_filter = self._get_active_username_filter()
@@ -5357,8 +5420,8 @@ class MainWindow:
         # 1. Identifica quale tabella è attiva e recupera lo stato corrente
         current_tree, status = self.get_current_tree_and_status()
         
-        # Step 4A: Skip export for VSM placeholder tabs
-        if current_tree is None or status == 'vsm_placeholder':
+        # Step 4B: Skip export for VSM tabs (UI ready, logic not yet connected)
+        if current_tree is None or status.startswith('vsm_'):
             messagebox.showinfo(
                 _("Export Non Disponibile"),
                 _("La funzione Export per i tab VSM sarà disponibile in un prossimo aggiornamento."),
