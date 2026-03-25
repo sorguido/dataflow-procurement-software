@@ -94,8 +94,6 @@ init_i18n()
 # Importa UI components (DOPO init_i18n per avere _() disponibile)
 from ui.help_window import HelpWindow
 from ui.windows.view_request_window import ViewRequestWindow
-# DEPRECATED: VSM tabs now integrated directly in main notebook (Step 4A)
-# from ui.windows.vsm_management_window import VSMManagementWindow
 from ui.components.main_dashboard_toolbar import MainDashboardToolbar
 from ui.components.collapsible_filters import CollapsibleFilters
 
