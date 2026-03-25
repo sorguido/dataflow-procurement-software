@@ -3610,12 +3610,12 @@ class MainWindow:
         self.btn_mega_export.pack(side="left", padx=(0, 20))
         
         # 4. KPI Dashboard (Placeholder per future analisi)
-        self.btn_kpi = ttk.Button(frame_top, text=_("🎯 KPI"), command=self.on_kpi_click)
+        self.btn_kpi = ttk.Button(frame_top, text=_("≋ KPI"), command=self.on_kpi_click)
         self.btn_kpi.pack(side="left", padx=(0, 20))
         
         # --- MODIFICA: Aggiunto pulsante Licenza e riordinato ---
         self.btn_guida = ttk.Button(frame_top, text=_("❓ Guida"), command=self.open_help_window); self.btn_guida.pack(side="right")
-        self.btn_license = ttk.Button(frame_top, text=_("📄 Licenza"), command=self.open_license_window); self.btn_license.pack(side="right", padx=(0, 10))
+        self.btn_license = ttk.Button(frame_top, text=_("≡ License"), command=self.open_license_window); self.btn_license.pack(side="right", padx=(0, 10))
         self.btn_settings = ttk.Button(frame_top, text=_("⚙️ Impostazioni"), command=self.open_settings_window); self.btn_settings.pack(side="right", padx=(0, 10))
         # --- FINE MODIFICA ---
         

@@ -1781,8 +1781,8 @@ msgstr "📂 Open Selected"
 msgid "📄 Gestisci Offerte Fornitori"
 msgstr "📄 Manage Supplier Offers"
 
-msgid "📄 Licenza"
-msgstr "📄 License"
+msgid "≡ License"
+msgstr "≡ License"
 
 msgid "📈 Apri analisi SQDC"
 msgstr "📈 Open SQDC Analysis"
@@ -2984,8 +2984,8 @@ msgstr ""
 msgid "2. DISTRIBUZIONE E MODIFICA\n"
 msgstr "2. DISTRIBUTION AND MODIFICATION\n"
 
-msgid "🎯 KPI"
-msgstr "🎯 KPI"
+msgid "≋ KPI"
+msgstr "≋ KPI"
 
 msgid "KPI Analysis"
 msgstr "KPI Analysis"
