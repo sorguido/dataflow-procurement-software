@@ -4408,6 +4408,69 @@ class MainWindow:
         sheet.set_sheet_data(data_rows)
         sheet._event_metadata = metadata
 
+    # ===========================
+    # Step 4D.2: VSM CRUD Handlers (placeholders)
+    # ===========================
+    
+    def _edit_vsm_event(self):
+        """Handler per modifica evento VSM.
+        
+        Step 4D.2: Placeholder - logica completa in Step 4D.3+
+        Recupera event_id dalla selezione e apre dialog di modifica.
+        """
+        sheet, status = self.get_current_tree_and_status()
+        if not status.startswith('vsm_'):
+            return
+        
+        selected_rows = self._get_selected_row_indices(sheet)
+        if len(selected_rows) != 1:
+            return  # Edit richiede selezione singola
+        
+        row_idx = selected_rows[0]
+        if row_idx >= len(sheet._event_metadata):
+            return
+        
+        metadata = sheet._event_metadata[row_idx]
+        event_id = metadata.get('event_id')
+        
+        # TODO Step 4D.3: Implementare dialog modifica VSM
+        logger.info(f"[Step 4D.2] Placeholder: Edit VSM event_id={event_id}")
+        messagebox.showinfo(
+            _("Modifica Evento VSM"),
+            f"Step 4D.2 Placeholder\\nEvent ID: {event_id}\\n\\nImplementazione completa in Step 4D.3"
+        )
+    
+    def _delete_vsm_events(self):
+        """Handler per eliminazione eventi VSM.
+        
+        Step 4D.2: Placeholder - logica completa in Step 4D.3+
+        Recupera event_ids dalla selezione e conferma eliminazione.
+        """
+        sheet, status = self.get_current_tree_and_status()
+        if not status.startswith('vsm_'):
+            return
+        
+        selected_rows = self._get_selected_row_indices(sheet)
+        if not selected_rows:
+            return
+        
+        event_ids = []
+        for row_idx in selected_rows:
+            if row_idx >= len(sheet._event_metadata):
+                continue
+            metadata = sheet._event_metadata[row_idx]
+            event_ids.append(metadata.get('event_id'))
+        
+        if not event_ids:
+            return
+        
+        # TODO Step 4D.3: Implementare conferma + eliminazione DB + refresh
+        logger.info(f"[Step 4D.2] Placeholder: Delete VSM event_ids={event_ids}")
+        messagebox.showinfo(
+            _("Elimina Eventi VSM"),
+            f"Step 4D.2 Placeholder\\nEvent IDs: {event_ids}\\n\\nImplementazione completa in Step 4D.3"
+        )
+
     def _get_selected_row_indices(self, sheet):
         """
         Metodo helper per ottenere gli indici delle righe selezionate dal sheet.
@@ -4467,6 +4530,38 @@ class MainWindow:
         
         return True  # Tutte le RfQ selezionate sono mie
     
+    def _check_if_all_vsm_events_are_mine(self, sheet, selected_indices):
+        """Verifica se tutti gli eventi VSM selezionati appartengono all'utente corrente.
+        
+        Args:
+            sheet: Il widget Sheet VSM da controllare
+            selected_indices: Lista di indici riga selezionati
+        
+        Returns:
+            bool: True se tutti gli eventi VSM selezionati sono dell'utente corrente, False altrimenti
+        """
+        if not selected_indices:
+            return False
+        
+        # Se i metadati VSM non sono disponibili, blocca le operazioni
+        if not hasattr(sheet, '_event_metadata'):
+            logger.warning("Metadati VSM non disponibili - blocco operazioni per sicurezza")
+            return False
+        
+        for idx in selected_indices:
+            # Salta indici fuori range
+            if idx >= len(sheet._event_metadata):
+                logger.warning(f"Indice VSM {idx} fuori range metadati (len={len(sheet._event_metadata)})")
+                continue
+            
+            metadata = sheet._event_metadata[idx]
+            is_mine = metadata.get('is_mine', False)  # Default False per sicurezza
+            
+            if not is_mine:
+                return False  # Almeno un evento non è mio
+        
+        return True  # Tutti gli eventi selezionati sono miei
+    
     def archive_selected_request(self): self._change_request_status('archiviata')
     def reactivate_selected_request(self): self._change_request_status('attiva')
     def _change_request_status(self, new_status):
@@ -4520,13 +4615,26 @@ class MainWindow:
             self.btn_actions.config(state="disabled")
             return
         
-        # Step 4D.1: Gestione abilitazione pulsante Actions per VSM
+        # Step 4D.1/4D.2: Gestione abilitazione pulsante Actions per VSM
         if status.startswith('vsm_'):
             # Per VSM: abilita Actions se c'è almeno una riga selezionata
-            # (controlli ownership e operazioni specifiche verranno in Step 4D.2)
             selected_rows_indices = self._get_selected_row_indices(sheet)
             has_selection = bool(selected_rows_indices)
-            self.btn_actions.config(state="normal" if has_selection else "disabled")
+            num_selected = len(selected_rows_indices) if selected_rows_indices else 0
+            
+            # Step 4D.2: Verifica ownership per calcolare capacità
+            all_mine = self._check_if_all_vsm_events_are_mine(sheet, selected_rows_indices) if has_selection else False
+            
+            # Calcola capacità per ogni tipo di azione VSM
+            can_edit = (num_selected == 1) and all_mine  # Edit solo su singolo evento proprio
+            can_delete = has_selection and all_mine  # Delete su uno o più eventi propri
+            
+            # Abilita Actions solo se c'è selezione valida (tutte mie)
+            can_act = has_selection and all_mine
+            self.btn_actions.config(state="normal" if can_act else "disabled")
+            
+            # Step 4D.2: Popola menu Actions con opzioni VSM
+            self._populate_actions_menu(status, can_edit, can_delete)
             return
         
         # RFQ logic (invariata)
@@ -4549,21 +4657,41 @@ class MainWindow:
         # Popola il menu Actions dinamicamente in base al tab corrente
         self._populate_actions_menu(status, can_delete, can_duplicate, can_change_status)
 
-    def _populate_actions_menu(self, status, can_delete, can_duplicate, can_change_status):
+    def _populate_actions_menu(self, status, can_delete=False, can_duplicate=False, can_change_status=False):
         """Popola il menu Actions in base al tab corrente e capacità utente.
         
         Collega le voci del menu ai metodi esistenti della toolbar.
         Nessuna nuova logica: riusa al 100% i metodi già implementati.
         
         Args:
-            status: 'attiva' o 'archiviata'
+            status: 'attiva', 'archiviata', o 'vsm_*' (saving/cost_avoidance/derisking)
             can_delete: bool, se può eliminare
-            can_duplicate: bool, se può duplicare (1 sola selezione)
-            can_change_status: bool, se può archiviare/riattivare
+            can_duplicate: bool, se può duplicare (1 sola selezione) - per RFQ
+                           oppure se può editare (1 sola selezione) - per VSM (riuso stesso param)
+            can_change_status: bool, se può archiviare/riattivare (solo RFQ)
         """
         # Pulisci menu esistente
         self.actions_menu.delete(0, 'end')
         
+        # Step 4D.2: Branch VSM
+        if status.startswith('vsm_'):
+            # Menu VSM: solo Edit e Delete
+            can_edit = can_duplicate  # Riuso parametro can_duplicate per can_edit VSM
+            
+            self.actions_menu.add_command(
+                label=_("✏️ Modifica Evento"),
+                command=self._edit_vsm_event,
+                state="normal" if can_edit else "disabled"
+            )
+            
+            self.actions_menu.add_command(
+                label=_("🗑 Elimina Evento"),
+                command=self._delete_vsm_events,
+                state="normal" if can_delete else "disabled"
+            )
+            return  # Early return per VSM
+        
+        # RFQ logic (invariata)
         # Azioni comuni a entrambi i tab (riuso metodi esistenti)
         self.actions_menu.add_command(
             label=_("🗑 Elimina"),
