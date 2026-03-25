@@ -4409,67 +4409,178 @@ class MainWindow:
         sheet._event_metadata = metadata
 
     # ===========================
-    # Step 4D.2: VSM CRUD Handlers (placeholders)
+    # Step 4D.3: VSM CRUD Handlers (implementazione completa)
     # ===========================
     
     def _edit_vsm_event(self):
         """Handler per modifica evento VSM.
         
-        Step 4D.2: Placeholder - logica completa in Step 4D.3+
-        Recupera event_id dalla selezione e apre dialog di modifica.
+        Step 4D.3: Implementazione completa con VSMEventDialog.
+        Pattern estratto da VSMManagementWindow.on_edit_event().
         """
         sheet, status = self.get_current_tree_and_status()
         if not status.startswith('vsm_'):
             return
         
+        # Ottieni selezione
         selected_rows = self._get_selected_row_indices(sheet)
-        if len(selected_rows) != 1:
-            return  # Edit richiede selezione singola
         
+        if not selected_rows:
+            messagebox.showwarning(
+                _("Nessuna Selezione"),
+                _("Seleziona un evento da modificare."),
+                parent=self.root
+            )
+            return
+        
+        if len(selected_rows) > 1:
+            messagebox.showwarning(
+                _("Selezione Multipla"),
+                _("Seleziona un solo evento per la modifica."),
+                parent=self.root
+            )
+            return
+        
+        # Ottieni event_id e ownership
         row_idx = selected_rows[0]
         if row_idx >= len(sheet._event_metadata):
             return
         
         metadata = sheet._event_metadata[row_idx]
-        event_id = metadata.get('event_id')
+        event_id = metadata['event_id']
+        is_mine = metadata['is_mine']
         
-        # TODO Step 4D.3: Implementare dialog modifica VSM
-        logger.info(f"[Step 4D.2] Placeholder: Edit VSM event_id={event_id}")
-        messagebox.showinfo(
-            _("Modifica Evento VSM"),
-            f"Step 4D.2 Placeholder\\nEvent ID: {event_id}\\n\\nImplementazione completa in Step 4D.3"
-        )
+        # Valida ownership
+        if not is_mine:
+            messagebox.showerror(
+                _("Operazione Non Consentita"),
+                _("Puoi modificare solo i tuoi eventi VSM."),
+                parent=self.root
+            )
+            return
+        
+        # Determina event_type da status
+        event_type_map = {
+            'vsm_saving': 'Saving',
+            'vsm_cost_avoidance': 'Cost Avoidance',
+            'vsm_derisking': 'Derisking'
+        }
+        event_type = event_type_map.get(status)
+        if not event_type:
+            return  # Fail-safe
+        
+        # Apri dialog edit
+        from ui.dialogs.vsm_event_dialog import VSMEventDialog
+        
+        try:
+            dialog = VSMEventDialog(
+                self.root,
+                current_username=self.current_username,
+                event_type=event_type,
+                event_id=event_id
+            )
+            self.root.wait_window(dialog)
+            
+            # Refresh se salvato
+            if hasattr(dialog, 'result') and dialog.result:
+                self._load_vsm_events(event_type, sheet)
+                logger.info(f"Evento VSM {event_id} modificato con successo")
+        
+        except Exception as e:
+            logger.error(f"Errore apertura dialog modifica evento VSM: {e}", exc_info=True)
+            messagebox.showerror(
+                _("Errore"),
+                _("Impossibile aprire il form: {}").format(e),
+                parent=self.root
+            )
     
     def _delete_vsm_events(self):
         """Handler per eliminazione eventi VSM.
         
-        Step 4D.2: Placeholder - logica completa in Step 4D.3+
-        Recupera event_ids dalla selezione e conferma eliminazione.
+        Step 4D.3: Implementazione completa con delete_event_and_impacts.
+        Pattern estratto da VSMManagementWindow.on_delete_event().
         """
         sheet, status = self.get_current_tree_and_status()
         if not status.startswith('vsm_'):
             return
         
+        # Ottieni selezione
         selected_rows = self._get_selected_row_indices(sheet)
+        
         if not selected_rows:
+            messagebox.showwarning(
+                _("Nessuna Selezione"),
+                _("Seleziona uno o più eventi da eliminare."),
+                parent=self.root
+            )
             return
         
-        event_ids = []
+        # Raccolta event_id e validazione ownership
+        events_to_delete = []
         for row_idx in selected_rows:
             if row_idx >= len(sheet._event_metadata):
                 continue
+            
             metadata = sheet._event_metadata[row_idx]
-            event_ids.append(metadata.get('event_id'))
+            
+            # Valida ownership
+            if not metadata['is_mine']:
+                messagebox.showerror(
+                    _("Operazione Non Consentita"),
+                    _("Puoi eliminare solo i tuoi eventi VSM.\nAlcuni eventi selezionati appartengono ad altri utenti."),
+                    parent=self.root
+                )
+                return
+            
+            events_to_delete.append(metadata['event_id'])
         
-        if not event_ids:
+        if not events_to_delete:
             return
         
-        # TODO Step 4D.3: Implementare conferma + eliminazione DB + refresh
-        logger.info(f"[Step 4D.2] Placeholder: Delete VSM event_ids={event_ids}")
-        messagebox.showinfo(
-            _("Elimina Eventi VSM"),
-            f"Step 4D.2 Placeholder\\nEvent IDs: {event_ids}\\n\\nImplementazione completa in Step 4D.3"
-        )
+        # Conferma eliminazione
+        count = len(events_to_delete)
+        if not messagebox.askyesno(
+            _("Conferma Eliminazione"),
+            _("Sei sicuro di voler eliminare {} evento(i) VSM?\nQuesta operazione non può essere annullata.").format(count),
+            parent=self.root
+        ):
+            return
+        
+        # Determina event_type da status
+        event_type_map = {
+            'vsm_saving': 'Saving',
+            'vsm_cost_avoidance': 'Cost Avoidance',
+            'vsm_derisking': 'Derisking'
+        }
+        event_type = event_type_map.get(status)
+        if not event_type:
+            return  # Fail-safe
+        
+        # Elimina eventi
+        from services.vsm_persistence import delete_event_and_impacts, VSMError
+        
+        try:
+            with DatabaseManager(get_db_path()) as db_manager:
+                for event_id in events_to_delete:
+                    delete_event_and_impacts(db_manager, event_id)
+            
+            messagebox.showinfo(
+                _("Successo"),
+                _("{} evento(i) VSM eliminato(i) con successo.").format(count),
+                parent=self.root
+            )
+            
+            # Refresh
+            self._load_vsm_events(event_type, sheet)
+            logger.info(f"Eliminati {count} eventi VSM con successo")
+        
+        except (DatabaseError, VSMError) as e:
+            logger.error(f"Errore eliminazione eventi VSM: {e}")
+            messagebox.showerror(
+                _("Errore Eliminazione"),
+                _("Impossibile eliminare gli eventi:\n{}").format(e),
+                parent=self.root
+            )
 
     def _get_selected_row_indices(self, sheet):
         """
