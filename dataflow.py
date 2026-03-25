@@ -3695,6 +3695,15 @@ class MainWindow:
         self.sheet_cost_avoidance = self._create_vsm_event_sheet(self.tab_cost_avoidance)
         self.sheet_derisking = self._create_vsm_event_sheet(self.tab_derisking)
         
+        # Step 4C: Caricamento iniziale dati VSM (estratto da VSMManagementWindow.refresh_events)
+        # Popola ogni sheet con i dati correnti dell'utente
+        for event_type, sheet in [
+            ("Saving", self.sheet_saving),
+            ("Cost Avoidance", self.sheet_cost_avoidance),
+            ("Derisking", self.sheet_derisking),
+        ]:
+            self._load_vsm_events(event_type, sheet)
+        
         footer_frame = ttk.Frame(self.root); footer_frame.grid(row=4, column=0, sticky="ew", padx=10, pady=5)
         ttk.Label(footer_frame, text=_("v2.0.1 - Sviluppato da ")).pack(side="left")
         name_label = ttk.Label(footer_frame, text="Guido Sorarù", foreground="blue", cursor="hand2"); name_label.pack(side="left")
@@ -4322,6 +4331,78 @@ class MainWindow:
     # NOTA: I metodi sort_treeview_column e update_sort_indicators sono stati rimossi
     # perché tksheet ha funzionalità di ordinamento integrate che si abilitano automaticamente
     # con enable_bindings(). L'utente può cliccare sugli header delle colonne per ordinare.
+
+    def _load_vsm_events(self, event_type, sheet):
+        """
+        Carica eventi VSM per un tipo specifico.
+        
+        ESTRATTO da VSMManagementWindow.refresh_events() (Step 4C).
+        
+        Args:
+            event_type: Tipo evento ("Saving"|"Cost Avoidance"|"Derisking")
+            sheet: Widget tksheet da popolare
+        """
+        try:
+            with DatabaseManager(get_db_path()) as db_manager:
+                # Carica tutti eventi per utente corrente
+                all_events = db_manager.get_all_vsm_events(username=self.current_username)
+            
+            # Filtra per event_type specificato
+            filtered_events = [e for e in all_events if e.event_type == event_type]
+            
+            # Popola sheet
+            self._populate_vsm_sheet(sheet, filtered_events)
+            
+            logger.debug(f"Caricati {len(filtered_events)} eventi VSM {event_type}")
+            
+        except DatabaseError as e:
+            logger.error(f"Errore caricamento eventi VSM {event_type}: {e}")
+            messagebox.showerror(
+                _("Errore Database"),
+                _("Impossibile caricare gli eventi VSM: {}\n").format(e),
+                parent=self
+            )
+    
+    def _populate_vsm_sheet(self, sheet, events):
+        """
+        Popola un tksheet con lista di eventi VSM.
+        
+        ESTRATTO da VSMManagementWindow._populate_sheet() (Step 4C).
+        
+        Args:
+            sheet: Widget tksheet da popolare
+            events: Lista di VSMEvent
+        """
+        data_rows = []
+        metadata = []
+        
+        for event in events:
+            # Calcola valore teorico
+            valore_teorico = event.calculate_theoretical_value()
+            
+            # Formatta row
+            row = [
+                event.event_date.strftime("%d/%m/%Y") if event.event_date else "",
+                event.event_type,
+                event.action,
+                (event.description or event.reference or "")[:50],  # Truncate
+                f"€ {valore_teorico:,.2f}",
+                f"{event.percent_realizzo:.0f}%",
+                "✓" if event.opex_ripetitivo else "",
+                event.username
+            ]
+            data_rows.append(row)
+            
+            # Metadata per ownership e event_id
+            metadata.append({
+                'event_id': event.id,
+                'username': event.username,
+                'is_mine': event.username == self.current_username
+            })
+        
+        # Aggiorna sheet
+        sheet.set_sheet_data(data_rows)
+        sheet._event_metadata = metadata
 
     def _get_selected_row_indices(self, sheet):
         """
