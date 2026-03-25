@@ -3590,8 +3590,8 @@ class MainWindow:
                     ttk.Label(frame_top, image=self.logo_photo).pack(side="left", padx=(0, 20), anchor="w")
         except Exception as e: print(f"Errore caricamento logo: {e}")
         # --- Pulsanti Operativi (Riga Superiore) ---
-        # 1. New RfQ
-        self.btn_new_rdo = ttk.Button(frame_top, text=_("➕ Nuova RdO"), command=self.open_new_request_window)
+        # 1. New Event (dinamico: RdO o VSM in base al tab attivo - Step 4D.6)
+        self.btn_new_rdo = ttk.Button(frame_top, text=_("➕ Nuovo Evento"), command=self.open_new_event)
         self.btn_new_rdo.pack(side="left", padx=(0, 10))
 
         # 2. Actions dropdown (sostituisce Delete/Duplicate/Archive/Reactivate)
@@ -5923,6 +5923,59 @@ class MainWindow:
             logger.error(f"Errore nell'apertura della RdO: {e}", exc_info=True)
             self._opening_request = False
     
+    def open_new_event(self):
+        """Handler dinamico per pulsante + Nuovo Evento.
+        
+        Step 4D.6: Routing intelligente basato sul tab attivo:
+        - RFQ (attiva/archiviata): crea nuova RdO
+        - VSM (Saving/Cost Avoidance/Derisking): crea nuovo evento VSM
+        """
+        _, status = self.get_current_tree_and_status()
+        
+        # Branch 1: RFQ - usa la logica esistente
+        if status in ('attiva', 'archiviata'):
+            self.open_new_request_window()
+        
+        # Branch 2: VSM - apri dialog CREATE
+        elif status.startswith('vsm_'):
+            # Mappa status → event_type (pattern già usato in _edit_vsm_event)
+            event_type_map = {
+                'vsm_saving': 'Saving',
+                'vsm_cost_avoidance': 'Cost Avoidance',
+                'vsm_derisking': 'Derisking'
+            }
+            event_type = event_type_map.get(status)
+            
+            if not event_type:
+                return  # Fail-safe
+            
+            # Lazy import (come in _edit_vsm_event)
+            from ui.dialogs.vsm_event_dialog import VSMEventDialog
+            
+            try:
+                # Apri dialog in modalità CREATE (event_id=None)
+                dialog = VSMEventDialog(
+                    self.root,
+                    current_username=self.current_username,
+                    event_type=event_type,
+                    event_id=None  # CREATE mode
+                )
+                self.root.wait_window(dialog)
+                
+                # Refresh se salvato
+                if hasattr(dialog, 'result') and dialog.result:
+                    # Ottieni sheet corrente
+                    sheet, _ = self.get_current_tree_and_status()
+                    self._load_vsm_events(event_type, sheet)
+                    logger.info(f"Nuovo evento VSM {event_type} creato con successo")
+            
+            except Exception as e:
+                logger.error(f"Errore creazione evento VSM: {e}", exc_info=True)
+                messagebox.showerror(
+                    _("Errore"),
+                    _("Impossibile aprire il form: {}").format(e),
+                    parent=self.root
+                )
 
     def open_new_request_window(self):
         """Crea una nuova RdO 'guscio' e apre l'editor"""

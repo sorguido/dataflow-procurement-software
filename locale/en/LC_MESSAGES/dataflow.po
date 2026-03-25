@@ -1709,8 +1709,8 @@ msgstr "➕ Add Item"
 msgid "➕ Aggiungi..."
 msgstr "➕ Add..."
 
-msgid "➕ Nuova RdO"
-msgstr "➕ New RfQ"
+msgid "➕ Nuovo Evento"
+msgstr "➕ New Event"
 
 msgid "⬇️ Download..."
 msgstr "⬇️ Download..."
