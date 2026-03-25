@@ -3393,7 +3393,7 @@ class LicenseWindow(tk.Toplevel):
         content_frame.pack(fill="both", expand=True, padx=10, pady=10)
         
         scrollbar = ttk.Scrollbar(content_frame)
-        self.text_content = tk.Text(content_frame, wrap=tk.WORD, yscrollcommand=scrollbar.set, padx=15, pady=10, relief="flat", background="#FFFFFF", font=("Arial", 10))
+        self.text_content = tk.Text(content_frame, wrap=tk.WORD, yscrollcommand=scrollbar.set, padx=15, pady=10, relief="flat", background="#FFFFFF", font=(None, 10))
         scrollbar.config(command=self.text_content.yview)
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         self.text_content.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
@@ -3415,10 +3415,10 @@ class LicenseWindow(tk.Toplevel):
 
     def _populate_content(self):
         # Configurazione degli stili di testo
-        self.text_content.tag_configure("h1", font=("Arial", 14, "bold", "underline"), justify="center")
-        self.text_content.tag_configure("h2", font=("Arial", 11, "bold"))
-        self.text_content.tag_configure("normal", font=("Arial", 10))
-        self.text_content.tag_configure("code", font=("Arial", 9))
+        self.text_content.tag_configure("h1", font=(None, 13, "bold", "underline"), justify="center")
+        self.text_content.tag_configure("h2", font=(None, 10, "bold"))
+        self.text_content.tag_configure("normal", font=(None, 10))
+        self.text_content.tag_configure("code", font=("Courier New", 9))
         
         # Configurazione tag per link cliccabile
         self.text_content.tag_configure("link", foreground="blue", underline=True)
@@ -3491,7 +3491,7 @@ class NewRdOTypeDialog(tk.Toplevel):
         ttk.Label(
             main_frame, 
             text=_("Che tipo di RdO vuoi creare?"), 
-            font=("Arial", 11, "bold")
+            font=(None, 10, "bold")
         ).pack(pady=(0, 20))
         
         # Frame pulsanti tipo
@@ -4217,16 +4217,34 @@ class MainWindow:
     
     def on_kpi_click(self):
         """Handler per pulsante KPI (placeholder per step futuro)."""
-        messagebox.showinfo(
-            _("KPI Analysis"),
-            _("Funzionalità KPI Analysis in arrivo nel prossimo step.\n\n"
-              "Prossime funzionalità:\n"
-              "• Aggregazioni mensili/trimestrali/annuali\n"
-              "• Confronto Saving vs Cost Avoidance vs Derisking\n"
-              "• Grafici Valore Teorico vs Effettivo\n"
-              "• Export Excel dashboard"),
-            parent=self.root
+        dialog = tk.Toplevel(self.root)
+        dialog.withdraw()
+        set_window_icon(dialog)
+        dialog.title(_("KPI Analysis"))
+        dialog.transient(self.root)
+        dialog.grab_set()
+        dialog.resizable(False, False)
+
+        frame = ttk.Frame(dialog, padding="20")
+        frame.pack(fill="both", expand=True)
+
+        ttk.Label(frame, text=_("KPI Analysis"), font=(None, 10, "bold")).pack(pady=(0, 10))
+
+        body_text = _(
+            "Funzionalità KPI Analysis in arrivo nel prossimo step.\n\n"
+            "Prossime funzionalità:\n"
+            "• Aggregazioni mensili/trimestrali/annuali\n"
+            "• Confronto Saving vs Cost Avoidance vs Derisking\n"
+            "• Grafici Valore Teorico vs Effettivo\n"
+            "• Export Excel dashboard"
         )
+        ttk.Label(frame, text=body_text, font=(None, 10), justify="left").pack(pady=(0, 15))
+
+        ttk.Button(frame, text="OK", command=dialog.destroy).pack()
+
+        dialog.protocol("WM_DELETE_WINDOW", dialog.destroy)
+        center_window(dialog)
+        self.root.wait_window(dialog)
     
     def create_request_treeview(self, parent):
         # Frame per contenere il Sheet
