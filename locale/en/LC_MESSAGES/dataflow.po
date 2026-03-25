@@ -2983,3 +2983,12 @@ msgstr ""
 
 msgid "2. DISTRIBUZIONE E MODIFICA\n"
 msgstr "2. DISTRIBUTION AND MODIFICATION\n"
+
+msgid "🎯 KPI"
+msgstr "🎯 KPI"
+
+msgid "KPI Analysis"
+msgstr "KPI Analysis"
+
+msgid "Funzionalità KPI Analysis in arrivo nel prossimo step.\n\nProssime funzionalità:\n• Aggregazioni mensili/trimestrali/annuali\n• Confronto Saving vs Cost Avoidance vs Derisking\n• Grafici Valore Teorico vs Effettivo\n• Export Excel dashboard"
+msgstr "KPI Analysis feature coming in the next step.\n\nUpcoming features:\n• Monthly/quarterly/annual aggregations\n• Saving vs Cost Avoidance vs Derisking comparison\n• Theoretical vs Actual Value charts\n• Excel dashboard export"

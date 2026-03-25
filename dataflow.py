@@ -3611,6 +3611,10 @@ class MainWindow:
         self.btn_mega_export = ttk.Button(frame_top, text=_("📊 Export Excel"), command=self.mega_export_excel)
         self.btn_mega_export.pack(side="left", padx=(0, 20))
         
+        # 4. KPI Dashboard (Placeholder per future analisi)
+        self.btn_kpi = ttk.Button(frame_top, text=_("🎯 KPI"), command=self.on_kpi_click)
+        self.btn_kpi.pack(side="left", padx=(0, 20))
+        
         # --- MODIFICA: Aggiunto pulsante Licenza e riordinato ---
         self.btn_guida = ttk.Button(frame_top, text=_("❓ Guida"), command=self.open_help_window); self.btn_guida.pack(side="right")
         self.btn_license = ttk.Button(frame_top, text=_("📄 Licenza"), command=self.open_license_window); self.btn_license.pack(side="right", padx=(0, 10))
@@ -4212,6 +4216,20 @@ class MainWindow:
 
     def open_help_window(self): HelpWindow(self.root)
     def open_settings_window(self): self.root.wait_window(SettingsWindow(self.root, self))
+    
+    def on_kpi_click(self):
+        """Handler per pulsante KPI (placeholder per step futuro)."""
+        messagebox.showinfo(
+            _("KPI Analysis"),
+            _("Funzionalità KPI Analysis in arrivo nel prossimo step.\n\n"
+              "Prossime funzionalità:\n"
+              "• Aggregazioni mensili/trimestrali/annuali\n"
+              "• Confronto Saving vs Cost Avoidance vs Derisking\n"
+              "• Grafici Valore Teorico vs Effettivo\n"
+              "• Export Excel dashboard"),
+            parent=self.root
+        )
+    
     def create_request_treeview(self, parent):
         # Frame per contenere il Sheet
         tree_frame = ttk.Frame(parent)
