@@ -4317,6 +4317,10 @@ class MainWindow:
         # Abilita bindings
         sheet.enable_bindings()
         
+        # Step 4D.1: Binding per aggiornamento stato pulsante Actions
+        sheet.extra_bindings("cell_select", self.create_cell_select_handler(sheet))
+        sheet.extra_bindings("row_select", self.create_row_select_handler(sheet))
+        
         # Rendi readonly
         for col_idx in range(8):
             sheet.readonly_columns(columns=[col_idx], readonly=True)
@@ -4512,11 +4516,20 @@ class MainWindow:
         """Aggiorna lo stato del pulsante Actions in base alla selezione e proprietà delle RfQ"""
         sheet, status = self.get_current_tree_and_status()
         
-        # Step 4B: Skip logic for VSM tabs (UI ready, logic not yet connected)
-        if sheet is None or status.startswith('vsm_'):
+        if sheet is None:
             self.btn_actions.config(state="disabled")
             return
         
+        # Step 4D.1: Gestione abilitazione pulsante Actions per VSM
+        if status.startswith('vsm_'):
+            # Per VSM: abilita Actions se c'è almeno una riga selezionata
+            # (controlli ownership e operazioni specifiche verranno in Step 4D.2)
+            selected_rows_indices = self._get_selected_row_indices(sheet)
+            has_selection = bool(selected_rows_indices)
+            self.btn_actions.config(state="normal" if has_selection else "disabled")
+            return
+        
+        # RFQ logic (invariata)
         selected_rows_indices = self._get_selected_row_indices(sheet)
         has_sel = bool(selected_rows_indices)
         num_selected = len(selected_rows_indices) if selected_rows_indices else 0
