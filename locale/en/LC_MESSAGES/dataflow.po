@@ -1838,8 +1838,47 @@ msgstr "🗑 Delete RfQ"
 msgid "🗑 Elimina"
 msgstr "🗑 Delete"
 
+msgid "🗑 Elimina Evento"
+msgstr "🗑 Delete Event"
+
 msgid "🗑 Rimuovi"
 msgstr "🗑 Remove"
+
+msgid "Seleziona uno o più eventi da eliminare."
+msgstr "Select one or more events to delete."
+
+msgid "Puoi eliminare solo i tuoi eventi VSM.\nAlcuni eventi selezionati appartengono ad altri utenti."
+msgstr "You can only delete your own VSM events.\nSome selected events belong to other users."
+
+msgid "Sei sicuro di voler eliminare {} evento(i) VSM?\nQuesta operazione non può essere annullata."
+msgstr "Are you sure you want to delete {} VSM event(s)?\nThis operation cannot be undone."
+
+msgid "{} evento(i) VSM eliminato(i) con successo."
+msgstr "{} VSM event(s) successfully deleted."
+
+msgid "Errore Eliminazione"
+msgstr "Deletion Error"
+
+msgid "Impossibile eliminare gli eventi:\n{}"
+msgstr "Unable to delete events:\n{}"
+
+msgid "Selezionare un evento VSM da duplicare."
+msgstr "Select a VSM event to duplicate."
+
+msgid "Seleziona un solo evento VSM per duplicarlo."
+msgstr "Select only one VSM event to duplicate it."
+
+msgid "Non puoi duplicare eventi VSM di altri utenti.\nPuoi operare solo sui tuoi eventi."
+msgstr "You cannot duplicate VSM events from other users.\nYou can only work on your own events."
+
+msgid "Evento VSM duplicato."
+msgstr "VSM event duplicated."
+
+msgid "Evento VSM duplicato con ID {}"
+msgstr "VSM event duplicated with ID {}"
+
+msgid "Evento VSM duplicato. Aggiorna manualmente per vedere la copia."
+msgstr "VSM event duplicated. Refresh manually to see the copy."
 
 msgid "🗑️ Elimina Selezionato"
 msgstr "🗑️ Delete Selected"

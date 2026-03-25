@@ -4613,6 +4613,179 @@ class MainWindow:
         finally:
             # Reset flag dopo breve delay
             self.root.after(300, lambda: setattr(self, '_opening_vsm_edit', False))
+    
+    def _duplicate_vsm_event(self):
+        """Duplica evento VSM selezionato creando una copia identica.
+        
+        Step 4D.5: Duplicazione 1:1 di evento VSM.
+        Pattern RFQ: validazione selezione singola + ownership.
+        Logica VSM: usa backend persistence per recupero e salvataggio.
+        
+        Flow:
+        1. Validazione selezione (singola riga, ownership)
+        2. Recupero evento completo con get_event_with_impacts()
+        3. Creazione copia 1:1 (stesso evento, id=None per auto-increment)
+        4. Salvataggio con save_event_with_impacts() (genera impatti automaticamente)
+        5. Auto-refresh sheet
+        
+        NO dialog, NO conferma, duplicazione immediata (come RFQ).
+        """
+        sheet, status = self.get_current_tree_and_status()
+        
+        # Guard: verifica che siamo su tab VSM
+        if not status.startswith('vsm_'):
+            logger.warning("_duplicate_vsm_event chiamato su tab non-VSM")
+            return
+        
+        # Validazione selezione
+        selected_rows = self._get_selected_row_indices(sheet)
+        
+        if not selected_rows:
+            messagebox.showwarning(
+                _("Selezione mancante"),
+                _("Selezionare un evento VSM da duplicare."),
+                parent=self.root
+            )
+            return
+        
+        if len(selected_rows) > 1:
+            messagebox.showwarning(
+                _("Selezione non valida"),
+                _("Seleziona un solo evento VSM per duplicarlo."),
+                parent=self.root
+            )
+            return
+        
+        row_idx = selected_rows[0]
+        
+        # Validazione ownership
+        if row_idx >= len(sheet._event_metadata):
+            logger.error(f"Indice VSM {row_idx} fuori range metadata")
+            messagebox.showerror(
+                _("Errore"),
+                _("Impossibile identificare l'evento selezionato."),
+                parent=self.root
+            )
+            return
+        
+        metadata = sheet._event_metadata[row_idx]
+        is_mine = metadata.get('is_mine', False)
+        
+        if not is_mine:
+            messagebox.showerror(
+                _("Operazione Non Consentita"),
+                _("Non puoi duplicare eventi VSM di altri utenti.\nPuoi operare solo sui tuoi eventi."),
+                parent=self.root
+            )
+            logger.warning(f"Tentativo duplicazione evento VSM altrui bloccato: utente={self.current_username}")
+            return
+        
+        event_id = metadata.get('event_id')
+        if not event_id:
+            logger.error(f"event_id mancante in metadata per riga {row_idx}")
+            messagebox.showerror(
+                _("Errore"),
+                _("Impossibile identificare l'evento selezionato."),
+                parent=self.root
+            )
+            return
+        
+        # Recupero evento completo dal backend
+        try:
+            # Lazy import per evitare dipendenze circolari
+            from services.vsm_persistence import (
+                get_event_with_impacts,
+                save_event_with_impacts,
+                VSMError
+            )
+            
+            with DatabaseManager(get_db_path()) as db_manager:
+                # Recupera evento originale (con impatti, ma useremo solo l'evento)
+                original_event, _impacts = get_event_with_impacts(db_manager, event_id)
+                
+                logger.info(
+                    f"Duplicazione evento VSM {event_id}: "
+                    f"tipo={original_event.event_type}, data={original_event.event_date}"
+                )
+                
+                # Crea copia 1:1: stesso evento, id=None per nuovo insert
+                # Il dataclass VSMEvent supporta costruzione da attributi
+                from models.vsm_event import VSMEvent
+                duplicate_event = VSMEvent(
+                    id=None,  # Nuovo ID verrà assegnato dal DB
+                    event_date=original_event.event_date,
+                    username=original_event.username,
+                    buyer=original_event.buyer,
+                    event_type=original_event.event_type,
+                    action=original_event.action,
+                    description=original_event.description,
+                    reference=original_event.reference,
+                    importo_bdg=original_event.importo_bdg,
+                    importo_negoziato=original_event.importo_negoziato,
+                    importo_richiesto_iniziale=original_event.importo_richiesto_iniziale,
+                    quantita_annua=original_event.quantita_annua,
+                    percent_realizzo=original_event.percent_realizzo,
+                    driver=original_event.driver,
+                    giorni_pagamento_attuali=original_event.giorni_pagamento_attuali,
+                    giorni_pagamento_negoziati=original_event.giorni_pagamento_negoziati,
+                    spending_annuo=original_event.spending_annuo,
+                    opex_ripetitivo=original_event.opex_ripetitivo,
+                    note=original_event.note,
+                    # created_at e updated_at saranno impostati automaticamente dal DB
+                )
+                
+                # Salva copia (genera impatti automaticamente)
+                new_event_id = save_event_with_impacts(db_manager, duplicate_event)
+                
+                logger.info(f"Evento VSM duplicato: {event_id} → {new_event_id}")
+            
+            # Status mapping per refresh (fallback safe)
+            event_type_map = {
+                'vsm_saving': 'Saving',
+                'vsm_cost_avoidance': 'Cost Avoidance',
+                'vsm_derisking': 'Derisking'
+            }
+            event_type = event_type_map.get(status)
+            
+            if event_type:
+                # Auto-refresh sheet
+                self._load_vsm_events(event_type, sheet)
+                
+                # Success feedback
+                messagebox.showinfo(
+                    _("Successo"),
+                    _("Evento VSM duplicato."),
+                    parent=self.root
+                )
+            else:
+                logger.warning(f"Tipo evento non riconosciuto per refresh: {status}")
+                messagebox.showinfo(
+                    _("Successo"),
+                    _("Evento VSM duplicato. Aggiorna manualmente per vedere la copia."),
+                    parent=self.root
+                )
+        
+        except VSMError as e:
+            logger.error(f"Errore VSM durante duplicazione evento {event_id}: {e}", exc_info=True)
+            messagebox.showerror(
+                _("Errore VSM"),
+                _("Impossibile duplicare l'evento:\n{}").format(e),
+                parent=self.root
+            )
+        except DatabaseError as e:
+            logger.error(f"Errore database durante duplicazione evento {event_id}: {e}", exc_info=True)
+            messagebox.showerror(
+                _("Errore Database"),
+                _("Impossibile duplicare l'evento:\n{}").format(e),
+                parent=self.root
+            )
+        except Exception as e:
+            logger.error(f"Errore imprevisto durante duplicazione evento {event_id}: {e}", exc_info=True)
+            messagebox.showerror(
+                _("Errore"),
+                _("Impossibile duplicare l'evento:\n{}").format(e),
+                parent=self.root
+            )
 
     def _get_selected_row_indices(self, sheet):
         """
@@ -4769,15 +4942,15 @@ class MainWindow:
             all_mine = self._check_if_all_vsm_events_are_mine(sheet, selected_rows_indices) if has_selection else False
             
             # Calcola capacità per ogni tipo di azione VSM
-            can_edit = (num_selected == 1) and all_mine  # Edit solo su singolo evento proprio
             can_delete = has_selection and all_mine  # Delete su uno o più eventi propri
+            can_duplicate = (num_selected == 1) and all_mine  # Duplicate solo su singolo evento proprio
             
             # Abilita Actions solo se c'è selezione valida (tutte mie)
             can_act = has_selection and all_mine
             self.btn_actions.config(state="normal" if can_act else "disabled")
             
-            # Step 4D.2: Popola menu Actions con opzioni VSM
-            self._populate_actions_menu(status, can_edit, can_delete)
+            # Step 4D.2/4D.5: Popola menu Actions con opzioni VSM
+            self._populate_actions_menu(status, can_delete, can_duplicate)
             return
         
         # RFQ logic (invariata)
@@ -4816,13 +4989,20 @@ class MainWindow:
         # Pulisci menu esistente
         self.actions_menu.delete(0, 'end')
         
-        # Step 4D.2/4D.4: Branch VSM
+        # Step 4D.2/4D.4/4D.5: Branch VSM
         if status.startswith('vsm_'):
-            # Menu VSM: solo Delete (Edit tramite double-click)
+            # Menu VSM: Delete + Duplicate (Edit tramite double-click)
+            # Ordine identico a RFQ per coerenza UX
             self.actions_menu.add_command(
-                label=_("🗑 Elimina Evento"),
+                label=_("🗑 Elimina"),
                 command=self._delete_vsm_events,
                 state="normal" if can_delete else "disabled"
+            )
+            
+            self.actions_menu.add_command(
+                label=_("🔁 Duplica"),
+                command=self._duplicate_vsm_event,
+                state="normal" if can_duplicate else "disabled"
             )
             return  # Early return per VSM
         
