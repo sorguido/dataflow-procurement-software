@@ -4321,6 +4321,9 @@ class MainWindow:
         sheet.extra_bindings("cell_select", self.create_cell_select_handler(sheet))
         sheet.extra_bindings("row_select", self.create_row_select_handler(sheet))
         
+        # Step 4D.4: Binding per doppio click (apre edit evento VSM)
+        sheet.bind("<Double-Button-1>", lambda event: self._on_vsm_sheet_double_click(sheet, event))
+        
         # Rendi readonly
         for col_idx in range(8):
             sheet.readonly_columns(columns=[col_idx], readonly=True)
@@ -4582,6 +4585,35 @@ class MainWindow:
                 parent=self.root
             )
 
+    def _on_vsm_sheet_double_click(self, sheet, event=None):
+        """Gestisce doppio click su riga VSM per aprire edit evento.
+        
+        Step 4D.4: Handler double-click che delega a _edit_vsm_event().
+        La selezione è gestita da tksheet al momento del click.
+        UX pulita: click su area vuota → silent return (no popup).
+        
+        Args:
+            sheet: Widget tksheet VSM
+            event: Evento Tkinter (non utilizzato, tksheet gestisce selezione)
+        """
+        # Debounce (pattern RFQ: evita aperture multiple rapide)
+        if hasattr(self, '_opening_vsm_edit') and self._opening_vsm_edit:
+            return
+        
+        # UX pulita: verifica selezione PRIMA di impostare flag
+        selected_rows = self._get_selected_row_indices(sheet)
+        if not selected_rows:
+            return  # Silent return, no popup warning
+        
+        self._opening_vsm_edit = True
+        
+        try:
+            # Delega a handler edit (gestisce validazioni, ownership, dialog)
+            self._edit_vsm_event()
+        finally:
+            # Reset flag dopo breve delay
+            self.root.after(300, lambda: setattr(self, '_opening_vsm_edit', False))
+
     def _get_selected_row_indices(self, sheet):
         """
         Metodo helper per ottenere gli indici delle righe selezionate dal sheet.
@@ -4784,17 +4816,9 @@ class MainWindow:
         # Pulisci menu esistente
         self.actions_menu.delete(0, 'end')
         
-        # Step 4D.2: Branch VSM
+        # Step 4D.2/4D.4: Branch VSM
         if status.startswith('vsm_'):
-            # Menu VSM: solo Edit e Delete
-            can_edit = can_duplicate  # Riuso parametro can_duplicate per can_edit VSM
-            
-            self.actions_menu.add_command(
-                label=_("✏️ Modifica Evento"),
-                command=self._edit_vsm_event,
-                state="normal" if can_edit else "disabled"
-            )
-            
+            # Menu VSM: solo Delete (Edit tramite double-click)
             self.actions_menu.add_command(
                 label=_("🗑 Elimina Evento"),
                 command=self._delete_vsm_events,
