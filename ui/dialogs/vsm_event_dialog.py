@@ -199,7 +199,7 @@ class VSMEventDialog(tk.Toplevel):
         self.combo_driver = ttk.Combobox(
             self.economic_frame,
             textvariable=self.driver_var,
-            values=["Prezzo", "Pagamenti", "Volume", "Altro"],
+            values=["Prezzo", "Pagamenti"],
             state="readonly",
             width=18
         )
@@ -357,34 +357,6 @@ class VSMEventDialog(tk.Toplevel):
             
             self.lbl_giorni_negoziati.grid(row=2, column=0, sticky="w", padx=(0, 10), pady=5)
             self.entry_giorni_negoziati.grid(row=2, column=1, sticky="w", pady=5)
-        
-        else:
-            # Volume, Altro: show price frame but this is a placeholder for future implementation
-            self.price_fields_frame.grid(row=0, column=0, columnspan=2, sticky="ew", pady=(0, 10))
-            
-            if event_type == "Saving":
-                self.lbl_importo_bdg.grid(row=0, column=0, sticky="w", padx=(0, 10), pady=5)
-                self.entry_importo_bdg.grid(row=0, column=1, sticky="w", pady=5)
-                
-                self.lbl_importo_negoziato.grid(row=1, column=0, sticky="w", padx=(0, 10), pady=5)
-                self.entry_importo_negoziato.grid(row=1, column=1, sticky="w", pady=5)
-                
-                self.lbl_percent_realizzo.grid_remove()
-                self.entry_percent_realizzo.grid_remove()
-                self.lbl_importo_richiesto.grid_remove()
-                self.entry_importo_richiesto.grid_remove()
-                
-            elif event_type == "Cost Avoidance":
-                self.lbl_importo_richiesto.grid(row=0, column=0, sticky="w", padx=(0, 10), pady=5)
-                self.entry_importo_richiesto.grid(row=0, column=1, sticky="w", pady=5)
-                
-                self.lbl_importo_negoziato.grid(row=1, column=0, sticky="w", padx=(0, 10), pady=5)
-                self.entry_importo_negoziato.grid(row=1, column=1, sticky="w", pady=5)
-                
-                self.lbl_percent_realizzo.grid_remove()
-                self.entry_percent_realizzo.grid_remove()
-                self.lbl_importo_bdg.grid_remove()
-                self.entry_importo_bdg.grid_remove()
     
     def _load_event_data(self):
         """Carica dati evento esistente (modalità edit)."""
@@ -417,7 +389,12 @@ class VSMEventDialog(tk.Toplevel):
             self.entry_percent_realizzo.insert(0, str(event.percent_realizzo))
             
             if event.driver:
-                self.driver_var.set(event.driver)
+                # Handle legacy drivers: convert Volume/Altro to Prezzo for safety
+                if event.driver in ["Volume", "Altro"]:
+                    logger.warning(f"Legacy driver '{event.driver}' found for event {self.event_id}, defaulting to 'Prezzo'")
+                    self.driver_var.set("Prezzo")
+                else:
+                    self.driver_var.set(event.driver)
             
             # Campi Pagamenti
             if event.spending_annuo:
@@ -557,16 +534,8 @@ class VSMEventDialog(tk.Toplevel):
                     percent_realizzo = 100.0
                 
                 else:
-                    # Driver Volume/Altro: per ora valida importi come Prezzo
-                    try:
-                        importo_bdg = float(self.entry_importo_bdg.get().strip())
-                    except ValueError:
-                        raise ValueError(_("Importo a Budget deve essere un numero valido."))
-                    
-                    try:
-                        importo_negoziato = float(self.entry_importo_negoziato.get().strip())
-                    except ValueError:
-                        raise ValueError(_("Importo Negoziato deve essere un numero valido."))
+                    # Driver non supportato: non dovrebbe mai accadere con combobox readonly
+                    raise ValueError(_(f"Driver '{driver}' non supportato per eventi Saving."))
             
             elif event_type == "Cost Avoidance":
                 # Cost Avoidance richiede importo_richiesto_iniziale e importo_negoziato
