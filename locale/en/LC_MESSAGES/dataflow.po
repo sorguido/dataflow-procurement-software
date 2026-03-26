@@ -3154,6 +3154,18 @@ msgstr "Price"
 msgid "Pagamenti"
 msgstr "Payments"
 
+msgid "Tipo"
+msgstr "Type"
+
+msgid "Azione"
+msgstr "Action"
+
+msgid "Realizzo %"
+msgstr "Realization %"
+
+msgid "Ripetitivo"
+msgstr "Repetitive"
+
 msgid "Theoretical Savings"
 msgstr "Theoretical Savings"
 
