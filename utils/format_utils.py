@@ -66,3 +66,23 @@ def format_quantity_display(val):
     except (ValueError, TypeError):
         # Se la conversione fallisce, restituisci la stringa originale
         return str(val)
+
+
+def format_amount_display(val):
+    """Formatta un valore numerico con esattamente 2 decimali e virgola come separatore.
+
+    Usato per mostrare importi e percentuali nei campi di input al caricamento,
+    indipendentemente dalla precisione con cui sono stati salvati.
+
+    Esempi:
+        20000.3   → "20000,30"
+        70.6434   → "70,64"
+        100.0     → "100,00"
+        1         → "1,00"
+    """
+    if val is None or val == '':
+        return ''
+    try:
+        return f"{float(val):.2f}".replace('.', ',')
+    except (ValueError, TypeError):
+        return str(val)

@@ -31,7 +31,7 @@ from models.vsm_event import VSMEvent
 from ui.dialogs.common_dialogs import SimpleMessageDialog, SimpleYesNoDialog
 
 # Import per validazione importi con formato virgola
-from utils.format_utils import parse_float_from_comma_string
+from utils.format_utils import parse_float_from_comma_string, format_quantity_display, format_amount_display
 
 logger = logging.getLogger(__name__)
 
@@ -469,20 +469,21 @@ class VSMEventDialog(tk.Toplevel):
             self.text_description.insert("1.0", event.description)
             
             # Campi economici
+            # Usa format_amount_display per mostrare sempre 2 decimali con virgola
             if event.importo_bdg:
-                self.entry_importo_bdg.insert(0, str(event.importo_bdg))
+                self.entry_importo_bdg.insert(0, format_amount_display(event.importo_bdg))
             if event.importo_richiesto_iniziale:
-                self.entry_importo_richiesto.insert(0, str(event.importo_richiesto_iniziale))
+                self.entry_importo_richiesto.insert(0, format_amount_display(event.importo_richiesto_iniziale))
             if event.importo_negoziato:
-                self.entry_importo_negoziato.insert(0, str(event.importo_negoziato))
+                self.entry_importo_negoziato.insert(0, format_amount_display(event.importo_negoziato))
             
             # Annual Q.ty: default to 1 if 0 or None for backward compatibility
             quantita_display = event.quantita_annua if event.quantita_annua and event.quantita_annua > 0 else 1.0
             self.entry_quantita_annua.delete(0, tk.END)
-            self.entry_quantita_annua.insert(0, str(quantita_display))
+            self.entry_quantita_annua.insert(0, format_amount_display(quantita_display))
             
             self.entry_percent_realizzo.delete(0, tk.END)
-            self.entry_percent_realizzo.insert(0, str(event.percent_realizzo))
+            self.entry_percent_realizzo.insert(0, format_amount_display(event.percent_realizzo))
             
             if event.driver:
                 # Handle legacy drivers: convert Volume/Altro to Prezzo for safety
@@ -494,7 +495,7 @@ class VSMEventDialog(tk.Toplevel):
             
             # Campi Pagamenti
             if event.spending_annuo:
-                self.entry_spending_annuo.insert(0, str(event.spending_annuo))
+                self.entry_spending_annuo.insert(0, format_amount_display(event.spending_annuo))
             if event.giorni_pagamento_attuali is not None:
                 self.entry_giorni_attuali.insert(0, str(event.giorni_pagamento_attuali))
             if event.giorni_pagamento_negoziati is not None:

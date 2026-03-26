@@ -3080,16 +3080,16 @@ msgid "Buyer obbligatorio."
 msgstr "Buyer required."
 
 msgid "Importo a Budget non valido. Usare solo numeri con virgola (es. 1,23)."
-msgstr "Budget Amount not valid. Use only numbers with comma (e.g. 1.23)."
+msgstr "Budget Amount not valid. Use only numbers with comma (e.g. 1,23)."
 
 msgid "Importo Negoziato non valido. Usare solo numeri con virgola (es. 1,23)."
-msgstr "Negotiated Amount not valid. Use only numbers with comma (e.g. 1.23)."
+msgstr "Negotiated Amount not valid. Use only numbers with comma (e.g. 1,23)."
 
 msgid "Annual Q.ty:"
 msgstr "Annual Q.ty:"
 
 msgid "Annual Q.ty non valido. Usare solo numeri con virgola (es. 1,5)."
-msgstr "Annual Q.ty not valid. Use only numbers with comma (e.g. 1.5)."
+msgstr "Annual Q.ty not valid. Use only numbers with comma (e.g. 1,5)."
 
 msgid "Annual Q.ty deve essere maggiore di zero."
 msgstr "Annual Q.ty must be greater than zero."
@@ -3098,13 +3098,13 @@ msgid "% Realizzo deve essere tra 0 e 100."
 msgstr "% Realization must be between 0 and 100."
 
 msgid "% Realizzo non valido. Usare solo numeri con virgola (es. 99,5)."
-msgstr "% Realization not valid. Use only numbers with comma (e.g. 99.5)."
+msgstr "% Realization not valid. Use only numbers with comma (e.g. 99,5)."
 
 msgid "Spending Annuo deve essere positivo."
 msgstr "Annual Spending must be positive."
 
 msgid "Spending Annuo non valido. Usare solo numeri con virgola (es. 100000,00)."
-msgstr "Annual Spending not valid. Use only numbers with comma (e.g. 100000.00)."
+msgstr "Annual Spending not valid. Use only numbers with comma (e.g. 100000,00)."
 
 msgid "Termini Pagamento Attuali non possono essere negativi."
 msgstr "Current Payment Terms cannot be negative."
@@ -3122,7 +3122,7 @@ msgid "Termini negoziati ({}) inferiori a termini attuali ({}).\nQuesto genera u
 msgstr "Negotiated terms ({}) lower than current terms ({}).\nThis generates a negative impact (worsening of payment terms).\n\nDo you confirm you want to proceed?"
 
 msgid "Importo Richiesto Iniziale non valido. Usare solo numeri con virgola (es. 1,23)."
-msgstr "Initial Requested Amount not valid. Use only numbers with comma (e.g. 1.23)."
+msgstr "Initial Requested Amount not valid. Use only numbers with comma (e.g. 1,23)."
 
 msgid "Evento VSM aggiornato con successo."
 msgstr "VSM Event updated successfully."
