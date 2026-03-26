@@ -3153,3 +3153,15 @@ msgstr "Price"
 
 msgid "Pagamenti"
 msgstr "Payments"
+
+msgid "Theoretical Savings"
+msgstr "Theoretical Savings"
+
+msgid "Actual Savings"
+msgstr "Actual Savings"
+
+msgid "CA Theoretical"
+msgstr "CA Theoretical"
+
+msgid "CA Actual"
+msgstr "CA Actual"

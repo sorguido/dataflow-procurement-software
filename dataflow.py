@@ -3714,8 +3714,8 @@ class MainWindow:
         
         # Step 4B: Riutilizzo UI VSM esistente (estratta da VSMManagementWindow)
         # Crea sheet VSM per ogni tab usando la stessa struttura della UI originale
-        self.sheet_saving = self._create_vsm_event_sheet(self.tab_saving)
-        self.sheet_cost_avoidance = self._create_vsm_event_sheet(self.tab_cost_avoidance)
+        self.sheet_saving = self._create_vsm_event_sheet(self.tab_saving, event_type="Saving")
+        self.sheet_cost_avoidance = self._create_vsm_event_sheet(self.tab_cost_avoidance, event_type="Cost Avoidance")
         self.sheet_derisking = self._create_vsm_event_sheet(self.tab_derisking)
         
         # Step 4C: Caricamento iniziale dati VSM (estratto da VSMManagementWindow.refresh_events)
@@ -4327,7 +4327,7 @@ class MainWindow:
             self.update_button_visibility()
         return handler
 
-    def _create_vsm_event_sheet(self, parent):
+    def _create_vsm_event_sheet(self, parent, event_type=None):
         """
         Crea un tksheet per visualizzare eventi VSM.
         
@@ -4336,6 +4336,8 @@ class MainWindow:
         
         Args:
             parent: Widget parent (tab frame)
+            event_type: Tipo evento ("Saving"|"Cost Avoidance"|None)
+                        Determina le intestazioni della colonna valore.
         
         Returns:
             Sheet: Widget tksheet configurato con colonne VSM
@@ -4343,31 +4345,53 @@ class MainWindow:
         frame = ttk.Frame(parent)
         frame.pack(fill="both", expand=True)
         
+        # Intestazioni e layout dipendono dal tab
+        if event_type == "Saving":
+            headers = [
+                _("Data"), _("Tipo"), _("Azione"), _("Descrizione"),
+                _("Theoretical Savings"), _("Actual Savings"),
+                _("Realizzo %"), _("Ripetitivo"), _("Utente")
+            ]
+            col_widths = [100, 120, 120, 400, 120, 120, 90, 90, 140]
+            align_cols = [0, 1, 2, 4, 5, 6, 7, 8]
+            n_cols = 9
+        elif event_type == "Cost Avoidance":
+            headers = [
+                _("Data"), _("Tipo"), _("Azione"), _("Descrizione"),
+                _("CA Theoretical"), _("CA Actual"),
+                _("Realizzo %"), _("Ripetitivo"), _("Utente")
+            ]
+            col_widths = [100, 120, 120, 400, 120, 120, 90, 90, 140]
+            align_cols = [0, 1, 2, 4, 5, 6, 7, 8]
+            n_cols = 9
+        else:
+            headers = [
+                _("Data"), _("Tipo"), _("Azione"), _("Descrizione"),
+                _("Valore Teorico"), _("Realizzo %"), _("Ripetitivo"), _("Utente")
+            ]
+            col_widths = [100, 120, 120, 400, 120, 90, 90, 140]
+            align_cols = [0, 1, 2, 4, 5, 6, 7]
+            n_cols = 8
+        
         # Crea widget tksheet con colonne VSM
         sheet = Sheet(
             frame,
             theme="light blue",
             header_font=("Calibri", 11, "bold"),
             font=("Calibri", 11, "normal"),
-            headers=[
-                _("Data"),
-                _("Tipo"),
-                _("Azione"),
-                _("Descrizione"),
-                _("Valore Teorico"),
-                _("Realizzo %"),
-                _("Ripetitivo"),
-                _("Utente")
-            ],
+            headers=headers,
             show_header=True,
             show_row_index=False
         )
         
-        # Configura larghezze colonne (identiche all'originale VSMManagementWindow)
-        sheet.set_column_widths([100, 120, 120, 400, 120, 90, 90, 140])
+        # Salva il tipo di tab per uso in _populate_vsm_sheet
+        sheet._vsm_event_type = event_type
+        
+        # Configura larghezze colonne
+        sheet.set_column_widths(col_widths)
         
         # Centra colonne numeriche e date (Descrizione rimane left-aligned)
-        sheet.align_columns(columns=[0, 1, 2, 4, 5, 6, 7], align="center")
+        sheet.align_columns(columns=align_cols, align="center")
         
         # Abilita bindings
         sheet.enable_bindings()
@@ -4380,7 +4404,7 @@ class MainWindow:
         sheet.bind("<Double-Button-1>", lambda event: self._on_vsm_sheet_double_click(sheet, event))
         
         # Rendi readonly
-        for col_idx in range(8):
+        for col_idx in range(n_cols):
             sheet.readonly_columns(columns=[col_idx], readonly=True)
         
         sheet.pack(fill="both", expand=True)
@@ -4413,7 +4437,7 @@ class MainWindow:
             filtered_events = [e for e in all_events if e.event_type == event_type]
             
             # Popola sheet
-            self._populate_vsm_sheet(sheet, filtered_events)
+            self._populate_vsm_sheet(sheet, filtered_events, event_type=event_type)
             
             logger.debug(f"Caricati {len(filtered_events)} eventi VSM {event_type}")
             
@@ -4425,7 +4449,7 @@ class MainWindow:
                 parent=self
             )
     
-    def _populate_vsm_sheet(self, sheet, events):
+    def _populate_vsm_sheet(self, sheet, events, event_type=None):
         """
         Popola un tksheet con lista di eventi VSM.
         
@@ -4434,25 +4458,45 @@ class MainWindow:
         Args:
             sheet: Widget tksheet da popolare
             events: Lista di VSMEvent
+            event_type: Tipo evento ("Saving"|"Cost Avoidance"|None)
         """
         data_rows = []
         metadata = []
         
+        # Usa event_type dalla sheet se non passato direttamente
+        if event_type is None:
+            event_type = getattr(sheet, '_vsm_event_type', None)
+        
+        use_dual_value = event_type in ("Saving", "Cost Avoidance")
+        
         for event in events:
-            # Calcola valore teorico
+            # Calcola valori
             valore_teorico = event.calculate_theoretical_value()
             
-            # Formatta row
-            row = [
-                event.event_date.strftime("%d/%m/%Y") if event.event_date else "",
-                event.event_type,
-                event.action,
-                (event.description or event.reference or "")[:50],  # Truncate
-                f"€ {valore_teorico:,.2f}",
-                f"{event.percent_realizzo:.0f}%",
-                "✓" if event.opex_ripetitivo else "",
-                event.username
-            ]
+            if use_dual_value:
+                valore_effettivo = event.calculate_effective_value()
+                row = [
+                    event.event_date.strftime("%d/%m/%Y") if event.event_date else "",
+                    event.event_type,
+                    event.action,
+                    (event.description or event.reference or "")[:50],
+                    f"€ {valore_teorico:,.2f}",
+                    f"€ {valore_effettivo:,.2f}",
+                    f"{event.percent_realizzo:.0f}%",
+                    "✓" if event.opex_ripetitivo else "",
+                    event.username
+                ]
+            else:
+                row = [
+                    event.event_date.strftime("%d/%m/%Y") if event.event_date else "",
+                    event.event_type,
+                    event.action,
+                    (event.description or event.reference or "")[:50],
+                    f"€ {valore_teorico:,.2f}",
+                    f"{event.percent_realizzo:.0f}%",
+                    "✓" if event.opex_ripetitivo else "",
+                    event.username
+                ]
             data_rows.append(row)
             
             # Metadata per ownership e event_id
@@ -4467,7 +4511,10 @@ class MainWindow:
         sheet._event_metadata = metadata
         
         # Riapplica larghezze colonne (set_sheet_data le resetta)
-        sheet.set_column_widths([100, 120, 120, 400, 120, 90, 90, 140])
+        if use_dual_value:
+            sheet.set_column_widths([100, 120, 120, 400, 120, 120, 90, 90, 140])
+        else:
+            sheet.set_column_widths([100, 120, 120, 400, 120, 90, 90, 140])
 
     # ===========================
     # Step 4D.3: VSM CRUD Handlers (implementazione completa)
