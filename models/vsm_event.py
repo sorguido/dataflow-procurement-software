@@ -181,13 +181,16 @@ class VSMEvent:
             
             return 0.0
         
-        # Driver Prezzo: logica originale basata su importi
+        # Driver Prezzo: logica con quantità annua
+        # Backward compatibility: default quantity to 1.0 if not set or zero
+        qty = self.quantita_annua if self.quantita_annua and self.quantita_annua > 0 else 1.0
+        
         if self.event_type == "Cost Avoidance" and self.importo_richiesto_iniziale:
-            # Cost Avoidance: differenza tra richiesto iniziale e negoziato
-            return self.importo_richiesto_iniziale - self.importo_negoziato
+            # Cost Avoidance: differenza tra richiesto iniziale e negoziato, moltiplicato per quantità
+            return qty * (self.importo_richiesto_iniziale - self.importo_negoziato)
         elif self.event_type == "Saving":
-            # Saving: differenza tra budget e negoziato
-            return self.importo_bdg - self.importo_negoziato
+            # Saving: differenza tra budget e negoziato, moltiplicato per quantità
+            return qty * (self.importo_bdg - self.importo_negoziato)
         else:
             # Derisking: nessun valore economico diretto
             return 0.0

@@ -233,6 +233,11 @@ class VSMEventDialog(tk.Toplevel):
         self.lbl_importo_negoziato = ttk.Label(self.price_fields_frame, text=_("Importo Negoziato: *"))
         self.entry_importo_negoziato = ttk.Entry(self.price_fields_frame, width=20)
         
+        # Annual Q.ty
+        self.lbl_quantita_annua = ttk.Label(self.price_fields_frame, text=_("Annual Q.ty:"))
+        self.entry_quantita_annua = ttk.Entry(self.price_fields_frame, width=20)
+        self.entry_quantita_annua.insert(0, "1")  # Default 1
+        
         # Percentuale Realizzo
         self.lbl_percent_realizzo = ttk.Label(self.price_fields_frame, text=_("% Realizzo:"))
         self.entry_percent_realizzo = ttk.Entry(self.price_fields_frame, width=10)
@@ -393,8 +398,11 @@ class VSMEventDialog(tk.Toplevel):
                 self.lbl_importo_negoziato.grid(row=1, column=0, sticky="w", padx=(0, 10), pady=5)
                 self.entry_importo_negoziato.grid(row=1, column=1, sticky="w", pady=5)
                 
-                self.lbl_percent_realizzo.grid(row=2, column=0, sticky="w", padx=(0, 10), pady=5)
-                self.entry_percent_realizzo.grid(row=2, column=1, sticky="w", pady=5)
+                self.lbl_quantita_annua.grid(row=2, column=0, sticky="w", padx=(0, 10), pady=5)
+                self.entry_quantita_annua.grid(row=2, column=1, sticky="w", pady=5)
+                
+                self.lbl_percent_realizzo.grid(row=3, column=0, sticky="w", padx=(0, 10), pady=5)
+                self.entry_percent_realizzo.grid(row=3, column=1, sticky="w", pady=5)
                 
                 # Hide Cost Avoidance specific field
                 self.lbl_importo_richiesto.grid_remove()
@@ -407,8 +415,11 @@ class VSMEventDialog(tk.Toplevel):
                 self.lbl_importo_negoziato.grid(row=1, column=0, sticky="w", padx=(0, 10), pady=5)
                 self.entry_importo_negoziato.grid(row=1, column=1, sticky="w", pady=5)
                 
-                self.lbl_percent_realizzo.grid(row=2, column=0, sticky="w", padx=(0, 10), pady=5)
-                self.entry_percent_realizzo.grid(row=2, column=1, sticky="w", pady=5)
+                self.lbl_quantita_annua.grid(row=2, column=0, sticky="w", padx=(0, 10), pady=5)
+                self.entry_quantita_annua.grid(row=2, column=1, sticky="w", pady=5)
+                
+                self.lbl_percent_realizzo.grid(row=3, column=0, sticky="w", padx=(0, 10), pady=5)
+                self.entry_percent_realizzo.grid(row=3, column=1, sticky="w", pady=5)
                 
                 # Hide Saving specific field
                 self.lbl_importo_bdg.grid_remove()
@@ -461,6 +472,11 @@ class VSMEventDialog(tk.Toplevel):
                 self.entry_importo_richiesto.insert(0, str(event.importo_richiesto_iniziale))
             if event.importo_negoziato:
                 self.entry_importo_negoziato.insert(0, str(event.importo_negoziato))
+            
+            # Annual Q.ty: default to 1 if 0 or None for backward compatibility
+            quantita_display = event.quantita_annua if event.quantita_annua and event.quantita_annua > 0 else 1.0
+            self.entry_quantita_annua.delete(0, tk.END)
+            self.entry_quantita_annua.insert(0, str(quantita_display))
             
             self.entry_percent_realizzo.delete(0, tk.END)
             self.entry_percent_realizzo.insert(0, str(event.percent_realizzo))
@@ -547,6 +563,15 @@ class VSMEventDialog(tk.Toplevel):
                         raise ValueError(_("Importo Negoziato deve essere un numero valido."))
                     
                     try:
+                        quantita_annua = float(self.entry_quantita_annua.get().strip())
+                        if quantita_annua <= 0:
+                            raise ValueError(_("Annual Q.ty deve essere maggiore di zero."))
+                    except ValueError as e:
+                        if "could not convert" in str(e):
+                            raise ValueError(_("Annual Q.ty deve essere un numero valido."))
+                        raise
+                    
+                    try:
                         percent_realizzo = float(self.entry_percent_realizzo.get().strip())
                         if not (0 <= percent_realizzo <= 100):
                             raise ValueError(_("% Realizzo deve essere tra 0 e 100."))
@@ -626,6 +651,19 @@ class VSMEventDialog(tk.Toplevel):
                 except ValueError:
                     raise ValueError(_("Importo Negoziato deve essere un numero valido."))
                 
+                # Annual Q.ty for driver Prezzo
+                if driver == "Prezzo":
+                    try:
+                        quantita_annua = float(self.entry_quantita_annua.get().strip())
+                        if quantita_annua <= 0:
+                            raise ValueError(_("Annual Q.ty deve essere maggiore di zero."))
+                    except ValueError as e:
+                        if "could not convert" in str(e):
+                            raise ValueError(_("Annual Q.ty deve essere un numero valido."))
+                        raise
+                else:
+                    quantita_annua = 0.0  # Not used for non-Prezzo drivers
+                
                 # Cost Avoidance sempre con percent_realizzo
                 try:
                     percent_realizzo = float(self.entry_percent_realizzo.get().strip())
@@ -657,6 +695,7 @@ class VSMEventDialog(tk.Toplevel):
                 spending_annuo=spending_annuo if spending_annuo is not None else 0.0,
                 giorni_pagamento_attuali=giorni_pagamento_attuali,
                 giorni_pagamento_negoziati=giorni_pagamento_negoziati,
+                quantita_annua=quantita_annua if 'quantita_annua' in locals() else 0.0,
                 opex_ripetitivo=opex_ripetitivo
             )
             
