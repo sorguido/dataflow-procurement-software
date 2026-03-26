@@ -136,19 +136,14 @@ class VSMEventDialog(tk.Toplevel):
         self.entry_buyer.grid(row=3, column=1, sticky="ew", pady=5)
         
         # === SEZIONE DESCRIZIONE ===
-        desc_frame = ttk.LabelFrame(main_frame, text=_("Descrizione e Riferimenti"), padding="10")
+        desc_frame = ttk.LabelFrame(main_frame, text=_("Descrizione"), padding="10")
         desc_frame.grid(row=1, column=0, sticky="ew", pady=(0, 10))
-        desc_frame.columnconfigure(1, weight=1)
+        desc_frame.columnconfigure(0, weight=1)
+        desc_frame.rowconfigure(0, weight=1)
         
-        # Descrizione
-        ttk.Label(desc_frame, text=_("Descrizione:")).grid(row=0, column=0, sticky="nw", padx=(0, 10), pady=5)
+        # Campo descrizione (full width, espandibile)
         self.text_description = tk.Text(desc_frame, height=3, width=40, wrap="word")
-        self.text_description.grid(row=0, column=1, sticky="ew", pady=5)
-        
-        # Riferimento
-        ttk.Label(desc_frame, text=_("Riferimento:")).grid(row=1, column=0, sticky="w", padx=(0, 10), pady=5)
-        self.entry_reference = ttk.Entry(desc_frame, width=40)
-        self.entry_reference.grid(row=1, column=1, sticky="ew", pady=5)
+        self.text_description.grid(row=0, column=0, sticky="nsew", pady=5)
         
         # === SEZIONE ECONOMICA (dinamica) ===
         self.economic_frame = ttk.LabelFrame(main_frame, text=_("Dati Economici"), padding="10")
@@ -294,6 +289,9 @@ class VSMEventDialog(tk.Toplevel):
             with DatabaseManager(get_db_path()) as db_manager:
                 event, _impacts = get_event_with_impacts(db_manager, self.event_id)
             
+            # Salva evento caricato per preservare campi non mostrati in UI
+            self._loaded_event = event
+            
             # Popola form
             if event.event_date:
                 self.entry_date.set_date(event.event_date)
@@ -303,7 +301,6 @@ class VSMEventDialog(tk.Toplevel):
             # Campo User già popolato con current_username in __init__, non sovrascrivere
             
             self.text_description.insert("1.0", event.description)
-            self.entry_reference.insert(0, event.reference)
             
             # Campi economici
             if event.importo_bdg:
@@ -355,7 +352,9 @@ class VSMEventDialog(tk.Toplevel):
             
             # Campi testuali
             description = self.text_description.get("1.0", tk.END).strip()
-            reference = self.entry_reference.get().strip()
+            
+            # Reference: preserva valore storico in EDIT, vuoto in CREATE
+            reference = self._loaded_event.reference if (self.is_edit_mode and hasattr(self, '_loaded_event')) else ""
             
             # Campi economici (condizionali)
             importo_bdg = 0.0
