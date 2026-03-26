@@ -4501,17 +4501,23 @@ class MainWindow:
             
             if use_dual_value:
                 valore_effettivo = event.calculate_effective_value()
-                # Variance % = (baseline - negoziato) / baseline * 100
-                # Saving usa importo_bdg; Cost Avoidance usa importo_richiesto_iniziale
-                if event_type == "Cost Avoidance":
-                    _baseline = event.importo_richiesto_iniziale or 0.0
+                # Variance %: logica speciale per driver Pagamenti
+                if event.driver == "Pagamenti" and event.giorni_pagamento_attuali is not None and event.giorni_pagamento_negoziati is not None:
+                    _delta = event.giorni_pagamento_negoziati - event.giorni_pagamento_attuali
+                    _variance_pct = (_delta / 30.0) * event.effective_payments_rate_pct
+                    _variance_str = f"{_variance_pct:.2f}%"
                 else:
-                    _baseline = event.importo_bdg or 0.0
-                if _baseline != 0.0:
-                    _variance_pct = (_baseline - (event.importo_negoziato or 0.0)) / _baseline * 100
-                    _variance_str = f"{_variance_pct:.1f}%"
-                else:
-                    _variance_str = "0%"
+                    # Variance % = (baseline - negoziato) / baseline * 100
+                    # Saving usa importo_bdg; Cost Avoidance usa importo_richiesto_iniziale
+                    if event_type == "Cost Avoidance":
+                        _baseline = event.importo_richiesto_iniziale or 0.0
+                    else:
+                        _baseline = event.importo_bdg or 0.0
+                    if _baseline != 0.0:
+                        _variance_pct = (_baseline - (event.importo_negoziato or 0.0)) / _baseline * 100
+                        _variance_str = f"{_variance_pct:.1f}%"
+                    else:
+                        _variance_str = "0%"
                 row = [
                     event.event_date.strftime("%d/%m/%Y") if event.event_date else "",
                     event.event_type,
@@ -6532,13 +6538,19 @@ class MainWindow:
 
             if use_dual:
                 valore_effettivo = event.calculate_effective_value() or 0.0
-                if event_type == "Cost Avoidance":
+                if event.driver == "Pagamenti" and event.giorni_pagamento_attuali is not None and event.giorni_pagamento_negoziati is not None:
+                    _delta = event.giorni_pagamento_negoziati - event.giorni_pagamento_attuali
+                    _variance_pct = round((_delta / 30.0) * event.effective_payments_rate_pct, 2)
+                elif event_type == "Cost Avoidance":
                     _baseline = event.importo_richiesto_iniziale or 0.0
+                    _variance_pct = round(
+                        (_baseline - (event.importo_negoziato or 0.0)) / _baseline * 100, 1
+                    ) if _baseline != 0.0 else 0.0
                 else:
                     _baseline = event.importo_bdg or 0.0
-                _variance_pct = round(
-                    (_baseline - (event.importo_negoziato or 0.0)) / _baseline * 100, 1
-                ) if _baseline != 0.0 else 0.0
+                    _variance_pct = round(
+                        (_baseline - (event.importo_negoziato or 0.0)) / _baseline * 100, 1
+                    ) if _baseline != 0.0 else 0.0
                 row = [
                     date_str, event.event_type, action_str, desc,
                     round(valore_teorico, 2), round(valore_effettivo, 2),

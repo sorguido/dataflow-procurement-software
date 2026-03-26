@@ -242,6 +242,12 @@ class DatabaseManager:
                 )
             ''')
             
+            # Migrazione colonna payments_rate per vsm_events
+            try:
+                self.cursor.execute("ALTER TABLE vsm_events ADD COLUMN payments_rate REAL")
+            except Exception:
+                pass
+
             # Indici per performance VSM
             self.cursor.execute('CREATE INDEX IF NOT EXISTS idx_vsm_impacts_event_id ON vsm_impacts(event_id)')
             self.cursor.execute('CREATE INDEX IF NOT EXISTS idx_vsm_impacts_period ON vsm_impacts(anno, mese)')
@@ -1956,8 +1962,8 @@ class DatabaseManager:
                 description, reference, importo_bdg, importo_negoziato,
                 importo_richiesto_iniziale, quantita_annua, percent_realizzo,
                 driver, giorni_pagamento_attuali, giorni_pagamento_negoziati,
-                spending_annuo, opex_ripetitivo, note, created_at, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                spending_annuo, payments_rate, opex_ripetitivo, note, created_at, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             event.username,
             event.event_date.isoformat() if event.event_date else None,
@@ -1975,6 +1981,7 @@ class DatabaseManager:
             event.giorni_pagamento_attuali,
             event.giorni_pagamento_negoziati,
             event.spending_annuo,
+            event.payments_rate,
             1 if event.opex_ripetitivo else 0,
             event.note,
             event.created_at.isoformat() if event.created_at else None,
@@ -1996,7 +2003,7 @@ class DatabaseManager:
                 description = ?, reference = ?, importo_bdg = ?, importo_negoziato = ?,
                 importo_richiesto_iniziale = ?, quantita_annua = ?, percent_realizzo = ?,
                 driver = ?, giorni_pagamento_attuali = ?, giorni_pagamento_negoziati = ?,
-                spending_annuo = ?, opex_ripetitivo = ?, note = ?, updated_at = ?
+                spending_annuo = ?, payments_rate = ?, opex_ripetitivo = ?, note = ?, updated_at = ?
             WHERE event_id = ?
         """, (
             event.username,
@@ -2015,6 +2022,7 @@ class DatabaseManager:
             event.giorni_pagamento_attuali,
             event.giorni_pagamento_negoziati,
             event.spending_annuo,
+            event.payments_rate,
             1 if event.opex_ripetitivo else 0,
             event.note,
             datetime.now().isoformat(),
@@ -2073,7 +2081,8 @@ class DatabaseManager:
                        description, reference, importo_bdg, importo_negoziato,
                        importo_richiesto_iniziale, quantita_annua, percent_realizzo,
                        driver, giorni_pagamento_attuali, giorni_pagamento_negoziati,
-                       spending_annuo, opex_ripetitivo, note, created_at, updated_at
+                       spending_annuo, opex_ripetitivo, note, created_at, updated_at,
+                       payments_rate
                 FROM vsm_events WHERE event_id = ?
             """, (event_id,))
             row = self.cursor.fetchone()
@@ -2104,7 +2113,8 @@ class DatabaseManager:
                 opex_ripetitivo=bool(row[17]),
                 note=row[18],
                 created_at=datetime.fromisoformat(row[19]) if row[19] else datetime.now(),
-                updated_at=datetime.fromisoformat(row[20]) if row[20] else datetime.now()
+                updated_at=datetime.fromisoformat(row[20]) if row[20] else datetime.now(),
+                payments_rate=row[21]
             )
         except Exception as e:
             print(f"[DB Manager] Errore get_vsm_event_by_id: {e}")
@@ -2127,7 +2137,8 @@ class DatabaseManager:
                            description, reference, importo_bdg, importo_negoziato,
                            importo_richiesto_iniziale, quantita_annua, percent_realizzo,
                            driver, giorni_pagamento_attuali, giorni_pagamento_negoziati,
-                           spending_annuo, opex_ripetitivo, note, created_at, updated_at
+                           spending_annuo, opex_ripetitivo, note, created_at, updated_at,
+                           payments_rate
                     FROM vsm_events
                     WHERE username = ?
                     ORDER BY event_date DESC, event_id DESC
@@ -2138,7 +2149,8 @@ class DatabaseManager:
                            description, reference, importo_bdg, importo_negoziato,
                            importo_richiesto_iniziale, quantita_annua, percent_realizzo,
                            driver, giorni_pagamento_attuali, giorni_pagamento_negoziati,
-                           spending_annuo, opex_ripetitivo, note, created_at, updated_at
+                           spending_annuo, opex_ripetitivo, note, created_at, updated_at,
+                           payments_rate
                     FROM vsm_events
                     ORDER BY event_date DESC, event_id DESC
                 """)
@@ -2171,7 +2183,8 @@ class DatabaseManager:
                     opex_ripetitivo=bool(row[17]),
                     note=row[18],
                     created_at=datetime.fromisoformat(row[19]) if row[19] else datetime.now(),
-                    updated_at=datetime.fromisoformat(row[20]) if row[20] else datetime.now()
+                    updated_at=datetime.fromisoformat(row[20]) if row[20] else datetime.now(),
+                    payments_rate=row[21]
                 ))
             
             return events

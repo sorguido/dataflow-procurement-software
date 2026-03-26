@@ -32,6 +32,7 @@ from ui.dialogs.common_dialogs import SimpleMessageDialog, SimpleYesNoDialog
 
 # Import per validazione importi con formato virgola
 from utils.format_utils import parse_float_from_comma_string, format_quantity_display, format_amount_display
+from utils.vsm_config import get_pagamenti_coefficient, set_pagamenti_coefficient
 
 logger = logging.getLogger(__name__)
 
@@ -262,6 +263,12 @@ class VSMEventDialog(tk.Toplevel):
         self.lbl_giorni_negoziati = ttk.Label(self.payment_fields_frame, text=_("Termini Pagamento Negoziati (giorni): *"))
         self.entry_giorni_negoziati = ttk.Entry(self.payment_fields_frame, width=8)
         
+        # Financial Impact rate (% per 30 days)
+        self.lbl_payments_rate = ttk.Label(self.payment_fields_frame, text=_("Financial Impact (% per 30 days):"))
+        self.entry_payments_rate = ttk.Entry(self.payment_fields_frame, width=8)
+        # Valore iniziale: ultima preferenza utente salvata (default 0.50)
+        self.entry_payments_rate.insert(0, format_amount_display(get_pagamenti_coefficient() * 100))
+        
         # --- DRIVER (always visible, outside sub-frames) ---
         self.lbl_driver = ttk.Label(self.economic_frame, text=_("Driver:"))
         self.combo_driver = ttk.Combobox(
@@ -441,6 +448,9 @@ class VSMEventDialog(tk.Toplevel):
             
             self.lbl_giorni_negoziati.grid(row=2, column=0, sticky="w", padx=(0, 10), pady=5)
             self.entry_giorni_negoziati.grid(row=2, column=1, sticky="w", pady=5)
+            
+            self.lbl_payments_rate.grid(row=3, column=0, sticky="w", padx=(0, 10), pady=5)
+            self.entry_payments_rate.grid(row=3, column=1, sticky="w", pady=5)
     
     def _load_event_data(self):
         """Carica dati evento esistente (modalità edit)."""
@@ -501,6 +511,13 @@ class VSMEventDialog(tk.Toplevel):
             if event.giorni_pagamento_negoziati is not None:
                 self.entry_giorni_negoziati.insert(0, str(event.giorni_pagamento_negoziati))
             
+            # payments_rate: usa valore storico dell'evento; se assente usa preferenza config
+            self.entry_payments_rate.delete(0, tk.END)
+            if event.payments_rate is not None:
+                self.entry_payments_rate.insert(0, format_amount_display(event.payments_rate))
+            else:
+                self.entry_payments_rate.insert(0, format_amount_display(get_pagamenti_coefficient() * 100))
+            
             self.opex_ripetitivo_var.set(event.opex_ripetitivo)
             
             # Applica dinamismo form (event_type e driver)
@@ -551,6 +568,7 @@ class VSMEventDialog(tk.Toplevel):
             spending_annuo = None
             giorni_pagamento_attuali = None
             giorni_pagamento_negoziati = None
+            payments_rate = None
             driver = self._get_driver_internal()
             
             if event_type == "Saving":
@@ -628,6 +646,14 @@ class VSMEventDialog(tk.Toplevel):
                         if not risposta:
                             return
                     
+                    # payments_rate: valida e parse (stessa policy degli altri campi numerici)
+                    try:
+                        payments_rate = parse_float_from_comma_string(self.entry_payments_rate.get().strip())
+                    except ValueError:
+                        raise ValueError(_("Financial Impact non valido. Usare solo numeri con virgola (es. 0,50)."))
+                    if payments_rate <= 0:
+                        raise ValueError(_("Financial Impact deve essere maggiore di zero."))
+                    
                     # Campi Prezzo a NULL, percent_realizzo fisso a 100 (tecnico, ignorato)
                     importo_bdg = None
                     importo_negoziato = None
@@ -690,6 +716,7 @@ class VSMEventDialog(tk.Toplevel):
                 giorni_pagamento_attuali=giorni_pagamento_attuali,
                 giorni_pagamento_negoziati=giorni_pagamento_negoziati,
                 quantita_annua=quantita_annua if 'quantita_annua' in locals() else 0.0,
+                payments_rate=payments_rate,
                 opex_ripetitivo=opex_ripetitivo
             )
             
@@ -702,6 +729,10 @@ class VSMEventDialog(tk.Toplevel):
                     event_id = save_event_with_impacts(db_manager, event)
                     msg = _("Evento VSM creato con successo.")
                     logger.info(f"Evento VSM creato con ID: {event_id}")
+            
+            # Aggiorna preferenza utente se il driver è Pagamenti
+            if driver == "Pagamenti" and payments_rate is not None:
+                set_pagamenti_coefficient(payments_rate / 100.0)
             
             # Usa dialog custom con font uniforme
             SimpleMessageDialog(self, _("Successo"), msg, "info")

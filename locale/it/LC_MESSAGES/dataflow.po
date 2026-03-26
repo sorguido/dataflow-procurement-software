@@ -3047,6 +3047,9 @@ msgstr "Termini Pagamento Attuali (giorni): *"
 msgid "Termini Pagamento Negoziati (giorni): *"
 msgstr "Termini Pagamento Negoziati (giorni): *"
 
+msgid "Financial Impact (% per 30 days):"
+msgstr "Financial Impact (% per 30 giorni):"
+
 msgid "Driver:"
 msgstr "Driver:"
 
@@ -3124,6 +3127,12 @@ msgstr "Termini Pagamento Negoziati deve essere un numero intero valido."
 
 msgid "Termini negoziati ({}) inferiori a termini attuali ({}).\nQuesto genera un impatto negativo (peggioramento dilazione).\n\nConfermi di voler procedere?"
 msgstr "Termini negoziati ({}) inferiori a termini attuali ({}).\nQuesto genera un impatto negativo (peggioramento dilazione).\n\nConfermi di voler procedere?"
+
+msgid "Financial Impact non valido. Usare solo numeri con virgola (es. 0,50)."
+msgstr "Financial Impact non valido. Usare solo numeri con virgola (es. 0,50)."
+
+msgid "Financial Impact deve essere maggiore di zero."
+msgstr "Financial Impact deve essere maggiore di zero."
 
 msgid "Importo Richiesto Iniziale non valido. Usare solo numeri con virgola (es. 1,23)."
 msgstr "Importo Richiesto Iniziale non valido. Usare solo numeri con virgola (es. 1,23)."

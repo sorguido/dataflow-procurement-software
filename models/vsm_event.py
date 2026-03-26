@@ -69,6 +69,7 @@ class VSMEvent:
     giorni_pagamento_attuali: Optional[int] = None
     giorni_pagamento_negoziati: Optional[int] = None
     spending_annuo: float = 0.0
+    payments_rate: Optional[float] = None  # % per 30 giorni (es. 0.5 = 0.5%), None = usa config
     
     # Flags
     opex_ripetitivo: bool = False
@@ -129,6 +130,7 @@ class VSMEvent:
             'giorni_pagamento_attuali': self.giorni_pagamento_attuali,
             'giorni_pagamento_negoziati': self.giorni_pagamento_negoziati,
             'spending_annuo': self.spending_annuo,
+            'payments_rate': self.payments_rate,
             'opex_ripetitivo': self.opex_ripetitivo,
             'note': self.note,
             'created_at': self.created_at.isoformat() if self.created_at else None,
@@ -172,8 +174,11 @@ class VSMEvent:
                 # Delta giorni: positivo se dilazione aumenta (saving), negativo se peggiora
                 delta_giorni = self.giorni_pagamento_negoziati - self.giorni_pagamento_attuali
                 
-                # Coefficiente costo opportunità da config
-                coefficiente = get_pagamenti_coefficient()
+                # Coefficiente costo opportunità: da evento se salvato, altrimenti da config
+                if self.payments_rate is not None:
+                    coefficiente = self.payments_rate / 100.0
+                else:
+                    coefficiente = get_pagamenti_coefficient()
                 
                 # Formula: spending_annuo * (delta_giorni / 30) * coefficiente
                 # Coefficiente già in forma decimale (es. 0.005 = 0.5%)
@@ -214,3 +219,13 @@ class VSMEvent:
             # Pagamenti: il valore teorico è già il valore effettivo
             # (pagamenti sono accordati o non accordati, no concetto fuzzy di realizzo)
             return theoretical
+
+    @property
+    def effective_payments_rate_pct(self) -> float:
+        """
+        Ritorna il tasso di impatto Pagamenti in percentuale (es. 0.5 per 0.5%).
+        Usa payments_rate se salvato nell'evento, altrimenti usa il valore da config.
+        """
+        if self.payments_rate is not None:
+            return self.payments_rate
+        return get_pagamenti_coefficient() * 100.0
