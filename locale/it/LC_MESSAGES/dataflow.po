@@ -2996,3 +2996,155 @@ msgid ""
 msgstr ""
 "Impossibile creare backup:\n"
 "{}"
+
+# === VSM Event Dialog Translations ===
+
+msgid "Nuovo Evento VSM"
+msgstr "Nuovo Evento VSM"
+
+msgid "Modifica Evento VSM"
+msgstr "Modifica Evento VSM"
+
+msgid "Informazioni Generali"
+msgstr "Informazioni Generali"
+
+msgid "Data Evento: *"
+msgstr "Data Evento: *"
+
+msgid "Tipo Evento:"
+msgstr "Tipo Evento:"
+
+msgid "Azione:"
+msgstr "Azione:"
+
+msgid "User:"
+msgstr "User:"
+
+msgid "Descrizione"
+msgstr "Descrizione"
+
+msgid "Dati Economici"
+msgstr "Dati Economici"
+
+msgid "Importo a Budget: *"
+msgstr "Importo a Budget: *"
+
+msgid "Importo Richiesto Iniziale: *"
+msgstr "Importo Richiesto Iniziale: *"
+
+msgid "Importo Negoziato: *"
+msgstr "Importo Negoziato: *"
+
+msgid "% Realizzo:"
+msgstr "% Realizzo:"
+
+msgid "Spending Annuo (€): *"
+msgstr "Spending Annuo (€): *"
+
+msgid "Termini Pagamento Attuali (giorni): *"
+msgstr "Termini Pagamento Attuali (giorni): *"
+
+msgid "Termini Pagamento Negoziati (giorni): *"
+msgstr "Termini Pagamento Negoziati (giorni): *"
+
+msgid "Driver:"
+msgstr "Driver:"
+
+msgid "Gli eventi Derisking non generano impatti economici.\nCompilare solo sezioni descrittive."
+msgstr "Gli eventi Derisking non generano impatti economici.\nCompilare solo sezioni descrittive."
+
+msgid "Distribuzione Valore"
+msgstr "Distribuzione Valore"
+
+msgid "OPEX Ripetitivo (distribuzione multi-mese)"
+msgstr "OPEX Ripetitivo (distribuzione multi-mese)"
+
+msgid "• Eventi ripetitivi: distribuzione fino a 24 mesi con pro-rata primo mese\n• Eventi one-shot: impatto singolo nel mese evento"
+msgstr "• Eventi ripetitivi: distribuzione fino a 24 mesi con pro-rata primo mese\n• Eventi one-shot: impatto singolo nel mese evento"
+
+msgid "❌ Annulla"
+msgstr "❌ Annulla"
+
+msgid "💾 Salva"
+msgstr "💾 Salva"
+
+msgid "Impossibile caricare l'evento:\n{}"
+msgstr "Impossibile caricare l'evento:\n{}"
+
+msgid "Data evento obbligatoria."
+msgstr "Data evento obbligatoria."
+
+msgid "Tipo evento obbligatorio."
+msgstr "Tipo evento obbligatorio."
+
+msgid "Azione obbligatoria."
+msgstr "Azione obbligatoria."
+
+msgid "Buyer obbligatorio."
+msgstr "Buyer obbligatorio."
+
+msgid "Importo a Budget deve essere un numero valido."
+msgstr "Importo a Budget deve essere un numero valido."
+
+msgid "Importo Negoziato deve essere un numero valido."
+msgstr "Importo Negoziato deve essere un numero valido."
+
+msgid "% Realizzo deve essere tra 0 e 100."
+msgstr "% Realizzo deve essere tra 0 e 100."
+
+msgid "% Realizzo debe essere un numero valido."
+msgstr "% Realizzo debe essere un numero valido."
+
+msgid "Spending Annuo deve essere positivo."
+msgstr "Spending Annuo deve essere positivo."
+
+msgid "Spending Annuo deve essere un numero valido."
+msgstr "Spending Annuo deve essere un numero valido."
+
+msgid "Termini Pagamento Attuali non possono essere negativi."
+msgstr "Termini Pagamento Attuali non possono essere negativi."
+
+msgid "Termini Pagamento Attuali deve essere un numero intero valido."
+msgstr "Termini Pagamento Attuali deve essere un numero intero valido."
+
+msgid "Termini Pagamento Negoziati non possono essere negativi."
+msgstr "Termini Pagamento Negoziati non possono essere negativi."
+
+msgid "Termini Pagamento Negoziati deve essere un numero intero valido."
+msgstr "Termini Pagamento Negoziati deve essere un numero intero valido."
+
+msgid "Termini negoziati ({}) inferiori a termini attuali ({}).\nQuesto genera un impatto negativo (peggioramento dilazione).\n\nConfermi di voler procedere?"
+msgstr "Termini negoziati ({}) inferiori a termini attuali ({}).\nQuesto genera un impatto negativo (peggioramento dilazione).\n\nConfermi di voler procedere?"
+
+msgid "Importo Richiesto Iniziale deve essere un numero valido."
+msgstr "Importo Richiesto Iniziale deve essere un numero valido."
+
+msgid "Evento VSM aggiornato con successo."
+msgstr "Evento VSM aggiornato con successo."
+
+msgid "Evento VSM creato con successo."
+msgstr "Evento VSM creato con successo."
+
+msgid "Successo"
+msgstr "Successo"
+
+msgid "Validazione"
+msgstr "Validazione"
+
+msgid "Impossibile salvare l'evento:\n{}"
+msgstr "Impossibile salvare l'evento:\n{}"
+
+msgid "Errore inatteso:\n{}"
+msgstr "Errore inatteso:\n{}"
+
+msgid "Negoziazione"
+msgstr "Negoziazione"
+
+msgid "Altro"
+msgstr "Altro"
+
+msgid "Prezzo"
+msgstr "Prezzo"
+
+msgid "Pagamenti"
+msgstr "Pagamenti"
