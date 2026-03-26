@@ -104,24 +104,15 @@ class VSMEventDialog(tk.Toplevel):
         )
         self.entry_date.grid(row=0, column=1, sticky="w", pady=5)
         
-        # Tipo Evento
-        ttk.Label(general_frame, text=_("Tipo Evento: *")).grid(row=1, column=0, sticky="w", padx=(0, 10), pady=5)
-        self.combo_event_type = ttk.Combobox(
+        # Tipo Evento (pre-condizionato dal tab attivo, non modificabile)
+        ttk.Label(general_frame, text=_("Tipo Evento:")).grid(row=1, column=0, sticky="w", padx=(0, 10), pady=5)
+        self.entry_event_type = ttk.Entry(
             general_frame,
             textvariable=self.event_type_var,
-            values=["Saving", "Cost Avoidance", "Derisking"],
-            state="readonly",
-            width=20
+            state="disabled",
+            width=22
         )
-        self.combo_event_type.grid(row=1, column=1, sticky="w", pady=5)
-        
-        # Blocca interazione utente: campo pre-condizionato dal tab attivo
-        # Impedisce apertura dropdown e input tastiera mantenendo resa visiva normale
-        self.combo_event_type.bind("<Button-1>", lambda e: "break")  # Blocca click sinistro
-        self.combo_event_type.bind("<space>", lambda e: "break")     # Blocca spazio
-        self.combo_event_type.bind("<Down>", lambda e: "break")      # Blocca freccia giù
-        self.combo_event_type.bind("<Up>", lambda e: "break")        # Blocca freccia su
-        self.combo_event_type.bind("<<ComboboxSelected>>", lambda e: self._on_event_type_changed())
+        self.entry_event_type.grid(row=1, column=1, sticky="w", pady=5)
         
         # Azione
         ttk.Label(general_frame, text=_("Azione: *")).grid(row=2, column=0, sticky="w", padx=(0, 10), pady=5)
