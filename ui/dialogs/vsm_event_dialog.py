@@ -130,7 +130,7 @@ class VSMEventDialog(tk.Toplevel):
         self.entry_event_type.grid(row=1, column=1, sticky="w", pady=5)
         
         # Azione
-        ttk.Label(general_frame, text=_("Azione: *")).grid(row=2, column=0, sticky="w", padx=(0, 10), pady=5)
+        ttk.Label(general_frame, text=_("Azione:")).grid(row=2, column=0, sticky="w", padx=(0, 10), pady=5)
         self.combo_action = ttk.Combobox(
             general_frame,
             textvariable=self.action_var,
@@ -139,6 +139,13 @@ class VSMEventDialog(tk.Toplevel):
             width=20
         )
         self.combo_action.grid(row=2, column=1, sticky="w", pady=5)
+        # Entry per Azione (stesso sistema di Tipo Evento, usato in modalità Derisking)
+        self.entry_action = ttk.Entry(
+            general_frame,
+            textvariable=self.action_var,
+            state="disabled",
+            width=22
+        )
         
         # User (auto-valorizzato con username corrente, non modificabile)
         ttk.Label(general_frame, text=_("User:")).grid(row=3, column=0, sticky="w", padx=(0, 10), pady=5)
@@ -280,6 +287,9 @@ class VSMEventDialog(tk.Toplevel):
             self.combo_driver.grid(row=1, column=1, sticky="w", pady=5)
             # Call driver handler to position appropriate sub-frame at row 0
             self._on_driver_changed()
+            # Mostra Combobox Azione, nascondi Entry
+            self.combo_action.grid()
+            self.entry_action.grid_remove()
         
         elif event_type == "Cost Avoidance":
             # Cost Avoidance: show driver combo (row 1) and delegate field layout to _on_driver_changed
@@ -287,10 +297,17 @@ class VSMEventDialog(tk.Toplevel):
             self.combo_driver.grid(row=1, column=1, sticky="w", pady=5)
             # Call driver handler to position appropriate sub-frame at row 0
             self._on_driver_changed()
+            # Mostra Combobox Azione, nascondi Entry
+            self.combo_action.grid()
+            self.entry_action.grid_remove()
         
         elif event_type == "Derisking":
             # Derisking: show info label only
             self.lbl_derisking_info.grid(row=0, column=0, columnspan=2, sticky="w", pady=5)
+            # Mostra Entry Azione (stesso sistema di Tipo Evento), nascondi Combobox
+            self.action_var.set("Derisking")
+            self.combo_action.grid_remove()
+            self.entry_action.grid(row=2, column=1, sticky="w", pady=5)
     
     def _on_opex_changed(self):
         """Handler per cambio checkbox OPEX ripetitivo (future enhancement)."""
@@ -375,7 +392,14 @@ class VSMEventDialog(tk.Toplevel):
                 self.entry_date.set_date(event.event_date)
             
             self.event_type_var.set(event.event_type)
-            self.action_var.set(event.action)
+            
+            # Gestione campo Azione: forza coerenza per eventi Derisking
+            if event.event_type == "Derisking":
+                # Se evento Derisking, forza action a "Derisking" indipendentemente dal valore DB
+                self.action_var.set("Derisking")
+            else:
+                self.action_var.set(event.action)
+            
             # Campo User già popolato con current_username in __init__, non sovrascrivere
             
             self.text_description.insert("1.0", event.description)
