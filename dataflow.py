@@ -4364,16 +4364,16 @@ class MainWindow:
             n_cols = 10
         else:
             headers = [
-                _("Data"), _("Tipo"), _("Azione"), _("Descrizione"),
+                _("Data"), _("Tipo"), _("Azione"), _("Nuovo Fornitore"), _("Descrizione"),
                 _("Valore Teorico"), _("Realizzo %"), _("Ripetitivo"), _("Utente")
             ]
-            align_cols = [0, 1, 2, 4, 5, 6, 7]
-            n_cols = 8
+            align_cols = [0, 1, 2, 3, 5, 6, 7, 8]
+            n_cols = 9
         
         # Calcola larghezze colonne dinamicamente dall'header (eccetto Descrizione, indice 3)
         # Usa il font degli header (Calibri 11 bold) per misurare il testo reale visualizzato
         _HEADER_PADDING = 30  # px extra per evitare header troppo "tirati"
-        _DESC_COL_IDX = 3
+        _DESC_COL_IDX = 4 if event_type is None else 3  # Derisking: New Supplier a col 3, Description a col 4
         _DESC_COL_WIDTH = 400
         _ACTION_COL_IDX = 2
         _ACTION_MIN_WIDTH = 150  # "Negoziazione" è il valore più lungo atteso (~115px + padding)
@@ -4535,6 +4535,7 @@ class MainWindow:
                     event.event_date.strftime("%d/%m/%Y") if event.event_date else "",
                     event.event_type,
                     _(event.action),
+                    event.new_supplier or "",
                     (event.description or event.reference or "")[:50],
                     format_currency_display(valore_teorico),
                     f"{event.percent_realizzo:.0f}%",
@@ -6515,7 +6516,7 @@ class MainWindow:
                 headers = ["Data", "Tipo", "Azione", "Descrizione",
                            "CA Teorico", "CA Effettivo", "Realizzo %", "Variance %", "Ripetitivo", "Utente"]
             else:  # Derisking
-                headers = ["Data", "Tipo", "Azione", "Descrizione",
+                headers = ["Data", "Tipo", "Azione", "Nuovo Fornitore", "Descrizione",
                            "Valore Teorico", "Realizzo %", "Ripetitivo", "Utente"]
         else:
             if event_type == "Saving":
@@ -6525,7 +6526,7 @@ class MainWindow:
                 headers = ["Date", "Type", "Action", "Description",
                            "CA Theoretical", "CA Actual", "Realization %", "Variance %", "Repetitive", "User"]
             else:  # Derisking
-                headers = ["Date", "Type", "Action", "Description",
+                headers = ["Date", "Type", "Action", "New Supplier", "Description",
                            "Theoretical Value", "Realization %", "Repetitive", "User"]
 
         # 4. Costruzione righe con valori numerici raw (nessun simbolo €, nessuna formattazione display)
@@ -6559,7 +6560,9 @@ class MainWindow:
                 ]
             else:  # Derisking
                 row = [
-                    date_str, event.event_type, action_str, desc,
+                    date_str, event.event_type, action_str,
+                    event.new_supplier or "",
+                    desc,
                     round(valore_teorico, 2),
                     round(event.percent_realizzo, 1),
                     "✓" if event.opex_ripetitivo else "", event.username
@@ -6586,9 +6589,9 @@ class MainWindow:
             cell.alignment = Alignment(horizontal='center')
 
         # Indici colonne monetarie e percentuali per number_format (1-based)
-        monetary_cols = {5, 6} if use_dual else {5}
-        pct_cols = {7, 8} if use_dual else {6}
-        rep_col = 9 if use_dual else 7  # Colonna "Ripetitivo/Repetitive" (1-based)
+        monetary_cols = {5, 6} if use_dual else {6}
+        pct_cols = {7, 8} if use_dual else {7}
+        rep_col = 9 if use_dual else 8  # Colonna "Ripetitivo/Repetitive" (1-based)
 
         for row_idx, row_data in enumerate(data_rows, start=2):
             for col_idx, value in enumerate(row_data, start=1):

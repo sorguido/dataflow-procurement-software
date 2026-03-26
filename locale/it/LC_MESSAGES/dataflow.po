@@ -3053,6 +3053,9 @@ msgstr "Financial Impact (% per 30 giorni):"
 msgid "New Supplier Introduced"
 msgstr "Nuovo Fornitore Introdotto"
 
+msgid "Nuovo Fornitore"
+msgstr "Nuovo Fornitore"
+
 msgid "Driver:"
 msgstr "Driver:"
 
