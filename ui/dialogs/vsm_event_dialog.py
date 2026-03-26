@@ -347,20 +347,20 @@ class VSMEventDialog(tk.Toplevel):
         self.lbl_derisking_info.grid_remove()
         
         if event_type == "Saving":
-            # Saving: show driver combo (row 1) and delegate field layout to _on_driver_changed
-            self.lbl_driver.grid(row=1, column=0, sticky="w", padx=(0, 10), pady=5)
-            self.combo_driver.grid(row=1, column=1, sticky="w", pady=5)
-            # Call driver handler to position appropriate sub-frame at row 0
+            # Saving: show driver combo (row 0) and delegate field layout to _on_driver_changed
+            self.lbl_driver.grid(row=0, column=0, sticky="w", padx=(0, 10), pady=5)
+            self.combo_driver.grid(row=0, column=1, sticky="w", pady=5)
+            # Call driver handler to position appropriate sub-frame at row 1
             self._on_driver_changed()
             # Mostra Combobox Azione, nascondi Entry
             self.combo_action.grid()
             self.entry_action.grid_remove()
         
         elif event_type == "Cost Avoidance":
-            # Cost Avoidance: show driver combo (row 1) and delegate field layout to _on_driver_changed
-            self.lbl_driver.grid(row=1, column=0, sticky="w", padx=(0, 10), pady=5)
-            self.combo_driver.grid(row=1, column=1, sticky="w", pady=5)
-            # Call driver handler to position appropriate sub-frame at row 0
+            # Cost Avoidance: show driver combo (row 0) and delegate field layout to _on_driver_changed
+            self.lbl_driver.grid(row=0, column=0, sticky="w", padx=(0, 10), pady=5)
+            self.combo_driver.grid(row=0, column=1, sticky="w", pady=5)
+            # Call driver handler to position appropriate sub-frame at row 1
             self._on_driver_changed()
             # Mostra Combobox Azione, nascondi Entry
             self.combo_action.grid()
@@ -397,8 +397,8 @@ class VSMEventDialog(tk.Toplevel):
         self.payment_fields_frame.grid_remove()
         
         if driver_internal == "Prezzo":
-            # Show price fields frame at row 0
-            self.price_fields_frame.grid(row=0, column=0, columnspan=2, sticky="ew", pady=(0, 10))
+            # Show price fields frame at row 1
+            self.price_fields_frame.grid(row=1, column=0, columnspan=2, sticky="ew", pady=(0, 10))
             
             # Layout widgets inside price_fields_frame based on event_type
             if event_type == "Saving":
@@ -436,8 +436,8 @@ class VSMEventDialog(tk.Toplevel):
                 self.entry_importo_bdg.grid_remove()
             
         elif driver_internal == "Pagamenti":
-            # Show payment fields frame at row 0 (SAME position as price frame)
-            self.payment_fields_frame.grid(row=0, column=0, columnspan=2, sticky="ew", pady=(0, 10))
+            # Show payment fields frame at row 1 (SAME position as price frame)
+            self.payment_fields_frame.grid(row=1, column=0, columnspan=2, sticky="ew", pady=(0, 10))
             
             # Layout widgets inside payment_fields_frame
             self.lbl_spending_annuo.grid(row=0, column=0, sticky="w", padx=(0, 10), pady=5)
