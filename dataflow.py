@@ -4375,20 +4375,35 @@ class MainWindow:
         _HEADER_PADDING = 30  # px extra per evitare header troppo "tirati"
         _DESC_COL_IDX = 4 if event_type is None else 3  # Derisking: New Supplier a col 3, Description a col 4
         _DESC_COL_WIDTH = 400
+        _DATE_COL_IDX = 0
         _ACTION_COL_IDX = 2
         _ACTION_MIN_WIDTH = 150  # "Negoziazione" è il valore più lungo atteso (~115px + padding)
+        _TYPE_COL_IDX = 1
+        # New Supplier solo nel tab Derisking (event_type=None), in colonna 3
+        _NEW_SUPPLIER_COL_IDX = 3 if event_type is None else None
         try:
             import tkinter.font as tkfont
             _hfont = tkfont.Font(family="Calibri", size=11, weight="bold")
+            _cfont = tkfont.Font(family="Calibri", size=11)  # font celle (normal)
+            # Larghezze minime ricavate da colonne di riferimento già ben calibrate:
+            # - "Data": spazio per "dd/mm/YYYY" (contenuto celle) + padding
+            # - "Tipo" deve contenere "Derisking" → larghezza ≥ colonna "Realizzo %"
+            # - "Nuovo Fornitore" ha contenuto medio → larghezza ≥ colonna "Valore Teorico"
+            _date_min = _cfont.measure("dd/mm/YYYY") + _HEADER_PADDING
+            _type_min = _hfont.measure(_("Realizzo %")) + _HEADER_PADDING
+            _new_supplier_min = _hfont.measure(_("Valore Teorico")) + _HEADER_PADDING
             col_widths = [
                 _DESC_COL_WIDTH if i == _DESC_COL_IDX
+                else max(_date_min, _hfont.measure(h) + _HEADER_PADDING) if i == _DATE_COL_IDX
                 else max(_ACTION_MIN_WIDTH, _hfont.measure(h) + _HEADER_PADDING) if i == _ACTION_COL_IDX
+                else max(_type_min, _hfont.measure(h) + _HEADER_PADDING) if i == _TYPE_COL_IDX
+                else max(_new_supplier_min, _hfont.measure(h) + _HEADER_PADDING) if i == _NEW_SUPPLIER_COL_IDX
                 else max(60, _hfont.measure(h) + _HEADER_PADDING)
                 for i, h in enumerate(headers)
             ]
         except Exception:
             # Fallback conservativo alle larghezze originali se tkfont non disponibile
-            col_widths = [400 if i == _DESC_COL_IDX else 150 if i == _ACTION_COL_IDX else 120 for i in range(len(headers))]
+            col_widths = [400 if i == _DESC_COL_IDX else 150 if i in (_ACTION_COL_IDX, _TYPE_COL_IDX) else 120 for i in range(len(headers))]
 
         # Crea widget tksheet con colonne VSM
         sheet = Sheet(
