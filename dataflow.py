@@ -72,7 +72,7 @@ from constants import (
 
 # Importa utility stringhe e formattazione
 from utils.string_utils import generate_username
-from utils.format_utils import parse_float_from_comma_string, format_quantity_display
+from utils.format_utils import parse_float_from_comma_string, format_quantity_display, format_currency_display
 from utils.window_utils import calculate_center_position, calculate_optimal_window_size, center_window
 from utils.user_utils import get_app_data_dir, get_config_file, load_user_identity, save_user_identity
 from utils.resource_utils import resource_path, set_window_icon
@@ -4350,29 +4350,46 @@ class MainWindow:
             headers = [
                 _("Data"), _("Tipo"), _("Azione"), _("Descrizione"),
                 _("Theoretical Savings"), _("Actual Savings"),
-                _("Realizzo %"), _("Ripetitivo"), _("Utente")
+                _("Realizzo %"), _("Variance %"), _("Ripetitivo"), _("Utente")
             ]
-            col_widths = [100, 120, 120, 400, 120, 120, 90, 90, 140]
-            align_cols = [0, 1, 2, 4, 5, 6, 7, 8]
-            n_cols = 9
+            align_cols = [0, 1, 2, 4, 5, 6, 7, 8, 9]
+            n_cols = 10
         elif event_type == "Cost Avoidance":
             headers = [
                 _("Data"), _("Tipo"), _("Azione"), _("Descrizione"),
                 _("CA Theoretical"), _("CA Actual"),
-                _("Realizzo %"), _("Ripetitivo"), _("Utente")
+                _("Realizzo %"), _("Variance %"), _("Ripetitivo"), _("Utente")
             ]
-            col_widths = [100, 120, 120, 400, 120, 120, 90, 90, 140]
-            align_cols = [0, 1, 2, 4, 5, 6, 7, 8]
-            n_cols = 9
+            align_cols = [0, 1, 2, 4, 5, 6, 7, 8, 9]
+            n_cols = 10
         else:
             headers = [
                 _("Data"), _("Tipo"), _("Azione"), _("Descrizione"),
                 _("Valore Teorico"), _("Realizzo %"), _("Ripetitivo"), _("Utente")
             ]
-            col_widths = [100, 120, 120, 400, 120, 90, 90, 140]
             align_cols = [0, 1, 2, 4, 5, 6, 7]
             n_cols = 8
         
+        # Calcola larghezze colonne dinamicamente dall'header (eccetto Descrizione, indice 3)
+        # Usa il font degli header (Calibri 11 bold) per misurare il testo reale visualizzato
+        _HEADER_PADDING = 30  # px extra per evitare header troppo "tirati"
+        _DESC_COL_IDX = 3
+        _DESC_COL_WIDTH = 400
+        _ACTION_COL_IDX = 2
+        _ACTION_MIN_WIDTH = 150  # "Negoziazione" è il valore più lungo atteso (~115px + padding)
+        try:
+            import tkinter.font as tkfont
+            _hfont = tkfont.Font(family="Calibri", size=11, weight="bold")
+            col_widths = [
+                _DESC_COL_WIDTH if i == _DESC_COL_IDX
+                else max(_ACTION_MIN_WIDTH, _hfont.measure(h) + _HEADER_PADDING) if i == _ACTION_COL_IDX
+                else max(60, _hfont.measure(h) + _HEADER_PADDING)
+                for i, h in enumerate(headers)
+            ]
+        except Exception:
+            # Fallback conservativo alle larghezze originali se tkfont non disponibile
+            col_widths = [400 if i == _DESC_COL_IDX else 150 if i == _ACTION_COL_IDX else 120 for i in range(len(headers))]
+
         # Crea widget tksheet con colonne VSM
         sheet = Sheet(
             frame,
@@ -4386,6 +4403,9 @@ class MainWindow:
         
         # Salva il tipo di tab per uso in _populate_vsm_sheet
         sheet._vsm_event_type = event_type
+        
+        # Salva larghezze calcolate per riapplicarle dopo set_sheet_data()
+        sheet._vsm_col_widths = col_widths
         
         # Configura larghezze colonne
         sheet.set_column_widths(col_widths)
@@ -4475,14 +4495,26 @@ class MainWindow:
             
             if use_dual_value:
                 valore_effettivo = event.calculate_effective_value()
+                # Variance % = (baseline - negoziato) / baseline * 100
+                # Saving usa importo_bdg; Cost Avoidance usa importo_richiesto_iniziale
+                if event_type == "Cost Avoidance":
+                    _baseline = event.importo_richiesto_iniziale or 0.0
+                else:
+                    _baseline = event.importo_bdg or 0.0
+                if _baseline != 0.0:
+                    _variance_pct = (_baseline - (event.importo_negoziato or 0.0)) / _baseline * 100
+                    _variance_str = f"{_variance_pct:.1f}%"
+                else:
+                    _variance_str = "0%"
                 row = [
                     event.event_date.strftime("%d/%m/%Y") if event.event_date else "",
                     event.event_type,
-                    event.action,
+                    _(event.action),
                     (event.description or event.reference or "")[:50],
-                    f"€ {valore_teorico:,.2f}",
-                    f"€ {valore_effettivo:,.2f}",
+                    format_currency_display(valore_teorico),
+                    format_currency_display(valore_effettivo),
                     f"{event.percent_realizzo:.0f}%",
+                    _variance_str,
                     "✓" if event.opex_ripetitivo else "",
                     event.username
                 ]
@@ -4490,9 +4522,9 @@ class MainWindow:
                 row = [
                     event.event_date.strftime("%d/%m/%Y") if event.event_date else "",
                     event.event_type,
-                    event.action,
+                    _(event.action),
                     (event.description or event.reference or "")[:50],
-                    f"€ {valore_teorico:,.2f}",
+                    format_currency_display(valore_teorico),
                     f"{event.percent_realizzo:.0f}%",
                     "✓" if event.opex_ripetitivo else "",
                     event.username
@@ -4511,10 +4543,12 @@ class MainWindow:
         sheet._event_metadata = metadata
         
         # Riapplica larghezze colonne (set_sheet_data le resetta)
-        if use_dual_value:
-            sheet.set_column_widths([100, 120, 120, 400, 120, 120, 90, 90, 140])
-        else:
-            sheet.set_column_widths([100, 120, 120, 400, 120, 90, 90, 140])
+        # Usa le larghezze calcolate dinamicamente dall'header in _create_vsm_event_sheet
+        col_widths = getattr(sheet, '_vsm_col_widths', None)
+        if col_widths is None:
+            # Fallback conservativo se lo sheet non ha le larghezze salvate
+            col_widths = [400 if i == 3 else 120 for i in range(10 if use_dual_value else 8)]
+        sheet.set_column_widths(col_widths)
 
     # ===========================
     # Step 4D.3: VSM CRUD Handlers (implementazione completa)

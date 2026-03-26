@@ -3167,6 +3167,9 @@ msgstr "Azione"
 msgid "Realizzo %"
 msgstr "Realizzo %"
 
+msgid "Variance %"
+msgstr "Variance %"
+
 msgid "Ripetitivo"
 msgstr "Ripetitivo"
 
