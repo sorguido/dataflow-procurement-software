@@ -4,7 +4,7 @@ Form dinamico che mostra solo campi pertinenti al tipo evento selezionato.
 """
 
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import ttk
 from tkcalendar import DateEntry
 import logging
 from datetime import datetime
@@ -28,7 +28,10 @@ from utils.window_utils import center_window
 from models.vsm_event import VSMEvent
 
 # Import custom dialog per messaggi uniformi
-from ui.dialogs.common_dialogs import SimpleMessageDialog
+from ui.dialogs.common_dialogs import SimpleMessageDialog, SimpleYesNoDialog
+
+# Import per validazione importi con formato virgola
+from utils.format_utils import parse_float_from_comma_string
 
 logger = logging.getLogger(__name__)
 
@@ -505,10 +508,11 @@ class VSMEventDialog(tk.Toplevel):
         
         except Exception as e:
             logger.error(f"Errore caricamento evento {self.event_id}: {e}", exc_info=True)
-            messagebox.showerror(
+            SimpleMessageDialog(
+                self,
                 _("Errore"),
                 _("Impossibile caricare l'evento:\n{}").format(e),
-                parent=self
+                "error"
             )
             self.destroy()
     
@@ -551,34 +555,30 @@ class VSMEventDialog(tk.Toplevel):
             if event_type == "Saving":
                 # Validazioni specifiche per driver
                 if driver == "Prezzo":
-                    # Driver Prezzo: valida importi
+                    # Driver Prezzo: valida importi (solo numeri con virgola, es. 1,23)
                     try:
-                        importo_bdg = float(self.entry_importo_bdg.get().strip())
+                        importo_bdg = parse_float_from_comma_string(self.entry_importo_bdg.get().strip())
                     except ValueError:
-                        raise ValueError(_("Importo a Budget deve essere un numero valido."))
+                        raise ValueError(_("Importo a Budget non valido. Usare solo numeri con virgola (es. 1,23)."))
                     
                     try:
-                        importo_negoziato = float(self.entry_importo_negoziato.get().strip())
+                        importo_negoziato = parse_float_from_comma_string(self.entry_importo_negoziato.get().strip())
                     except ValueError:
-                        raise ValueError(_("Importo Negoziato deve essere un numero valido."))
+                        raise ValueError(_("Importo Negoziato non valido. Usare solo numeri con virgola (es. 1,23)."))
                     
                     try:
-                        quantita_annua = float(self.entry_quantita_annua.get().strip())
-                        if quantita_annua <= 0:
-                            raise ValueError(_("Annual Q.ty deve essere maggiore di zero."))
-                    except ValueError as e:
-                        if "could not convert" in str(e):
-                            raise ValueError(_("Annual Q.ty deve essere un numero valido."))
-                        raise
+                        quantita_annua = parse_float_from_comma_string(self.entry_quantita_annua.get().strip())
+                    except ValueError:
+                        raise ValueError(_("Annual Q.ty non valido. Usare solo numeri con virgola (es. 1,5)."))
+                    if quantita_annua <= 0:
+                        raise ValueError(_("Annual Q.ty deve essere maggiore di zero."))
                     
                     try:
-                        percent_realizzo = float(self.entry_percent_realizzo.get().strip())
-                        if not (0 <= percent_realizzo <= 100):
-                            raise ValueError(_("% Realizzo deve essere tra 0 e 100."))
-                    except ValueError as e:
-                        if "could not convert" in str(e):
-                            raise ValueError(_("% Realizzo debe essere un numero valido."))
-                        raise
+                        percent_realizzo = parse_float_from_comma_string(self.entry_percent_realizzo.get().strip())
+                    except ValueError:
+                        raise ValueError(_("% Realizzo non valido. Usare solo numeri con virgola (es. 99,5)."))
+                    if not (0 <= percent_realizzo <= 100):
+                        raise ValueError(_("% Realizzo deve essere tra 0 e 100."))
                     
                     # Campi Pagamenti a NULL
                     spending_annuo = None
@@ -588,13 +588,11 @@ class VSMEventDialog(tk.Toplevel):
                 elif driver == "Pagamenti":
                     # Driver Pagamenti: valida spending e giorni
                     try:
-                        spending_annuo = float(self.entry_spending_annuo.get().strip())
-                        if spending_annuo <= 0:
-                            raise ValueError(_("Spending Annuo deve essere positivo."))
-                    except ValueError as e:
-                        if "could not convert" in str(e):
-                            raise ValueError(_("Spending Annuo deve essere un numero valido."))
-                        raise
+                        spending_annuo = parse_float_from_comma_string(self.entry_spending_annuo.get().strip())
+                    except ValueError:
+                        raise ValueError(_("Spending Annuo non valido. Usare solo numeri con virgola (es. 100000,00)."))
+                    if spending_annuo <= 0:
+                        raise ValueError(_("Spending Annuo deve essere positivo."))
                     
                     try:
                         giorni_pagamento_attuali = int(self.entry_giorni_attuali.get().strip())
@@ -616,17 +614,16 @@ class VSMEventDialog(tk.Toplevel):
                     
                     # Warning opzionale se delta negativo (peggioramento)
                     if giorni_pagamento_negoziati < giorni_pagamento_attuali:
-                        risposta = messagebox.askyesno(
+                        risposta = SimpleYesNoDialog(
+                            self,
                             _("Attenzione"),
                             _("Termini negoziati ({}) inferiori a termini attuali ({}).\n"
                               "Questo genera un impatto negativo (peggioramento dilazione).\n\n"
                               "Confermi di voler procedere?").format(
                                   giorni_pagamento_negoziati,
                                   giorni_pagamento_attuali
-                              ),
-                            icon='warning',
-                            parent=self
-                        )
+                              )
+                        ).result
                         if not risposta:
                             return
                     
@@ -642,37 +639,33 @@ class VSMEventDialog(tk.Toplevel):
             elif event_type == "Cost Avoidance":
                 # Cost Avoidance richiede importo_richiesto_iniziale e importo_negoziato
                 try:
-                    importo_richiesto_iniziale = float(self.entry_importo_richiesto.get().strip())
+                    importo_richiesto_iniziale = parse_float_from_comma_string(self.entry_importo_richiesto.get().strip())
                 except ValueError:
-                    raise ValueError(_("Importo Richiesto Iniziale deve essere un numero valido."))
+                    raise ValueError(_("Importo Richiesto Iniziale non valido. Usare solo numeri con virgola (es. 1,23)."))
                 
                 try:
-                    importo_negoziato = float(self.entry_importo_negoziato.get().strip())
+                    importo_negoziato = parse_float_from_comma_string(self.entry_importo_negoziato.get().strip())
                 except ValueError:
-                    raise ValueError(_("Importo Negoziato deve essere un numero valido."))
+                    raise ValueError(_("Importo Negoziato non valido. Usare solo numeri con virgola (es. 1,23)."))
                 
                 # Annual Q.ty for driver Prezzo
                 if driver == "Prezzo":
                     try:
-                        quantita_annua = float(self.entry_quantita_annua.get().strip())
-                        if quantita_annua <= 0:
-                            raise ValueError(_("Annual Q.ty deve essere maggiore di zero."))
-                    except ValueError as e:
-                        if "could not convert" in str(e):
-                            raise ValueError(_("Annual Q.ty deve essere un numero valido."))
-                        raise
+                        quantita_annua = parse_float_from_comma_string(self.entry_quantita_annua.get().strip())
+                    except ValueError:
+                        raise ValueError(_("Annual Q.ty non valido. Usare solo numeri con virgola (es. 1,5)."))
+                    if quantita_annua <= 0:
+                        raise ValueError(_("Annual Q.ty deve essere maggiore di zero."))
                 else:
                     quantita_annua = 0.0  # Not used for non-Prezzo drivers
                 
                 # Cost Avoidance sempre con percent_realizzo
                 try:
-                    percent_realizzo = float(self.entry_percent_realizzo.get().strip())
-                    if not (0 <= percent_realizzo <= 100):
-                        raise ValueError(_("% Realizzo deve essere tra 0 e 100."))
-                except ValueError as e:
-                    if "could not convert" in str(e):
-                        raise ValueError(_("% Realizzo debe essere un numero valido."))
-                    raise
+                    percent_realizzo = parse_float_from_comma_string(self.entry_percent_realizzo.get().strip())
+                except ValueError:
+                    raise ValueError(_("% Realizzo non valido. Usare solo numeri con virgola (es. 99,5)."))
+                if not (0 <= percent_realizzo <= 100):
+                    raise ValueError(_("% Realizzo deve essere tra 0 e 100."))
             
             # Flags
             opex_ripetitivo = self.opex_ripetitivo_var.get()
@@ -717,18 +710,20 @@ class VSMEventDialog(tk.Toplevel):
             self.destroy()
         
         except ValueError as e:
-            messagebox.showwarning(_("Validazione"), str(e), parent=self)
+            SimpleMessageDialog(self, _("Validazione"), str(e), "warning")
         except (DatabaseError, VSMError) as e:
             logger.error(f"Errore salvataggio evento VSM: {e}", exc_info=True)
-            messagebox.showerror(
+            SimpleMessageDialog(
+                self,
                 _("Errore"),
                 _("Impossibile salvare l'evento:\n{}").format(e),
-                parent=self
+                "error"
             )
         except Exception as e:
             logger.error(f"Errore inatteso salvataggio evento: {e}", exc_info=True)
-            messagebox.showerror(
+            SimpleMessageDialog(
+                self,
                 _("Errore"),
                 _("Errore inatteso:\n{}").format(e),
-                parent=self
+                "error"
             )

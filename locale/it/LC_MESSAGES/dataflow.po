@@ -3083,23 +3083,32 @@ msgstr "Azione obbligatoria."
 msgid "Buyer obbligatorio."
 msgstr "Buyer obbligatorio."
 
-msgid "Importo a Budget deve essere un numero valido."
-msgstr "Importo a Budget deve essere un numero valido."
+msgid "Importo a Budget non valido. Usare solo numeri con virgola (es. 1,23)."
+msgstr "Importo a Budget non valido. Usare solo numeri con virgola (es. 1,23)."
 
-msgid "Importo Negoziato deve essere un numero valido."
-msgstr "Importo Negoziato deve essere un numero valido."
+msgid "Importo Negoziato non valido. Usare solo numeri con virgola (es. 1,23)."
+msgstr "Importo Negoziato non valido. Usare solo numeri con virgola (es. 1,23)."
+
+msgid "Annual Q.ty:"
+msgstr "Quantità Annua:"
+
+msgid "Annual Q.ty non valido. Usare solo numeri con virgola (es. 1,5)."
+msgstr "Quantità Annua non valida. Usare solo numeri con virgola (es. 1,5)."
+
+msgid "Annual Q.ty deve essere maggiore di zero."
+msgstr "Quantità Annua deve essere maggiore di zero."
 
 msgid "% Realizzo deve essere tra 0 e 100."
 msgstr "% Realizzo deve essere tra 0 e 100."
 
-msgid "% Realizzo debe essere un numero valido."
-msgstr "% Realizzo debe essere un numero valido."
+msgid "% Realizzo non valido. Usare solo numeri con virgola (es. 99,5)."
+msgstr "% Realizzo non valido. Usare solo numeri con virgola (es. 99,5)."
 
 msgid "Spending Annuo deve essere positivo."
 msgstr "Spending Annuo deve essere positivo."
 
-msgid "Spending Annuo deve essere un numero valido."
-msgstr "Spending Annuo deve essere un numero valido."
+msgid "Spending Annuo non valido. Usare solo numeri con virgola (es. 100000,00)."
+msgstr "Spending Annuo non valido. Usare solo numeri con virgola (es. 100000,00)."
 
 msgid "Termini Pagamento Attuali non possono essere negativi."
 msgstr "Termini Pagamento Attuali non possono essere negativi."
@@ -3116,8 +3125,8 @@ msgstr "Termini Pagamento Negoziati deve essere un numero intero valido."
 msgid "Termini negoziati ({}) inferiori a termini attuali ({}).\nQuesto genera un impatto negativo (peggioramento dilazione).\n\nConfermi di voler procedere?"
 msgstr "Termini negoziati ({}) inferiori a termini attuali ({}).\nQuesto genera un impatto negativo (peggioramento dilazione).\n\nConfermi di voler procedere?"
 
-msgid "Importo Richiesto Iniziale deve essere un numero valido."
-msgstr "Importo Richiesto Iniziale deve essere un numero valido."
+msgid "Importo Richiesto Iniziale non valido. Usare solo numeri con virgola (es. 1,23)."
+msgstr "Importo Richiesto Iniziale non valido. Usare solo numeri con virgola (es. 1,23)."
 
 msgid "Evento VSM aggiornato con successo."
 msgstr "Evento VSM aggiornato con successo."
