@@ -4410,6 +4410,9 @@ class MainWindow:
         # Salva larghezze calcolate per riapplicarle dopo set_sheet_data()
         sheet._vsm_col_widths = col_widths
         
+        # Salva colonne centrate per riapplicarle dopo set_sheet_data() / set_column_widths()
+        sheet._vsm_align_cols = align_cols
+        
         # Configura larghezze colonne
         sheet.set_column_widths(col_widths)
         
@@ -4552,6 +4555,11 @@ class MainWindow:
             # Fallback conservativo se lo sheet non ha le larghezze salvate
             col_widths = [400 if i == 3 else 120 for i in range(10 if use_dual_value else 8)]
         sheet.set_column_widths(col_widths)
+        
+        # Riapplica allineamento centrato (set_sheet_data / set_column_widths lo resettano)
+        align_cols = getattr(sheet, '_vsm_align_cols', None)
+        if align_cols:
+            sheet.align_columns(columns=align_cols, align="center")
 
     # ===========================
     # Step 4D.3: VSM CRUD Handlers (implementazione completa)
@@ -6453,7 +6461,14 @@ class MainWindow:
             messagebox.showerror(_("Errore"), _("Errore durante l'esportazione: {}").format(e), parent=self.root)
 
     def _export_vsm_excel(self, status, sheet):
-        """Esporta i dati VSM del tab corrente in un file Excel."""
+        """Esporta i dati VSM del tab corrente in un file Excel.
+
+        Flusso identico a mega_export_excel:
+        1. Dialog scelta lingua (LanguagePrompt)
+        2. Re-query DB → eventi raw (valori numerici puliti, senza simbolo €)
+        3. Intestazioni basate sulla lingua scelta
+        4. Scrittura Excel con numeri float, non stringhe formattate
+        """
         status_to_event_type = {
             'vsm_saving': 'Saving',
             'vsm_cost_avoidance': 'Cost Avoidance',
@@ -6461,22 +6476,88 @@ class MainWindow:
         }
         event_type = status_to_event_type.get(status, status)
 
-        # Dati e intestazioni già disponibili sullo sheet (caricati in _populate_vsm_sheet)
-        data_rows = sheet.get_sheet_data()
-        headers = getattr(sheet, '_vsm_headers', [])
+        # 1. Scelta lingua — identico a mega_export_excel
+        prompt = LanguagePrompt(self.root)
+        self.root.wait_window(prompt)
+        lang = prompt.choice  # 'ita' o 'eng'
+        if not lang:
+            return
+        is_ita = (lang == 'ita')
 
-        if not data_rows:
-            messagebox.showwarning(
-                _("Attenzione"),
-                _("Nessun dato da esportare nella vista corrente."),
-                parent=self.root
-            )
+        # 2. Re-load eventi dal DB (stessa query di _load_vsm_events → dati raw)
+        try:
+            with DatabaseManager(get_db_path()) as db_manager:
+                all_events = db_manager.get_all_vsm_events(username=self.current_username)
+            events = [e for e in all_events if e.event_type == event_type]
+        except Exception as e:
+            logger.error(f"[export_vsm] Errore recupero eventi: {e}", exc_info=True)
+            SimpleMessageDialog(self.root, _("Errore"), _("Errore nel recupero dati: {}").format(e), "error")
             return
 
-        # Setup Excel (stesse librerie/stili del mega_export_excel RFQ)
+        if not events:
+            SimpleMessageDialog(self.root, _("Attenzione"), _("Nessun dato da esportare nella vista corrente."), "warning")
+            return
+
+        # 3. Intestazioni in base a lingua e tipo tab (hardcoded IT/EN come mega_export_excel)
+        use_dual = event_type in ("Saving", "Cost Avoidance")
+        action_map_en = {"Negoziazione": "Negotiation", "Altro": "Other"}
+        if is_ita:
+            if event_type == "Saving":
+                headers = ["Data", "Tipo", "Azione", "Descrizione",
+                           "Saving Teorico", "Saving Effettivo", "Realizzo %", "Variance %", "Ripetitivo", "Utente"]
+            elif event_type == "Cost Avoidance":
+                headers = ["Data", "Tipo", "Azione", "Descrizione",
+                           "CA Teorico", "CA Effettivo", "Realizzo %", "Variance %", "Ripetitivo", "Utente"]
+            else:  # Derisking
+                headers = ["Data", "Tipo", "Azione", "Descrizione",
+                           "Valore Teorico", "Realizzo %", "Ripetitivo", "Utente"]
+        else:
+            if event_type == "Saving":
+                headers = ["Date", "Type", "Action", "Description",
+                           "Theoretical Savings", "Actual Savings", "Realization %", "Variance %", "Repetitive", "User"]
+            elif event_type == "Cost Avoidance":
+                headers = ["Date", "Type", "Action", "Description",
+                           "CA Theoretical", "CA Actual", "Realization %", "Variance %", "Repetitive", "User"]
+            else:  # Derisking
+                headers = ["Date", "Type", "Action", "Description",
+                           "Theoretical Value", "Realization %", "Repetitive", "User"]
+
+        # 4. Costruzione righe con valori numerici raw (nessun simbolo €, nessuna formattazione display)
+        data_rows = []
+        for event in events:
+            valore_teorico = event.calculate_theoretical_value() or 0.0
+            date_str = event.event_date.strftime("%d/%m/%Y") if event.event_date else ""
+            desc = (event.description or event.reference or "")[:50]
+            action_str = event.action if is_ita else action_map_en.get(event.action, event.action)
+
+            if use_dual:
+                valore_effettivo = event.calculate_effective_value() or 0.0
+                if event_type == "Cost Avoidance":
+                    _baseline = event.importo_richiesto_iniziale or 0.0
+                else:
+                    _baseline = event.importo_bdg or 0.0
+                _variance_pct = round(
+                    (_baseline - (event.importo_negoziato or 0.0)) / _baseline * 100, 1
+                ) if _baseline != 0.0 else 0.0
+                row = [
+                    date_str, event.event_type, action_str, desc,
+                    round(valore_teorico, 2), round(valore_effettivo, 2),
+                    round(event.percent_realizzo, 1), _variance_pct,
+                    "✓" if event.opex_ripetitivo else "", event.username
+                ]
+            else:  # Derisking
+                row = [
+                    date_str, event.event_type, action_str, desc,
+                    round(valore_teorico, 2),
+                    round(event.percent_realizzo, 1),
+                    "✓" if event.opex_ripetitivo else "", event.username
+                ]
+            data_rows.append(row)
+
+        # 5. Setup Excel — stessi stili di mega_export_excel
         wb = openpyxl.Workbook()
         ws = wb.active
-        ws.title = event_type[:31]  # Excel limita il nome foglio a 31 caratteri
+        ws.title = event_type[:31]
 
         thin_border = Border(
             left=Side(style='thin'), right=Side(style='thin'),
@@ -6485,7 +6566,6 @@ class MainWindow:
         bold_font = Font(bold=True)
         header_fill = PatternFill(start_color='DDDDDD', end_color='DDDDDD', fill_type='solid')
 
-        # Intestazioni
         for col_idx, header in enumerate(headers, start=1):
             cell = ws.cell(row=1, column=col_idx, value=header)
             cell.font = bold_font
@@ -6493,43 +6573,45 @@ class MainWindow:
             cell.fill = header_fill
             cell.alignment = Alignment(horizontal='center')
 
-        # Righe dati
+        # Indici colonne monetarie e percentuali per number_format (1-based)
+        monetary_cols = {5, 6} if use_dual else {5}
+        pct_cols = {7, 8} if use_dual else {6}
+        rep_col = 9 if use_dual else 7  # Colonna "Ripetitivo/Repetitive" (1-based)
+
         for row_idx, row_data in enumerate(data_rows, start=2):
             for col_idx, value in enumerate(row_data, start=1):
                 cell = ws.cell(row=row_idx, column=col_idx, value=value)
                 cell.border = thin_border
+                if col_idx in monetary_cols:
+                    cell.number_format = '#,##0.00'
+                elif col_idx in pct_cols:
+                    cell.number_format = '0.0'
+                elif col_idx == rep_col:
+                    cell.alignment = Alignment(horizontal='center')
 
-        # Larghezze colonne adattive (converti px tkinter → unità Excel: 1 unit ≈ 7px)
+        # Larghezze colonne adattive (px tkinter ÷ 7 → unità Excel)
         col_widths_px = getattr(sheet, '_vsm_col_widths', None)
         if col_widths_px:
             for i, px_width in enumerate(col_widths_px):
                 col_letter = ws.cell(row=1, column=i + 1).column_letter
                 ws.column_dimensions[col_letter].width = max(10, px_width / 7)
 
-        # Salvataggio
+        # 6. Salvataggio — identico a mega_export_excel
         default_name = f"Export_VSM_{event_type.replace(' ', '_')}_{datetime.now().strftime('%Y%m%d')}.xlsx"
         try:
             save_path = filedialog.asksaveasfilename(
-                title=_("Salva Export VSM"),
+                title=_("Salva Export"),
                 defaultextension=".xlsx",
                 initialfile=default_name,
                 filetypes=[("Excel Files", "*.xlsx")]
             )
             if save_path:
                 wb.save(save_path)
-                messagebox.showinfo(
-                    _("Successo"),
-                    _("Export completato con successo:\n{}").format(save_path),
-                    parent=self.root
-                )
+                SimpleMessageDialog(self.root, _("Successo"), _("Export completato con successo:\n{}").format(save_path), "info")
                 logger.info(f"Export VSM Excel salvato in: {save_path}")
         except Exception as e:
             logger.error(f"Errore Export VSM Excel: {e}", exc_info=True)
-            messagebox.showerror(
-                _("Errore"),
-                _("Errore durante l'esportazione: {}").format(e),
-                parent=self.root
-            )
+            SimpleMessageDialog(self.root, _("Errore"), _("Errore durante l'esportazione: {}").format(e), "error")
 
     def _format_date_for_display(self, db_date):
         if not db_date: return ""

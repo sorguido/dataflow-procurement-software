@@ -3184,3 +3184,6 @@ msgstr "CA Teorico"
 
 msgid "CA Actual"
 msgstr "CA Effettivo"
+
+msgid "Valore Teorico"
+msgstr "Valore Teorico"
