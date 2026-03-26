@@ -114,6 +114,13 @@ class VSMEventDialog(tk.Toplevel):
             width=20
         )
         self.combo_event_type.grid(row=1, column=1, sticky="w", pady=5)
+        
+        # Blocca interazione utente: campo pre-condizionato dal tab attivo
+        # Impedisce apertura dropdown e input tastiera mantenendo resa visiva normale
+        self.combo_event_type.bind("<Button-1>", lambda e: "break")  # Blocca click sinistro
+        self.combo_event_type.bind("<space>", lambda e: "break")     # Blocca spazio
+        self.combo_event_type.bind("<Down>", lambda e: "break")      # Blocca freccia giù
+        self.combo_event_type.bind("<Up>", lambda e: "break")        # Blocca freccia su
         self.combo_event_type.bind("<<ComboboxSelected>>", lambda e: self._on_event_type_changed())
         
         # Azione
