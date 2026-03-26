@@ -32,7 +32,7 @@ class SimpleMessageDialog(tk.Toplevel):
             frame,
             text=message,
             font=(None, 10),
-            wraplength=350,
+            wraplength=400,
             justify="left"
         ).pack(pady=(0, 15))
         
@@ -50,6 +50,62 @@ class SimpleMessageDialog(tk.Toplevel):
         center_window(self)
         self.deiconify()
         self.wait_window()
+
+
+class SimpleYesNoDialog(tk.Toplevel):
+    """Dialog semplice per domande Yes/No con font uniforme all'app."""
+    def __init__(self, parent, title, message, icon='question'):
+        super().__init__(parent)
+        self.withdraw()
+        set_window_icon(self)
+        self.title(title)
+        self.result = False  # Default: No
+        self.transient(parent)
+        self.resizable(False, False)
+        self.grab_set()
+        
+        frame = ttk.Frame(self, padding="20")
+        frame.pack(fill="both", expand=True)
+        
+        # Messaggio con font uniforme (stesso di LanguagePrompt)
+        ttk.Label(
+            frame,
+            text=message,
+            font=(None, 10),
+            wraplength=400,
+            justify="left"
+        ).pack(pady=(0, 15))
+        
+        # Pulsanti Yes/No
+        btn_frame = ttk.Frame(frame)
+        btn_frame.pack()
+        
+        ttk.Button(
+            btn_frame,
+            text=_("Sì"),
+            command=self._on_yes,
+            width=10
+        ).pack(side="left", padx=5)
+        
+        ttk.Button(
+            btn_frame,
+            text=_("No"),
+            command=self._on_no,
+            width=10
+        ).pack(side="left", padx=5)
+        
+        self.protocol("WM_DELETE_WINDOW", self._on_no)
+        center_window(self)
+        self.deiconify()
+        self.wait_window()
+    
+    def _on_yes(self):
+        self.result = True
+        self.destroy()
+    
+    def _on_no(self):
+        self.result = False
+        self.destroy()
 
 
 class LanguagePrompt(tk.Toplevel):

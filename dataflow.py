@@ -117,7 +117,9 @@ from ui.dialogs.common_dialogs import (
     NewRdOTypeDialog,
     UserIdentityDialog,
     CopyProgressWindow,
-    SplashScreen
+    SplashScreen,
+    SimpleYesNoDialog,
+    SimpleMessageDialog
 )
 
 # Esegui pulizia all'avvio
@@ -2556,6 +2558,7 @@ class SettingsWindow(tk.Toplevel):
             dataflow_label = ttk.Label(
                 dataflow_frame, 
                 text=_("Scegli dove salvare la cartella DataFlow (richiede riavvio)."),
+                font=(None, 10),
                 wraplength=480,
                 justify="left"
             )
@@ -2572,7 +2575,7 @@ class SettingsWindow(tk.Toplevel):
                 ttk.Label(
                     dataflow_frame,
                     text=_("Cartella DataFlow attuale: {}").format(current_dataflow),
-                    font=("Courier New", 8),
+                    font=(None, 9),
                     foreground="gray",
                     wraplength=480,
                     justify="left"
@@ -2583,7 +2586,7 @@ class SettingsWindow(tk.Toplevel):
             # --- Sezione Backup Manuale ---
             backup_frame = ttk.LabelFrame(main_frame, text=_("Backup Manuale"), padding="10")
             backup_frame.pack(fill="x", pady=(0, 15), padx=5)
-            ttk.Label(backup_frame, text=_("Crea una copia di sicurezza immediata del database."), wraplength=500).pack(anchor="w", pady=(0, 10))
+            ttk.Label(backup_frame, text=_("Crea una copia di sicurezza immediata del database."), font=(None, 10), wraplength=500).pack(anchor="w", pady=(0, 10))
             ttk.Button(backup_frame, text=_("💾 Backup Manuale..."), command=self.backup_database).pack(anchor="w")
 
             # --- Sezione Backup Automatico ---
@@ -2612,7 +2615,7 @@ class SettingsWindow(tk.Toplevel):
             language_frame = ttk.LabelFrame(main_frame, text=_("Lingua"), padding="10")
             language_frame.pack(fill="x", pady=(0, 15), padx=5)
             
-            ttk.Label(language_frame, text=_("Seleziona la lingua dell'interfaccia. Il cambio richiede il riavvio dell'applicazione."), wraplength=500).pack(anchor="w", pady=(0, 15))
+            ttk.Label(language_frame, text=_("Seleziona la lingua dell'interfaccia. Il cambio richiede il riavvio dell'applicazione."), font=(None, 10), wraplength=500).pack(anchor="w", pady=(0, 15))
             
             # Riga per il controllo della lingua
             lang_row = ttk.Frame(language_frame)
@@ -2724,7 +2727,7 @@ class SettingsWindow(tk.Toplevel):
             # Converte "English"/"Italiano" in "en"/"it"
             selected_lang = self.language_var.get()
             if not selected_lang:
-                messagebox.showwarning(_("Attenzione"), _("Seleziona una lingua."), parent=self)
+                SimpleMessageDialog(self, _("Attenzione"), _("Seleziona una lingua."), "warning")
                 return
             
             lang_code = "en" if selected_lang == "English" else "it"
@@ -2734,13 +2737,17 @@ class SettingsWindow(tk.Toplevel):
             with open(config_file, 'w', encoding='utf-8') as f:
                 config.write(f)
             
-            response = messagebox.askyesno(_("Successo"), _("Impostazione lingua salvata.\nRiavviare ora l'applicazione per applicare le modifiche?"), parent=self)
-            if response:
+            dialog = SimpleYesNoDialog(
+                self,
+                _("Successo"),
+                _("Impostazione lingua salvata.\nRiavviare ora l'applicazione per applicare le modifiche?")
+            )
+            if dialog.result:
                 # Riavvia l'applicazione
                 self.main_app.restart_program()
         except Exception as e:
             logger.error(f"Errore nel salvare la lingua: {e}", exc_info=True)
-            messagebox.showerror(_("Errore"), _("Impossibile salvare l'impostazione della lingua: {}").format(e), parent=self)
+            SimpleMessageDialog(self, _("Errore"), _("Impossibile salvare l'impostazione della lingua: {}").format(e), "error")
 
     def select_autobackup_path(self):
         path = filedialog.askdirectory(title=_("Seleziona cartella per backup automatici"), parent=self)
@@ -2753,18 +2760,20 @@ class SettingsWindow(tk.Toplevel):
         config['AutoBackup']['hour'] = self.autobackup_hour.get()
         config['AutoBackup']['path'] = self.autobackup_path.get()
         if self.autobackup_enabled.get() and not self.autobackup_path.get():
-            messagebox.showwarning(_("Attenzione"), _("Per abilitare il backup automatico specificare un percorso."), parent=self); return
+            SimpleMessageDialog(self, _("Attenzione"), _("Per abilitare il backup automatico specificare un percorso."), "warning")
+            return
         try:
             # BUG #49 FIX: Usa encoding UTF-8 per gestire caratteri speciali
             with open(get_config_file(), 'w', encoding='utf-8') as f: config.write(f)
-            messagebox.showinfo(_("Successo"), _("Impostazioni backup salvate."), parent=self)
-        except Exception as e: messagebox.showerror(_("Errore"), _("Impossibile salvare: {}").format(e), parent=self)
+            SimpleMessageDialog(self, _("Successo"), _("Impostazioni backup salvate."), "info")
+        except Exception as e:
+            SimpleMessageDialog(self, _("Errore"), _("Impossibile salvare: {}").format(e), "error")
 
     def backup_database(self):
         """Crea backup manuale con VACUUM INTO per garantire consistenza."""
         db_file = get_db_path()
         if not os.path.exists(db_file):
-            messagebox.showerror(_("Errore"), _("File database '{}' non trovato!").format(db_file), parent=self)
+            SimpleMessageDialog(self, _("Errore"), _("File database '{}' non trovato!").format(db_file), "error")
             return
         
         dest = filedialog.asksaveasfilename(
@@ -2841,11 +2850,12 @@ class SettingsWindow(tk.Toplevel):
             
             if backup_size < original_size * 0.5:
                 logger.warning(f"Backup manuale potenzialmente incompleto: {backup_size} vs {original_size} bytes")
-                if not messagebox.askyesno(
+                dialog = SimpleYesNoDialog(
+                    self,
                     _("Attenzione Dimensione"), 
-                    _("Il backup creato è significativamente più piccolo del database originale.\n\nOriginale: {:.2f} MB\nBackup: {:.2f} MB\n\nVuoi conservarlo comunque?").format(original_size / (1024*1024), backup_size / (1024*1024)),
-                    parent=self
-                ):
+                    _("Il backup creato è significativamente più piccolo del database originale.\n\nOriginale: {:.2f} MB\nBackup: {:.2f} MB\n\nVuoi conservarlo comunque?").format(original_size / (1024*1024), backup_size / (1024*1024))
+                )
+                if not dialog.result:
                     try:
                         os.remove(dest)
                         # Rimuovi anche WAL e SHM se esistono
@@ -2868,7 +2878,8 @@ class SettingsWindow(tk.Toplevel):
             if os.path.exists(shm_dest):
                 files_copied.append(os.path.basename(shm_dest))
             
-            messagebox.showinfo(
+            SimpleMessageDialog(
+                self,
                 _("Successo"), 
                 _("Backup creato con successo:\n\nFile copiati:\n{}\n\nDimensione totale: {:.2f} MB").format(
                     '\n'.join(f'  • {f}' for f in files_copied),
@@ -2876,16 +2887,17 @@ class SettingsWindow(tk.Toplevel):
                         ([wal_dest] if os.path.exists(wal_dest) else []) + 
                         ([shm_dest] if os.path.exists(shm_dest) else [])) / (1024*1024)
                 ),
-                parent=self
+                "info"
             )
             logger.info(f"Backup manuale completato: {len(files_copied)} file copiati")
             
         except Exception as e:
             logger.error(f"Errore backup manuale: {e}", exc_info=True)
-            messagebox.showerror(
+            SimpleMessageDialog(
+                self,
                 _("Errore"), 
-                _("Impossibile creare backup:\n{}").format(e), 
-                parent=self
+                _("Impossibile creare backup:\n{}").format(e),
+                "error"
             )
             # Rimuovi backup parziale/corrotto
             if os.path.exists(dest):
@@ -2909,10 +2921,11 @@ class SettingsWindow(tk.Toplevel):
                     logger.info("Connessione MainWindow riaperta con successo")
                 except Exception as e:
                     logger.error(f"Errore nella riapertura connessione MainWindow: {e}")
-                    messagebox.showwarning(
+                    SimpleMessageDialog(
+                        self,
                         _("Attenzione"),
                         _("Il backup è stato completato, ma non è stato possibile riaprire la connessione principale.\nSi consiglia di riavviare l'applicazione."),
-                        parent=self
+                        "warning"
                     )
 
     def select_standard_dataflow_location(self):
@@ -2939,12 +2952,13 @@ class SettingsWindow(tk.Toplevel):
             "Vuoi procedere?"
         ).format(current_dataflow_dir)
         
-        if not messagebox.askyesno(
+        dialog = SimpleYesNoDialog(
+            self,
             _("Conferma Cambio Posizione"), 
             warning_text,
-            parent=self,
             icon='warning'
-        ):
+        )
+        if not dialog.result:
             logger.info("Utente ha annullato il cambio posizione DataFlow")
             return
         
@@ -2961,10 +2975,11 @@ class SettingsWindow(tk.Toplevel):
             )
         except Exception as e:
             logger.error(f"Errore apertura dialog selezione cartella: {e}")
-            messagebox.showerror(
+            SimpleMessageDialog(
+                self,
                 _("Errore"),
                 _("Errore durante la selezione della cartella: {}").format(e),
-                parent=self
+                "error"
             )
             return
         
@@ -2974,7 +2989,7 @@ class SettingsWindow(tk.Toplevel):
         
         normalized_dir = os.path.normpath(os.path.abspath(selected_dir.strip()))
         if not normalized_dir:
-            messagebox.showerror(_("Errore"), _("Percorso non valido."), parent=self)
+            SimpleMessageDialog(self, _("Errore"), _("Percorso non valido."), "error")
             return
         
         # ✅ CORREZIONE: NON aggiungere "DataFlow" - useremo DataFlow_{username}
@@ -2986,10 +3001,11 @@ class SettingsWindow(tk.Toplevel):
             os.makedirs(normalized_dir, exist_ok=True)
         except OSError as e:
             logger.error(f"Impossibile creare/accedere alla cartella parent: {e}")
-            messagebox.showerror(
+            SimpleMessageDialog(
+                self,
                 _("Errore"),
                 _("Impossibile accedere alla cartella selezionata:\n{}\n\nDettagli: {}").format(normalized_dir, e),
-                parent=self
+                "error"
             )
             return
         
@@ -3010,10 +3026,11 @@ class SettingsWindow(tk.Toplevel):
             logger.info(f"Permessi verifica OK per {normalized_dir}")
         except (OSError, PermissionError) as e:
             logger.error(f"Test permessi fallito per {normalized_dir}: {e}")
-            messagebox.showerror(
+            SimpleMessageDialog(
+                self,
                 _("Errore Permessi"),
                 _("Impossibile scrivere nella cartella selezionata:\n{}\n\nDettagli: {}").format(normalized_dir, e),
-                parent=self
+                "error"
             )
             return
         
@@ -3025,11 +3042,12 @@ class SettingsWindow(tk.Toplevel):
                 "Windows potrebbe avere problemi nell'accesso ai file.\n"
                 "Vuoi procedere comunque?"
             ).format(len(normalized_dir))
-            if not messagebox.askyesno(
+            dialog = SimpleYesNoDialog(
+                self,
                 _("Percorso Molto Lungo"),
-                length_warning,
-                parent=self
-            ):
+                length_warning
+            )
+            if not dialog.result:
                 logger.info("Utente ha annullato dopo avviso percorso lungo")
                 return
         
@@ -3042,7 +3060,7 @@ class SettingsWindow(tk.Toplevel):
                     "⚠️ L'unità selezionata ({}) potrebbe essere rimovibile.\n"
                     "Se viene scollegata, DataFlow non potrà accedere ai dati."
                 ).format(drive_letter)
-                messagebox.showwarning(_("Unità Rimovibile?"), removable_warning, parent=self)
+                SimpleMessageDialog(self, _("Unità Rimovibile?"), removable_warning, "warning")
         except Exception as e:
             logger.error(f"Errore durante controllo unità rimovibile: {e}")
         
@@ -3053,10 +3071,11 @@ class SettingsWindow(tk.Toplevel):
         
         if not current_username:
             logger.error("Username corrente non trovato nel config")
-            messagebox.showerror(
+            SimpleMessageDialog(
+                self,
                 _("Errore"),
                 _("Impossibile determinare l'utente corrente. Riavvia DataFlow."),
-                parent=self
+                "error"
             )
             return
         
@@ -3109,12 +3128,13 @@ class SettingsWindow(tk.Toplevel):
                     "Vuoi procedere con il cambio username?"
                 ).format(final_username)
                 
-                if not messagebox.askyesno(
+                dialog = SimpleYesNoDialog(
+                    self,
                     _("Conflitto Username"),
                     conflict_message,
-                    parent=self,
                     icon='warning'
-                ):
+                )
+                if not dialog.result:
                     # Utente ha rifiutato, annulla tutto
                     logger.info("Utente ha rifiutato il cambio username, operazione annullata")
                     return
@@ -3150,10 +3170,11 @@ class SettingsWindow(tk.Toplevel):
         # Verifica che la cartella sorgente esista
         if not os.path.exists(source_folder):
             logger.error(f"Cartella sorgente non esiste: {source_folder}")
-            messagebox.showerror(
+            SimpleMessageDialog(
+                self,
                 _("Errore"),
                 _("Cartella DataFlow di origine non trovata:\n{}").format(source_folder),
-                parent=self
+                "error"
             )
             return
         
@@ -3311,7 +3332,7 @@ class SettingsWindow(tk.Toplevel):
                 src=source_folder
             )
             
-            messagebox.showinfo(_("Operazione Completata"), success_msg, parent=self)
+            SimpleMessageDialog(self, _("Operazione Completata"), success_msg, "info")
             
             # ✅ SALVA ESPLICITAMENTE LA NUOVA IDENTITÀ (se cambiata)
             if username_changed:
@@ -3358,7 +3379,7 @@ class SettingsWindow(tk.Toplevel):
                 "Consulta il file di log per maggiori dettagli."
             ).format(error=str(e))
             
-            messagebox.showerror(_("Errore Spostamento"), error_msg, parent=self)
+            SimpleMessageDialog(self, _("Errore Spostamento"), error_msg, "error")
 
 # ------------------------------------------------------------------------------------
 # --- NUOVA FINESTRA LICENZA ---

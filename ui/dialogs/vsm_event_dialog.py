@@ -66,12 +66,16 @@ class VSMEventDialog(tk.Toplevel):
         
         # Widget refs
         self.event_type_var = tk.StringVar(value=event_type)
-        self.action_var = tk.StringVar(value="Negoziazione")
+        self.action_var = tk.StringVar()
         self.opex_ripetitivo_var = tk.BooleanVar(value=False)
-        self.driver_var = tk.StringVar(value="Prezzo")
+        self.driver_var = tk.StringVar()
         
         # Build UI
         self._build_ui()
+        
+        # Imposta valori iniziali tradotti
+        self._set_action_display("Negoziazione")
+        self._set_driver_display("Prezzo")
         
         # Popola campo User con username corrente (sempre, sia in CREATE che in EDIT)
         self.entry_buyer.configure(state="normal")
@@ -97,6 +101,52 @@ class VSMEventDialog(tk.Toplevel):
         
         self.grab_set()
         self.deiconify()
+    
+    # === HELPER METHODS PER CONVERSIONE VALORI TRADOTTI/INTERNI ===
+    
+    def _get_action_internal(self):
+        """Converte il valore display di action al valore interno (italiano)."""
+        display = self.action_var.get()
+        # Reverse mapping: cerca la corrispondenza italiana
+        if display == _("Negoziazione"):
+            return "Negoziazione"
+        elif display == "Derisking":
+            return "Derisking"
+        elif display == _("Altro"):
+            return "Altro"
+        return display  # Fallback per valori già in italiano
+    
+    def _set_action_display(self, internal_value):
+        """Converte il valore interno (italiano) al valore display (tradotto)."""
+        if internal_value == "Negoziazione":
+            self.action_var.set(_("Negoziazione"))
+        elif internal_value == "Derisking":
+            self.action_var.set("Derisking")
+        elif internal_value == "Altro":
+            self.action_var.set(_("Altro"))
+        else:
+            self.action_var.set(internal_value)
+    
+    def _get_driver_internal(self):
+        """Converte il valore display di driver al valore interno (italiano)."""
+        display = self.driver_var.get()
+        # Reverse mapping
+        if display == _("Prezzo"):
+            return "Prezzo"
+        elif display == _("Pagamenti"):
+            return "Pagamenti"
+        return display  # Fallback
+    
+    def _set_driver_display(self, internal_value):
+        """Converte il valore interno (italiano) al valore display (tradotto)."""
+        if internal_value == "Prezzo":
+            self.driver_var.set(_("Prezzo"))
+        elif internal_value == "Pagamenti":
+            self.driver_var.set(_("Pagamenti"))
+        else:
+            self.driver_var.set(internal_value)
+    
+    # === UI BUILDING ===
     
     def _build_ui(self):
         """Costruisce l'interfaccia utente."""
@@ -134,7 +184,7 @@ class VSMEventDialog(tk.Toplevel):
         self.combo_action = ttk.Combobox(
             general_frame,
             textvariable=self.action_var,
-            values=["Negoziazione", "Derisking", "Altro"],
+            values=[_("Negoziazione"), "Derisking", _("Altro")],
             state="readonly",
             width=20
         )
@@ -209,7 +259,7 @@ class VSMEventDialog(tk.Toplevel):
         self.combo_driver = ttk.Combobox(
             self.economic_frame,
             textvariable=self.driver_var,
-            values=["Prezzo", "Pagamenti"],
+            values=[_("Prezzo"), _("Pagamenti")],
             state="readonly",
             width=18
         )
@@ -320,7 +370,7 @@ class VSMEventDialog(tk.Toplevel):
         Handler per cambio driver.
         Mostra/nasconde SUB-FRAME in base al driver selezionato.
         """
-        driver = self.combo_driver.get()
+        driver_internal = self._get_driver_internal()
         event_type = self.event_type_var.get()
         
         # Solo per event_type con campi economici
@@ -331,7 +381,7 @@ class VSMEventDialog(tk.Toplevel):
         self.price_fields_frame.grid_remove()
         self.payment_fields_frame.grid_remove()
         
-        if driver == "Prezzo":
+        if driver_internal == "Prezzo":
             # Show price fields frame at row 0
             self.price_fields_frame.grid(row=0, column=0, columnspan=2, sticky="ew", pady=(0, 10))
             
@@ -364,7 +414,7 @@ class VSMEventDialog(tk.Toplevel):
                 self.lbl_importo_bdg.grid_remove()
                 self.entry_importo_bdg.grid_remove()
             
-        elif driver == "Pagamenti":
+        elif driver_internal == "Pagamenti":
             # Show payment fields frame at row 0 (SAME position as price frame)
             self.payment_fields_frame.grid(row=0, column=0, columnspan=2, sticky="ew", pady=(0, 10))
             
@@ -398,7 +448,7 @@ class VSMEventDialog(tk.Toplevel):
                 # Se evento Derisking, forza action a "Derisking" indipendentemente dal valore DB
                 self.action_var.set("Derisking")
             else:
-                self.action_var.set(event.action)
+                self._set_action_display(event.action)
             
             # Campo User già popolato con current_username in __init__, non sovrascrivere
             
@@ -419,9 +469,9 @@ class VSMEventDialog(tk.Toplevel):
                 # Handle legacy drivers: convert Volume/Altro to Prezzo for safety
                 if event.driver in ["Volume", "Altro"]:
                     logger.warning(f"Legacy driver '{event.driver}' found for event {self.event_id}, defaulting to 'Prezzo'")
-                    self.driver_var.set("Prezzo")
+                    self._set_driver_display("Prezzo")
                 else:
-                    self.driver_var.set(event.driver)
+                    self._set_driver_display(event.driver)
             
             # Campi Pagamenti
             if event.spending_annuo:
@@ -458,7 +508,7 @@ class VSMEventDialog(tk.Toplevel):
             if not event_type:
                 raise ValueError(_("Tipo evento obbligatorio."))
             
-            action = self.action_var.get()
+            action = self._get_action_internal()
             if not action:
                 raise ValueError(_("Azione obbligatoria."))
             
@@ -480,7 +530,7 @@ class VSMEventDialog(tk.Toplevel):
             spending_annuo = None
             giorni_pagamento_attuali = None
             giorni_pagamento_negoziati = None
-            driver = self.driver_var.get()
+            driver = self._get_driver_internal()
             
             if event_type == "Saving":
                 # Validazioni specifiche per driver
