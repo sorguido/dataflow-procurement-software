@@ -163,6 +163,7 @@ class TestGenerateImpactsForEvent(unittest.TestCase):
             username="buyer2",
             event_type="Cost Avoidance",
             opex_ripetitivo=False,
+            driver="Prezzo",
             importo_richiesto_iniziale=15000.0,
             importo_negoziato=12000.0,
             percent_realizzo=80.0
@@ -358,6 +359,7 @@ class TestGenerateImpactsForEvent(unittest.TestCase):
             username="buyer10",
             event_type="Cost Avoidance",
             opex_ripetitivo=True,
+            driver="Prezzo",
             importo_richiesto_iniziale=20000.0,
             importo_negoziato=18000.0,
             percent_realizzo=75.0
@@ -525,6 +527,7 @@ class TestEdgeCases(unittest.TestCase):
             username="buyer_zero",
             event_type="Saving",
             opex_ripetitivo=False,
+            driver="Prezzo",
             importo_bdg=1000.0,
             importo_negoziato=900.0,
             percent_realizzo=0.0

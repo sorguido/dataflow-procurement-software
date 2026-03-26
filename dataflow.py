@@ -4364,7 +4364,7 @@ class MainWindow:
         )
         
         # Configura larghezze colonne (identiche all'originale VSMManagementWindow)
-        sheet.set_column_widths([100, 120, 120, 300, 120, 90, 90, 140])
+        sheet.set_column_widths([100, 120, 120, 400, 120, 90, 90, 140])
         
         # Centra colonne numeriche e date (Descrizione rimane left-aligned)
         sheet.align_columns(columns=[0, 1, 2, 4, 5, 6, 7], align="center")
@@ -4465,6 +4465,9 @@ class MainWindow:
         # Aggiorna sheet
         sheet.set_sheet_data(data_rows)
         sheet._event_metadata = metadata
+        
+        # Riapplica larghezze colonne (set_sheet_data le resetta)
+        sheet.set_column_widths([100, 120, 120, 400, 120, 90, 90, 140])
 
     # ===========================
     # Step 4D.3: VSM CRUD Handlers (implementazione completa)
