@@ -85,6 +85,13 @@ class VSMEventDialog(tk.Toplevel):
         # Finalize window
         center_window(self)
         self.wait_visibility()
+        
+        # Lock window geometry to prevent resize when switching drivers
+        self.update_idletasks()
+        current_width = self.winfo_width()
+        current_height = self.winfo_height()
+        self.geometry(f"{current_width}x{current_height}")
+        
         self.grab_set()
         self.deiconify()
     
@@ -148,26 +155,46 @@ class VSMEventDialog(tk.Toplevel):
         # === SEZIONE ECONOMICA (dinamica) ===
         self.economic_frame = ttk.LabelFrame(main_frame, text=_("Dati Economici"), padding="10")
         self.economic_frame.grid(row=2, column=0, sticky="ew", pady=(0, 10))
-        self.economic_frame.columnconfigure(1, weight=1)
+        self.economic_frame.columnconfigure(0, weight=1)
+        
+        # --- SUB-FRAME PREZZO (driver Prezzo) ---
+        self.price_fields_frame = ttk.Frame(self.economic_frame)
+        self.price_fields_frame.columnconfigure(1, weight=1)
         
         # Importo Budget (Saving only)
-        self.lbl_importo_bdg = ttk.Label(self.economic_frame, text=_("Importo a Budget: *"))
-        self.entry_importo_bdg = ttk.Entry(self.economic_frame, width=20)
+        self.lbl_importo_bdg = ttk.Label(self.price_fields_frame, text=_("Importo a Budget: *"))
+        self.entry_importo_bdg = ttk.Entry(self.price_fields_frame, width=20)
         
         # Importo Richiesto Iniziale (Cost Avoidance only)
-        self.lbl_importo_richiesto = ttk.Label(self.economic_frame, text=_("Importo Richiesto Iniziale: *"))
-        self.entry_importo_richiesto = ttk.Entry(self.economic_frame, width=20)
+        self.lbl_importo_richiesto = ttk.Label(self.price_fields_frame, text=_("Importo Richiesto Iniziale: *"))
+        self.entry_importo_richiesto = ttk.Entry(self.price_fields_frame, width=20)
         
         # Importo Negoziato (Saving + Cost Avoidance)
-        self.lbl_importo_negoziato = ttk.Label(self.economic_frame, text=_("Importo Negoziato: *"))
-        self.entry_importo_negoziato = ttk.Entry(self.economic_frame, width=20)
+        self.lbl_importo_negoziato = ttk.Label(self.price_fields_frame, text=_("Importo Negoziato: *"))
+        self.entry_importo_negoziato = ttk.Entry(self.price_fields_frame, width=20)
         
         # Percentuale Realizzo
-        self.lbl_percent_realizzo = ttk.Label(self.economic_frame, text=_("% Realizzo:"))
-        self.entry_percent_realizzo = ttk.Entry(self.economic_frame, width=10)
+        self.lbl_percent_realizzo = ttk.Label(self.price_fields_frame, text=_("% Realizzo:"))
+        self.entry_percent_realizzo = ttk.Entry(self.price_fields_frame, width=10)
         self.entry_percent_realizzo.insert(0, "100")  # Default 100%
         
-        # Driver (opzionale)
+        # --- SUB-FRAME PAGAMENTI (driver Pagamenti) ---
+        self.payment_fields_frame = ttk.Frame(self.economic_frame)
+        # No columnconfigure: keep compact layout without expansion
+        
+        # Spending Annuo
+        self.lbl_spending_annuo = ttk.Label(self.payment_fields_frame, text=_("Spending Annuo (€): *"))
+        self.entry_spending_annuo = ttk.Entry(self.payment_fields_frame, width=15)
+        
+        # Termini Pagamento Attuali
+        self.lbl_giorni_attuali = ttk.Label(self.payment_fields_frame, text=_("Termini Pagamento Attuali (giorni): *"))
+        self.entry_giorni_attuali = ttk.Entry(self.payment_fields_frame, width=8)
+        
+        # Termini Pagamento Negoziati
+        self.lbl_giorni_negoziati = ttk.Label(self.payment_fields_frame, text=_("Termini Pagamento Negoziati (giorni): *"))
+        self.entry_giorni_negoziati = ttk.Entry(self.payment_fields_frame, width=8)
+        
+        # --- DRIVER (always visible, outside sub-frames) ---
         self.lbl_driver = ttk.Label(self.economic_frame, text=_("Driver:"))
         self.combo_driver = ttk.Combobox(
             self.economic_frame,
@@ -177,15 +204,14 @@ class VSMEventDialog(tk.Toplevel):
             width=18
         )
         
-        # Widget specifici per driver Pagamenti (nascosti di default)
-        self.lbl_spending_annuo = ttk.Label(self.economic_frame, text=_("Spending Annuo (€): *"))
-        self.entry_spending_annuo = ttk.Entry(self.economic_frame, width=20)
-        
-        self.lbl_giorni_attuali = ttk.Label(self.economic_frame, text=_("Termini Pagamento Attuali (giorni): *"))
-        self.entry_giorni_attuali = ttk.Entry(self.economic_frame, width=20)
-        
-        self.lbl_giorni_negoziati = ttk.Label(self.economic_frame, text=_("Termini Pagamento Negoziati (giorni): *"))
-        self.entry_giorni_negoziati = ttk.Entry(self.economic_frame, width=20)
+        # --- DERISKING INFO LABEL (created once, shown conditionally) ---
+        self.lbl_derisking_info = ttk.Label(
+            self.economic_frame,
+            text=_("Gli eventi Derisking non generano impatti economici.\n"
+                   "Compilare solo sezioni descrittive."),
+            foreground="blue",
+            font=("Calibri", 9, "italic")
+        )
         
         # Binding su combobox driver per show/hide dinamico
         self.combo_driver.bind("<<ComboboxSelected>>", self._on_driver_changed)
@@ -238,57 +264,30 @@ class VSMEventDialog(tk.Toplevel):
         """
         event_type = self.event_type_var.get()
         
-        # Rimuovi tutti i campi economici
-        for widget in self.economic_frame.winfo_children():
-            widget.grid_forget()
-        
-        row = 0
+        # Hide all economic sub-frames and widgets explicitly
+        self.price_fields_frame.grid_remove()
+        self.payment_fields_frame.grid_remove()
+        self.lbl_driver.grid_remove()
+        self.combo_driver.grid_remove()
+        self.lbl_derisking_info.grid_remove()
         
         if event_type == "Saving":
-            # Saving: importo_bdg + importo_negoziato
-            self.lbl_importo_bdg.grid(row=row, column=0, sticky="w", padx=(0, 10), pady=5)
-            self.entry_importo_bdg.grid(row=row, column=1, sticky="w", pady=5)
-            row += 1
-            
-            self.lbl_importo_negoziato.grid(row=row, column=0, sticky="w", padx=(0, 10), pady=5)
-            self.entry_importo_negoziato.grid(row=row, column=1, sticky="w", pady=5)
-            row += 1
-            
-            self.lbl_percent_realizzo.grid(row=row, column=0, sticky="w", padx=(0, 10), pady=5)
-            self.entry_percent_realizzo.grid(row=row, column=1, sticky="w", pady=5)
-            row += 1
-            
-            self.lbl_driver.grid(row=row, column=0, sticky="w", padx=(0, 10), pady=5)
-            self.combo_driver.grid(row=row, column=1, sticky="w", pady=5)
+            # Saving: show driver combo (row 1) and delegate field layout to _on_driver_changed
+            self.lbl_driver.grid(row=1, column=0, sticky="w", padx=(0, 10), pady=5)
+            self.combo_driver.grid(row=1, column=1, sticky="w", pady=5)
+            # Call driver handler to position appropriate sub-frame at row 0
+            self._on_driver_changed()
         
         elif event_type == "Cost Avoidance":
-            # Cost Avoidance: importo_richiesto_iniziale + importo_negoziato
-            self.lbl_importo_richiesto.grid(row=row, column=0, sticky="w", padx=(0, 10), pady=5)
-            self.entry_importo_richiesto.grid(row=row, column=1, sticky="w", pady=5)
-            row += 1
-            
-            self.lbl_importo_negoziato.grid(row=row, column=0, sticky="w", padx=(0, 10), pady=5)
-            self.entry_importo_negoziato.grid(row=row, column=1, sticky="w", pady=5)
-            row += 1
-            
-            self.lbl_percent_realizzo.grid(row=row, column=0, sticky="w", padx=(0, 10), pady=5)
-            self.entry_percent_realizzo.grid(row=row, column=1, sticky="w", pady=5)
-            row += 1
-            
-            self.lbl_driver.grid(row=row, column=0, sticky="w", padx=(0, 10), pady=5)
-            self.combo_driver.grid(row=row, column=1, sticky="w", pady=5)
+            # Cost Avoidance: show driver combo (row 1) and delegate field layout to _on_driver_changed
+            self.lbl_driver.grid(row=1, column=0, sticky="w", padx=(0, 10), pady=5)
+            self.combo_driver.grid(row=1, column=1, sticky="w", pady=5)
+            # Call driver handler to position appropriate sub-frame at row 0
+            self._on_driver_changed()
         
         elif event_type == "Derisking":
-            # Derisking: nessun campo economico obbligatorio
-            # Solo label informativo
-            info_label = ttk.Label(
-                self.economic_frame,
-                text=_("Gli eventi Derisking non generano impatti economici.\n"
-                       "Compilare solo sezioni descrittive."),
-                foreground="blue",
-                font=("Calibri", 9, "italic")
-            )
-            info_label.grid(row=0, column=0, columnspan=2, sticky="w", pady=5)
+            # Derisking: show info label only
+            self.lbl_derisking_info.grid(row=0, column=0, columnspan=2, sticky="w", pady=5)
     
     def _on_opex_changed(self):
         """Handler per cambio checkbox OPEX ripetitivo (future enhancement)."""
@@ -299,7 +298,7 @@ class VSMEventDialog(tk.Toplevel):
     def _on_driver_changed(self, event=None):
         """
         Handler per cambio driver.
-        Mostra/nasconde campi in base al driver selezionato.
+        Mostra/nasconde SUB-FRAME in base al driver selezionato.
         """
         driver = self.combo_driver.get()
         event_type = self.event_type_var.get()
@@ -308,53 +307,84 @@ class VSMEventDialog(tk.Toplevel):
         if event_type not in ["Saving", "Cost Avoidance"]:
             return
         
+        # Hide both sub-frames first
+        self.price_fields_frame.grid_remove()
+        self.payment_fields_frame.grid_remove()
+        
         if driver == "Prezzo":
-            # Mostra campi Prezzo, nascondi campi Pagamenti
-            self.lbl_percent_realizzo.grid()
-            self.entry_percent_realizzo.grid()
+            # Show price fields frame at row 0
+            self.price_fields_frame.grid(row=0, column=0, columnspan=2, sticky="ew", pady=(0, 10))
             
-            self.lbl_spending_annuo.grid_remove()
-            self.entry_spending_annuo.grid_remove()
-            self.lbl_giorni_attuali.grid_remove()
-            self.entry_giorni_attuali.grid_remove()
-            self.lbl_giorni_negoziati.grid_remove()
-            self.entry_giorni_negoziati.grid_remove()
+            # Layout widgets inside price_fields_frame based on event_type
+            if event_type == "Saving":
+                self.lbl_importo_bdg.grid(row=0, column=0, sticky="w", padx=(0, 10), pady=5)
+                self.entry_importo_bdg.grid(row=0, column=1, sticky="w", pady=5)
+                
+                self.lbl_importo_negoziato.grid(row=1, column=0, sticky="w", padx=(0, 10), pady=5)
+                self.entry_importo_negoziato.grid(row=1, column=1, sticky="w", pady=5)
+                
+                self.lbl_percent_realizzo.grid(row=2, column=0, sticky="w", padx=(0, 10), pady=5)
+                self.entry_percent_realizzo.grid(row=2, column=1, sticky="w", pady=5)
+                
+                # Hide Cost Avoidance specific field
+                self.lbl_importo_richiesto.grid_remove()
+                self.entry_importo_richiesto.grid_remove()
+                
+            elif event_type == "Cost Avoidance":
+                self.lbl_importo_richiesto.grid(row=0, column=0, sticky="w", padx=(0, 10), pady=5)
+                self.entry_importo_richiesto.grid(row=0, column=1, sticky="w", pady=5)
+                
+                self.lbl_importo_negoziato.grid(row=1, column=0, sticky="w", padx=(0, 10), pady=5)
+                self.entry_importo_negoziato.grid(row=1, column=1, sticky="w", pady=5)
+                
+                self.lbl_percent_realizzo.grid(row=2, column=0, sticky="w", padx=(0, 10), pady=5)
+                self.entry_percent_realizzo.grid(row=2, column=1, sticky="w", pady=5)
+                
+                # Hide Saving specific field
+                self.lbl_importo_bdg.grid_remove()
+                self.entry_importo_bdg.grid_remove()
             
         elif driver == "Pagamenti":
-            # Nascondi campi Prezzo, mostra campi Pagamenti
-            self.lbl_percent_realizzo.grid_remove()
-            self.entry_percent_realizzo.grid_remove()
+            # Show payment fields frame at row 0 (SAME position as price frame)
+            self.payment_fields_frame.grid(row=0, column=0, columnspan=2, sticky="ew", pady=(0, 10))
             
-            # Trova ultima riga visibile
-            row = 0
-            for widget in self.economic_frame.winfo_children():
-                info = widget.grid_info()
-                if info and 'row' in info:
-                    row = max(row, int(info['row']))
-            row += 1
+            # Layout widgets inside payment_fields_frame
+            self.lbl_spending_annuo.grid(row=0, column=0, sticky="w", padx=(0, 10), pady=5)
+            self.entry_spending_annuo.grid(row=0, column=1, sticky="w", pady=5)
             
-            # Posiziona campi Pagamenti
-            self.lbl_spending_annuo.grid(row=row, column=0, sticky="w", padx=(0, 10), pady=5)
-            self.entry_spending_annuo.grid(row=row, column=1, sticky="w", pady=5)
-            row += 1
+            self.lbl_giorni_attuali.grid(row=1, column=0, sticky="w", padx=(0, 10), pady=5)
+            self.entry_giorni_attuali.grid(row=1, column=1, sticky="w", pady=5)
             
-            self.lbl_giorni_attuali.grid(row=row, column=0, sticky="w", padx=(0, 10), pady=5)
-            self.entry_giorni_attuali.grid(row=row, column=1, sticky="w", pady=5)
-            row += 1
-            
-            self.lbl_giorni_negoziati.grid(row=row, column=0, sticky="w", padx=(0, 10), pady=5)
-            self.entry_giorni_negoziati.grid(row=row, column=1, sticky="w", pady=5)
+            self.lbl_giorni_negoziati.grid(row=2, column=0, sticky="w", padx=(0, 10), pady=5)
+            self.entry_giorni_negoziati.grid(row=2, column=1, sticky="w", pady=5)
         
         else:
-            # Volume, Altro: nascondi tutto per ora
-            self.lbl_percent_realizzo.grid_remove()
-            self.entry_percent_realizzo.grid_remove()
-            self.lbl_spending_annuo.grid_remove()
-            self.entry_spending_annuo.grid_remove()
-            self.lbl_giorni_attuali.grid_remove()
-            self.entry_giorni_attuali.grid_remove()
-            self.lbl_giorni_negoziati.grid_remove()
-            self.entry_giorni_negoziati.grid_remove()
+            # Volume, Altro: show price frame but this is a placeholder for future implementation
+            self.price_fields_frame.grid(row=0, column=0, columnspan=2, sticky="ew", pady=(0, 10))
+            
+            if event_type == "Saving":
+                self.lbl_importo_bdg.grid(row=0, column=0, sticky="w", padx=(0, 10), pady=5)
+                self.entry_importo_bdg.grid(row=0, column=1, sticky="w", pady=5)
+                
+                self.lbl_importo_negoziato.grid(row=1, column=0, sticky="w", padx=(0, 10), pady=5)
+                self.entry_importo_negoziato.grid(row=1, column=1, sticky="w", pady=5)
+                
+                self.lbl_percent_realizzo.grid_remove()
+                self.entry_percent_realizzo.grid_remove()
+                self.lbl_importo_richiesto.grid_remove()
+                self.entry_importo_richiesto.grid_remove()
+                
+            elif event_type == "Cost Avoidance":
+                self.lbl_importo_richiesto.grid(row=0, column=0, sticky="w", padx=(0, 10), pady=5)
+                self.entry_importo_richiesto.grid(row=0, column=1, sticky="w", pady=5)
+                
+                self.lbl_importo_negoziato.grid(row=1, column=0, sticky="w", padx=(0, 10), pady=5)
+                self.entry_importo_negoziato.grid(row=1, column=1, sticky="w", pady=5)
+                
+                self.lbl_percent_realizzo.grid_remove()
+                self.entry_percent_realizzo.grid_remove()
+                self.lbl_importo_bdg.grid_remove()
+                self.entry_importo_bdg.grid_remove()
     
     def _load_event_data(self):
         """Carica dati evento esistente (modalità edit)."""
