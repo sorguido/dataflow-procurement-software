@@ -70,6 +70,11 @@ class VSMEventDialog(tk.Toplevel):
         # Build UI
         self._build_ui()
         
+        # Popola campo User con username corrente (sempre, sia in CREATE che in EDIT)
+        self.entry_buyer.configure(state="normal")
+        self.entry_buyer.insert(0, self.current_username)
+        self.entry_buyer.configure(state="disabled")
+        
         # Se modalità edit, carica dati
         if self.is_edit_mode:
             self._load_event_data()
@@ -125,9 +130,9 @@ class VSMEventDialog(tk.Toplevel):
         )
         self.combo_action.grid(row=2, column=1, sticky="w", pady=5)
         
-        # Buyer
-        ttk.Label(general_frame, text=_("Buyer: *")).grid(row=3, column=0, sticky="w", padx=(0, 10), pady=5)
-        self.entry_buyer = ttk.Entry(general_frame, width=30)
+        # User (auto-valorizzato con username corrente, non modificabile)
+        ttk.Label(general_frame, text=_("User:")).grid(row=3, column=0, sticky="w", padx=(0, 10), pady=5)
+        self.entry_buyer = ttk.Entry(general_frame, width=30, state="disabled")
         self.entry_buyer.grid(row=3, column=1, sticky="ew", pady=5)
         
         # === SEZIONE DESCRIZIONE ===
@@ -295,7 +300,7 @@ class VSMEventDialog(tk.Toplevel):
             
             self.event_type_var.set(event.event_type)
             self.action_var.set(event.action)
-            self.entry_buyer.insert(0, event.buyer)
+            # Campo User già popolato con current_username in __init__, non sovrascrivere
             
             self.text_description.insert("1.0", event.description)
             self.entry_reference.insert(0, event.reference)
