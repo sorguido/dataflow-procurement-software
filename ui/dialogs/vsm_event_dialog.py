@@ -177,6 +177,19 @@ class VSMEventDialog(tk.Toplevel):
             width=18
         )
         
+        # Widget specifici per driver Pagamenti (nascosti di default)
+        self.lbl_spending_annuo = ttk.Label(self.economic_frame, text=_("Spending Annuo (€): *"))
+        self.entry_spending_annuo = ttk.Entry(self.economic_frame, width=20)
+        
+        self.lbl_giorni_attuali = ttk.Label(self.economic_frame, text=_("Termini Pagamento Attuali (giorni): *"))
+        self.entry_giorni_attuali = ttk.Entry(self.economic_frame, width=20)
+        
+        self.lbl_giorni_negoziati = ttk.Label(self.economic_frame, text=_("Termini Pagamento Negoziati (giorni): *"))
+        self.entry_giorni_negoziati = ttk.Entry(self.economic_frame, width=20)
+        
+        # Binding su combobox driver per show/hide dinamico
+        self.combo_driver.bind("<<ComboboxSelected>>", self._on_driver_changed)
+        
         # === SEZIONE DISTRIBUZIONE ===
         dist_frame = ttk.LabelFrame(main_frame, text=_("Distribuzione Valore"), padding="10")
         dist_frame.grid(row=3, column=0, sticky="ew", pady=(0, 10))
@@ -283,6 +296,66 @@ class VSMEventDialog(tk.Toplevel):
         # In futuro potremmo abilitare campo num_mesi_ripetizione
         pass
     
+    def _on_driver_changed(self, event=None):
+        """
+        Handler per cambio driver.
+        Mostra/nasconde campi in base al driver selezionato.
+        """
+        driver = self.combo_driver.get()
+        event_type = self.event_type_var.get()
+        
+        # Solo per event_type con campi economici
+        if event_type not in ["Saving", "Cost Avoidance"]:
+            return
+        
+        if driver == "Prezzo":
+            # Mostra campi Prezzo, nascondi campi Pagamenti
+            self.lbl_percent_realizzo.grid()
+            self.entry_percent_realizzo.grid()
+            
+            self.lbl_spending_annuo.grid_remove()
+            self.entry_spending_annuo.grid_remove()
+            self.lbl_giorni_attuali.grid_remove()
+            self.entry_giorni_attuali.grid_remove()
+            self.lbl_giorni_negoziati.grid_remove()
+            self.entry_giorni_negoziati.grid_remove()
+            
+        elif driver == "Pagamenti":
+            # Nascondi campi Prezzo, mostra campi Pagamenti
+            self.lbl_percent_realizzo.grid_remove()
+            self.entry_percent_realizzo.grid_remove()
+            
+            # Trova ultima riga visibile
+            row = 0
+            for widget in self.economic_frame.winfo_children():
+                info = widget.grid_info()
+                if info and 'row' in info:
+                    row = max(row, int(info['row']))
+            row += 1
+            
+            # Posiziona campi Pagamenti
+            self.lbl_spending_annuo.grid(row=row, column=0, sticky="w", padx=(0, 10), pady=5)
+            self.entry_spending_annuo.grid(row=row, column=1, sticky="w", pady=5)
+            row += 1
+            
+            self.lbl_giorni_attuali.grid(row=row, column=0, sticky="w", padx=(0, 10), pady=5)
+            self.entry_giorni_attuali.grid(row=row, column=1, sticky="w", pady=5)
+            row += 1
+            
+            self.lbl_giorni_negoziati.grid(row=row, column=0, sticky="w", padx=(0, 10), pady=5)
+            self.entry_giorni_negoziati.grid(row=row, column=1, sticky="w", pady=5)
+        
+        else:
+            # Volume, Altro: nascondi tutto per ora
+            self.lbl_percent_realizzo.grid_remove()
+            self.entry_percent_realizzo.grid_remove()
+            self.lbl_spending_annuo.grid_remove()
+            self.entry_spending_annuo.grid_remove()
+            self.lbl_giorni_attuali.grid_remove()
+            self.entry_giorni_attuali.grid_remove()
+            self.lbl_giorni_negoziati.grid_remove()
+            self.entry_giorni_negoziati.grid_remove()
+    
     def _load_event_data(self):
         """Carica dati evento esistente (modalità edit)."""
         try:
@@ -316,10 +389,19 @@ class VSMEventDialog(tk.Toplevel):
             if event.driver:
                 self.driver_var.set(event.driver)
             
+            # Campi Pagamenti
+            if event.spending_annuo:
+                self.entry_spending_annuo.insert(0, str(event.spending_annuo))
+            if event.giorni_pagamento_attuali is not None:
+                self.entry_giorni_attuali.insert(0, str(event.giorni_pagamento_attuali))
+            if event.giorni_pagamento_negoziati is not None:
+                self.entry_giorni_negoziati.insert(0, str(event.giorni_pagamento_negoziati))
+            
             self.opex_ripetitivo_var.set(event.opex_ripetitivo)
             
-            # Applica dinamismo form
+            # Applica dinamismo form (event_type e driver)
             self._on_event_type_changed()
+            self._on_driver_changed()
         
         except Exception as e:
             logger.error(f"Errore caricamento evento {self.event_id}: {e}", exc_info=True)
@@ -356,24 +438,105 @@ class VSMEventDialog(tk.Toplevel):
             # Reference: preserva valore storico in EDIT, vuoto in CREATE
             reference = self._loaded_event.reference if (self.is_edit_mode and hasattr(self, '_loaded_event')) else ""
             
-            # Campi economici (condizionali)
-            importo_bdg = 0.0
-            importo_negoziato = 0.0
+            # Campi economici (condizionali in base a event_type e driver)
+            importo_bdg = None
+            importo_negoziato = None
             importo_richiesto_iniziale = None
             percent_realizzo = 100.0
+            spending_annuo = None
+            giorni_pagamento_attuali = None
+            giorni_pagamento_negoziati = None
             driver = self.driver_var.get()
             
             if event_type == "Saving":
-                # Saving richiede importo_bdg e importo_negoziato
-                try:
-                    importo_bdg = float(self.entry_importo_bdg.get().strip())
-                except ValueError:
-                    raise ValueError(_("Importo a Budget deve essere un numero valido."))
+                # Validazioni specifiche per driver
+                if driver == "Prezzo":
+                    # Driver Prezzo: valida importi
+                    try:
+                        importo_bdg = float(self.entry_importo_bdg.get().strip())
+                    except ValueError:
+                        raise ValueError(_("Importo a Budget deve essere un numero valido."))
+                    
+                    try:
+                        importo_negoziato = float(self.entry_importo_negoziato.get().strip())
+                    except ValueError:
+                        raise ValueError(_("Importo Negoziato deve essere un numero valido."))
+                    
+                    try:
+                        percent_realizzo = float(self.entry_percent_realizzo.get().strip())
+                        if not (0 <= percent_realizzo <= 100):
+                            raise ValueError(_("% Realizzo deve essere tra 0 e 100."))
+                    except ValueError as e:
+                        if "could not convert" in str(e):
+                            raise ValueError(_("% Realizzo debe essere un numero valido."))
+                        raise
+                    
+                    # Campi Pagamenti a NULL
+                    spending_annuo = None
+                    giorni_pagamento_attuali = None
+                    giorni_pagamento_negoziati = None
+                    
+                elif driver == "Pagamenti":
+                    # Driver Pagamenti: valida spending e giorni
+                    try:
+                        spending_annuo = float(self.entry_spending_annuo.get().strip())
+                        if spending_annuo <= 0:
+                            raise ValueError(_("Spending Annuo deve essere positivo."))
+                    except ValueError as e:
+                        if "could not convert" in str(e):
+                            raise ValueError(_("Spending Annuo deve essere un numero valido."))
+                        raise
+                    
+                    try:
+                        giorni_pagamento_attuali = int(self.entry_giorni_attuali.get().strip())
+                        if giorni_pagamento_attuali < 0:
+                            raise ValueError(_("Termini Pagamento Attuali non possono essere negativi."))
+                    except ValueError as e:
+                        if "invalid literal" in str(e):
+                            raise ValueError(_("Termini Pagamento Attuali deve essere un numero intero valido."))
+                        raise
+                    
+                    try:
+                        giorni_pagamento_negoziati = int(self.entry_giorni_negoziati.get().strip())
+                        if giorni_pagamento_negoziati < 0:
+                            raise ValueError(_("Termini Pagamento Negoziati non possono essere negativi."))
+                    except ValueError as e:
+                        if "invalid literal" in str(e):
+                            raise ValueError(_("Termini Pagamento Negoziati deve essere un numero intero valido."))
+                        raise
+                    
+                    # Warning opzionale se delta negativo (peggioramento)
+                    if giorni_pagamento_negoziati < giorni_pagamento_attuali:
+                        risposta = messagebox.askyesno(
+                            _("Attenzione"),
+                            _("Termini negoziati ({}) inferiori a termini attuali ({}).\n"
+                              "Questo genera un impatto negativo (peggioramento dilazione).\n\n"
+                              "Confermi di voler procedere?").format(
+                                  giorni_pagamento_negoziati,
+                                  giorni_pagamento_attuali
+                              ),
+                            icon='warning',
+                            parent=self
+                        )
+                        if not risposta:
+                            return
+                    
+                    # Campi Prezzo a NULL, percent_realizzo fisso a 100 (tecnico, ignorato)
+                    importo_bdg = None
+                    importo_negoziato = None
+                    percent_realizzo = 100.0
                 
-                try:
-                    importo_negoziato = float(self.entry_importo_negoziato.get().strip())
-                except ValueError:
-                    raise ValueError(_("Importo Negoziato deve essere un numero valido."))
+                else:
+                    # Driver Volume/Altro: per ora valida importi come Prezzo
+                    try:
+                        importo_bdg = float(self.entry_importo_bdg.get().strip())
+                    except ValueError:
+                        raise ValueError(_("Importo a Budget deve essere un numero valido."))
+                    
+                    try:
+                        importo_negoziato = float(self.entry_importo_negoziato.get().strip())
+                    except ValueError:
+                        raise ValueError(_("Importo Negoziato deve essere un numero valido."))
             
             elif event_type == "Cost Avoidance":
                 # Cost Avoidance richiede importo_richiesto_iniziale e importo_negoziato
@@ -386,16 +549,16 @@ class VSMEventDialog(tk.Toplevel):
                     importo_negoziato = float(self.entry_importo_negoziato.get().strip())
                 except ValueError:
                     raise ValueError(_("Importo Negoziato deve essere un numero valido."))
-            
-            # Percent realizzo (opzionale, default 100)
-            try:
-                percent_realizzo = float(self.entry_percent_realizzo.get().strip())
-                if not (0 <= percent_realizzo <= 100):
-                    raise ValueError(_("% Realizzo deve essere tra 0 e 100."))
-            except ValueError as e:
-                if "could not convert" in str(e):
-                    raise ValueError(_("% Realizzo debe essere un numero valido."))
-                raise
+                
+                # Cost Avoidance sempre con percent_realizzo
+                try:
+                    percent_realizzo = float(self.entry_percent_realizzo.get().strip())
+                    if not (0 <= percent_realizzo <= 100):
+                        raise ValueError(_("% Realizzo deve essere tra 0 e 100."))
+                except ValueError as e:
+                    if "could not convert" in str(e):
+                        raise ValueError(_("% Realizzo debe essere un numero valido."))
+                    raise
             
             # Flags
             opex_ripetitivo = self.opex_ripetitivo_var.get()
@@ -410,11 +573,14 @@ class VSMEventDialog(tk.Toplevel):
                 action=action,
                 description=description,
                 reference=reference,
-                importo_bdg=importo_bdg,
-                importo_negoziato=importo_negoziato,
+                importo_bdg=importo_bdg if importo_bdg is not None else 0.0,
+                importo_negoziato=importo_negoziato if importo_negoziato is not None else 0.0,
                 importo_richiesto_iniziale=importo_richiesto_iniziale,
                 percent_realizzo=percent_realizzo,
                 driver=driver,
+                spending_annuo=spending_annuo if spending_annuo is not None else 0.0,
+                giorni_pagamento_attuali=giorni_pagamento_attuali,
+                giorni_pagamento_negoziati=giorni_pagamento_negoziati,
                 opex_ripetitivo=opex_ripetitivo
             )
             

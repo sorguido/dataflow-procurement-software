@@ -8,6 +8,7 @@ Gli eventi sono le azioni negoziali che generano valore economico.
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Optional
+from utils.vsm_config import get_pagamenti_coefficient
 
 
 @dataclass
@@ -149,11 +150,38 @@ class VSMEvent:
     
     def calculate_theoretical_value(self) -> float:
         """
-        Calcola il valore teorico dell'evento.
+        Calcola il valore teorico dell'evento in base al driver.
+        
+        Driver Prezzo:
+            - Cost Avoidance: importo_richiesto_iniziale - importo_negoziato
+            - Saving: importo_bdg - importo_negoziato
+        
+        Driver Pagamenti:
+            - Saving da dilazione: spending_annuo * (delta_giorni / 30) * coefficiente
+            - Coefficiente: costo opportunità capitale (es. 0.005 = 0.5% mensile)
         
         Returns:
             float: Valore teorico calcolato
         """
+        # Driver Pagamenti: calcolo basato su dilazione pagamento
+        if self.driver == "Pagamenti":
+            if (self.spending_annuo is not None and 
+                self.giorni_pagamento_attuali is not None and 
+                self.giorni_pagamento_negoziati is not None):
+                
+                # Delta giorni: positivo se dilazione aumenta (saving), negativo se peggiora
+                delta_giorni = self.giorni_pagamento_negoziati - self.giorni_pagamento_attuali
+                
+                # Coefficiente costo opportunità da config
+                coefficiente = get_pagamenti_coefficient()
+                
+                # Formula: spending_annuo * (delta_giorni / 30) * coefficiente
+                # Coefficiente già in forma decimale (es. 0.005 = 0.5%)
+                return self.spending_annuo * (delta_giorni / 30.0) * coefficiente
+            
+            return 0.0
+        
+        # Driver Prezzo: logica originale basata su importi
         if self.event_type == "Cost Avoidance" and self.importo_richiesto_iniziale:
             # Cost Avoidance: differenza tra richiesto iniziale e negoziato
             return self.importo_richiesto_iniziale - self.importo_negoziato
@@ -166,10 +194,20 @@ class VSMEvent:
     
     def calculate_effective_value(self) -> float:
         """
-        Calcola il valore effettivo applicando la percentuale di realizzo.
+        Calcola il valore effettivo.
+        
+        Driver Prezzo: applica percentuale di realizzo
+        Driver Pagamenti: valore teorico = valore effettivo (no realizzo applicabile)
         
         Returns:
             float: Valore effettivo calcolato
         """
         theoretical = self.calculate_theoretical_value()
-        return theoretical * (self.percent_realizzo / 100.0)
+        
+        # percent_realizzo applicabile SOLO per driver Prezzo
+        if self.driver == "Prezzo":
+            return theoretical * (self.percent_realizzo / 100.0)
+        else:
+            # Pagamenti: il valore teorico è già il valore effettivo
+            # (pagamenti sono accordati o non accordati, no concetto fuzzy di realizzo)
+            return theoretical
