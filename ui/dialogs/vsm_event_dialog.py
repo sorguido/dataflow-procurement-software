@@ -27,6 +27,9 @@ from utils.window_utils import center_window
 # Import models
 from models.vsm_event import VSMEvent
 
+# Import custom dialog per messaggi uniformi
+from ui.dialogs.common_dialogs import SimpleMessageDialog
+
 logger = logging.getLogger(__name__)
 
 
@@ -590,9 +593,11 @@ class VSMEventDialog(tk.Toplevel):
                     msg = _("Evento VSM aggiornato con successo.")
                 else:
                     event_id = save_event_with_impacts(db_manager, event)
-                    msg = _("Evento VSM creato con successo (ID: {}).").format(event_id)
+                    msg = _("Evento VSM creato con successo.")
+                    logger.info(f"Evento VSM creato con ID: {event_id}")
             
-            messagebox.showinfo(_("Successo"), msg, parent=self)
+            # Usa dialog custom con font uniforme
+            SimpleMessageDialog(self, _("Successo"), msg, "info")
             
             # Imposta result per indicare successo
             self.result = True

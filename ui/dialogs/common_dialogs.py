@@ -13,6 +13,45 @@ from utils.string_utils import generate_username
 from utils.i18n_utils import get_current_language, _
 
 
+class SimpleMessageDialog(tk.Toplevel):
+    """Dialog semplice per messaggi con font uniforme all'app."""
+    def __init__(self, parent, title, message, msg_type="info"):
+        super().__init__(parent)
+        self.withdraw()
+        set_window_icon(self)
+        self.title(title)
+        self.transient(parent)
+        self.resizable(False, False)
+        self.grab_set()
+        
+        frame = ttk.Frame(self, padding="20")
+        frame.pack(fill="both", expand=True)
+        
+        # Messaggio con font uniforme (stesso di LanguagePrompt)
+        ttk.Label(
+            frame,
+            text=message,
+            font=(None, 10),
+            wraplength=350,
+            justify="left"
+        ).pack(pady=(0, 15))
+        
+        # Pulsante OK
+        btn_frame = ttk.Frame(frame)
+        btn_frame.pack()
+        ttk.Button(
+            btn_frame,
+            text="OK",
+            command=self.destroy,
+            width=10
+        ).pack()
+        
+        self.protocol("WM_DELETE_WINDOW", self.destroy)
+        center_window(self)
+        self.deiconify()
+        self.wait_window()
+
+
 class LanguagePrompt(tk.Toplevel):
     """Dialog per scelta lingua esportazione Excel."""
     def __init__(self, parent):
