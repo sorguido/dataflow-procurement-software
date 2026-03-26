@@ -3046,6 +3046,9 @@ msgstr "Negotiated Payment Terms (days): *"
 msgid "Financial Impact (% per 30 days):"
 msgstr "Financial Impact (% per 30 days):"
 
+msgid "New Supplier Introduced"
+msgstr "New Supplier Introduced"
+
 msgid "Driver:"
 msgstr "Driver:"
 

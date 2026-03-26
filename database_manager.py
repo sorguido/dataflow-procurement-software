@@ -248,6 +248,12 @@ class DatabaseManager:
             except Exception:
                 pass
 
+            # Migrazione colonna new_supplier per vsm_events
+            try:
+                self.cursor.execute("ALTER TABLE vsm_events ADD COLUMN new_supplier TEXT DEFAULT ''")
+            except Exception:
+                pass
+
             # Indici per performance VSM
             self.cursor.execute('CREATE INDEX IF NOT EXISTS idx_vsm_impacts_event_id ON vsm_impacts(event_id)')
             self.cursor.execute('CREATE INDEX IF NOT EXISTS idx_vsm_impacts_period ON vsm_impacts(anno, mese)')
@@ -1962,8 +1968,8 @@ class DatabaseManager:
                 description, reference, importo_bdg, importo_negoziato,
                 importo_richiesto_iniziale, quantita_annua, percent_realizzo,
                 driver, giorni_pagamento_attuali, giorni_pagamento_negoziati,
-                spending_annuo, payments_rate, opex_ripetitivo, note, created_at, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                spending_annuo, payments_rate, opex_ripetitivo, note, new_supplier, created_at, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             event.username,
             event.event_date.isoformat() if event.event_date else None,
@@ -1984,6 +1990,7 @@ class DatabaseManager:
             event.payments_rate,
             1 if event.opex_ripetitivo else 0,
             event.note,
+            event.new_supplier,
             event.created_at.isoformat() if event.created_at else None,
             event.updated_at.isoformat() if event.updated_at else None
         ))
@@ -2003,7 +2010,8 @@ class DatabaseManager:
                 description = ?, reference = ?, importo_bdg = ?, importo_negoziato = ?,
                 importo_richiesto_iniziale = ?, quantita_annua = ?, percent_realizzo = ?,
                 driver = ?, giorni_pagamento_attuali = ?, giorni_pagamento_negoziati = ?,
-                spending_annuo = ?, payments_rate = ?, opex_ripetitivo = ?, note = ?, updated_at = ?
+                spending_annuo = ?, payments_rate = ?, opex_ripetitivo = ?, note = ?,
+                new_supplier = ?, updated_at = ?
             WHERE event_id = ?
         """, (
             event.username,
@@ -2025,6 +2033,7 @@ class DatabaseManager:
             event.payments_rate,
             1 if event.opex_ripetitivo else 0,
             event.note,
+            event.new_supplier,
             datetime.now().isoformat(),
             event.id
         ))
@@ -2038,6 +2047,25 @@ class DatabaseManager:
             event_id: ID dell'evento di cui eliminare gli impatti
         """
         self.cursor.execute("DELETE FROM vsm_impacts WHERE event_id = ?", (event_id,))
+    
+    def update_vsm_event_new_supplier(self, event_id: int, new_supplier: str) -> None:
+        """
+        Aggiorna solo il campo new_supplier per un evento VSM esistente (con commit).
+        Usato per il salvataggio rapido via tasto Enter nel dialog Derisking.
+        
+        Args:
+            event_id: ID dell'evento da aggiornare
+            new_supplier: Valore del campo new_supplier
+        """
+        try:
+            self.cursor.execute(
+                "UPDATE vsm_events SET new_supplier = ?, updated_at = ? WHERE event_id = ?",
+                (new_supplier, datetime.now().isoformat(), event_id)
+            )
+            self.conn.commit()
+        except Exception as e:
+            print(f"[DB Manager] Errore update_vsm_event_new_supplier: {e}")
+            raise DatabaseError(str(e)) from e
     
     def _insert_vsm_impacts_no_commit(self, impacts: list) -> None:
         """
@@ -2082,7 +2110,7 @@ class DatabaseManager:
                        importo_richiesto_iniziale, quantita_annua, percent_realizzo,
                        driver, giorni_pagamento_attuali, giorni_pagamento_negoziati,
                        spending_annuo, opex_ripetitivo, note, created_at, updated_at,
-                       payments_rate
+                       payments_rate, new_supplier
                 FROM vsm_events WHERE event_id = ?
             """, (event_id,))
             row = self.cursor.fetchone()
@@ -2114,7 +2142,8 @@ class DatabaseManager:
                 note=row[18],
                 created_at=datetime.fromisoformat(row[19]) if row[19] else datetime.now(),
                 updated_at=datetime.fromisoformat(row[20]) if row[20] else datetime.now(),
-                payments_rate=row[21]
+                payments_rate=row[21],
+                new_supplier=row[22] or ""
             )
         except Exception as e:
             print(f"[DB Manager] Errore get_vsm_event_by_id: {e}")
@@ -2138,7 +2167,7 @@ class DatabaseManager:
                            importo_richiesto_iniziale, quantita_annua, percent_realizzo,
                            driver, giorni_pagamento_attuali, giorni_pagamento_negoziati,
                            spending_annuo, opex_ripetitivo, note, created_at, updated_at,
-                           payments_rate
+                           payments_rate, new_supplier
                     FROM vsm_events
                     WHERE username = ?
                     ORDER BY event_date DESC, event_id DESC
@@ -2150,7 +2179,7 @@ class DatabaseManager:
                            importo_richiesto_iniziale, quantita_annua, percent_realizzo,
                            driver, giorni_pagamento_attuali, giorni_pagamento_negoziati,
                            spending_annuo, opex_ripetitivo, note, created_at, updated_at,
-                           payments_rate
+                           payments_rate, new_supplier
                     FROM vsm_events
                     ORDER BY event_date DESC, event_id DESC
                 """)
@@ -2184,7 +2213,8 @@ class DatabaseManager:
                     note=row[18],
                     created_at=datetime.fromisoformat(row[19]) if row[19] else datetime.now(),
                     updated_at=datetime.fromisoformat(row[20]) if row[20] else datetime.now(),
-                    payments_rate=row[21]
+                    payments_rate=row[21],
+                    new_supplier=row[22] or ""
                 ))
             
             return events

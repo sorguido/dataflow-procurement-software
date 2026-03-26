@@ -3050,6 +3050,9 @@ msgstr "Termini Pagamento Negoziati (giorni): *"
 msgid "Financial Impact (% per 30 days):"
 msgstr "Financial Impact (% per 30 giorni):"
 
+msgid "New Supplier Introduced"
+msgstr "Nuovo Fornitore Introdotto"
+
 msgid "Driver:"
 msgstr "Driver:"
 

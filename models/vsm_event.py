@@ -74,6 +74,9 @@ class VSMEvent:
     # Flags
     opex_ripetitivo: bool = False
     
+    # Derisking specific
+    new_supplier: str = ""  # Nome nuovo fornitore introdotto a titolo di derisking
+    
     # Note e metadata
     note: str = ""
     created_at: datetime = field(default_factory=datetime.now)
@@ -132,6 +135,7 @@ class VSMEvent:
             'spending_annuo': self.spending_annuo,
             'payments_rate': self.payments_rate,
             'opex_ripetitivo': self.opex_ripetitivo,
+            'new_supplier': self.new_supplier,
             'note': self.note,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None,

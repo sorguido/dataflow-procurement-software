@@ -206,9 +206,17 @@ class VSMEventDialog(tk.Toplevel):
         self.entry_buyer = ttk.Entry(general_frame, width=30, state="disabled")
         self.entry_buyer.grid(row=3, column=1, sticky="ew", pady=5)
         
+        # === SEZIONE NEW SUPPLIER INTRODUCED (solo Derisking) ===
+        self.new_supplier_frame = ttk.LabelFrame(main_frame, text=_("New Supplier Introduced"), padding="10")
+        self.new_supplier_frame.columnconfigure(0, weight=1)
+        self.entry_new_supplier = ttk.Entry(self.new_supplier_frame, width=40)
+        self.entry_new_supplier.grid(row=0, column=0, sticky="ew", pady=5)
+        self.entry_new_supplier.bind("<Return>", self._on_new_supplier_enter)
+        # (not gridded here — shown dynamically by _on_event_type_changed)
+
         # === SEZIONE DESCRIZIONE ===
         desc_frame = ttk.LabelFrame(main_frame, text=_("Descrizione"), padding="10")
-        desc_frame.grid(row=1, column=0, sticky="ew", pady=(0, 10))
+        desc_frame.grid(row=2, column=0, sticky="ew", pady=(0, 10))
         desc_frame.columnconfigure(0, weight=1)
         desc_frame.rowconfigure(0, weight=1)
         
@@ -218,7 +226,7 @@ class VSMEventDialog(tk.Toplevel):
         
         # === SEZIONE ECONOMICA (dinamica) ===
         self.economic_frame = ttk.LabelFrame(main_frame, text=_("Dati Economici"), padding="10")
-        self.economic_frame.grid(row=2, column=0, sticky="ew", pady=(0, 10))
+        self.economic_frame.grid(row=3, column=0, sticky="ew", pady=(0, 10))
         self.economic_frame.columnconfigure(0, weight=1)
         
         # --- SUB-FRAME PREZZO (driver Prezzo) ---
@@ -293,7 +301,7 @@ class VSMEventDialog(tk.Toplevel):
         
         # === SEZIONE DISTRIBUZIONE ===
         dist_frame = ttk.LabelFrame(main_frame, text=_("Distribuzione Valore"), padding="10")
-        dist_frame.grid(row=3, column=0, sticky="ew", pady=(0, 10))
+        dist_frame.grid(row=4, column=0, sticky="ew", pady=(0, 10))
         dist_frame.columnconfigure(1, weight=1)
         
         # OPEX Ripetitivo
@@ -317,7 +325,7 @@ class VSMEventDialog(tk.Toplevel):
         
         # === PULSANTI ===
         btn_frame = ttk.Frame(main_frame)
-        btn_frame.grid(row=4, column=0, sticky="ew", pady=(10, 0))
+        btn_frame.grid(row=5, column=0, sticky="ew", pady=(10, 0))
         btn_frame.columnconfigure(0, weight=1)
         
         ttk.Button(
@@ -345,6 +353,7 @@ class VSMEventDialog(tk.Toplevel):
         self.lbl_driver.grid_remove()
         self.combo_driver.grid_remove()
         self.lbl_derisking_info.grid_remove()
+        self.new_supplier_frame.grid_remove()
         
         if event_type == "Saving":
             # Saving: show driver combo (row 0) and delegate field layout to _on_driver_changed
@@ -373,6 +382,8 @@ class VSMEventDialog(tk.Toplevel):
             self.action_var.set("Derisking")
             self.combo_action.grid_remove()
             self.entry_action.grid(row=2, column=1, sticky="w", pady=5)
+            # Mostra sezione New Supplier Introduced (solo per Derisking)
+            self.new_supplier_frame.grid(row=1, column=0, sticky="ew", pady=(0, 10))
     
     def _on_opex_changed(self):
         """Handler per cambio checkbox OPEX ripetitivo (future enhancement)."""
@@ -452,6 +463,17 @@ class VSMEventDialog(tk.Toplevel):
             self.lbl_payments_rate.grid(row=3, column=0, sticky="w", padx=(0, 10), pady=5)
             self.entry_payments_rate.grid(row=3, column=1, sticky="w", pady=5)
     
+    def _on_new_supplier_enter(self, event=None):
+        """Salvataggio immediato del campo new_supplier su Enter (solo edit mode con evento già persistito)."""
+        if not self.is_edit_mode or self.event_id is None:
+            return
+        value = self.entry_new_supplier.get().strip()
+        try:
+            with DatabaseManager(get_db_path()) as db_manager:
+                db_manager.update_vsm_event_new_supplier(self.event_id, value)
+        except Exception as e:
+            logger.error(f"Errore aggiornamento new_supplier: {e}", exc_info=True)
+
     def _load_event_data(self):
         """Carica dati evento esistente (modalità edit)."""
         try:
@@ -519,6 +541,10 @@ class VSMEventDialog(tk.Toplevel):
                 self.entry_payments_rate.insert(0, format_amount_display(get_pagamenti_coefficient() * 100))
             
             self.opex_ripetitivo_var.set(event.opex_ripetitivo)
+            
+            # Campo new_supplier (Derisking)
+            self.entry_new_supplier.delete(0, tk.END)
+            self.entry_new_supplier.insert(0, event.new_supplier or "")
             
             # Applica dinamismo form (event_type e driver)
             self._on_event_type_changed()
@@ -717,7 +743,8 @@ class VSMEventDialog(tk.Toplevel):
                 giorni_pagamento_negoziati=giorni_pagamento_negoziati,
                 quantita_annua=quantita_annua if 'quantita_annua' in locals() else 0.0,
                 payments_rate=payments_rate,
-                opex_ripetitivo=opex_ripetitivo
+                opex_ripetitivo=opex_ripetitivo,
+                new_supplier=self.entry_new_supplier.get().strip() if event_type == "Derisking" else ""
             )
             
             # Salva tramite persistence layer
