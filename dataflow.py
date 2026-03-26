@@ -4401,8 +4401,11 @@ class MainWindow:
             show_row_index=False
         )
         
-        # Salva il tipo di tab per uso in _populate_vsm_sheet
+        # Salva il tipo di tab per uso in _populate_vsm_sheet e _export_vsm_excel
         sheet._vsm_event_type = event_type
+        
+        # Salva intestazioni tradotte per uso in _export_vsm_excel
+        sheet._vsm_headers = headers
         
         # Salva larghezze calcolate per riapplicarle dopo set_sheet_data()
         sheet._vsm_col_widths = col_widths
@@ -6149,13 +6152,12 @@ class MainWindow:
         # 1. Identifica quale tabella è attiva e recupera lo stato corrente
         current_tree, status = self.get_current_tree_and_status()
         
-        # Step 4B: Skip export for VSM tabs (UI ready, logic not yet connected)
-        if current_tree is None or status.startswith('vsm_'):
-            messagebox.showinfo(
-                _("Export Non Disponibile"),
-                _("La funzione Export per i tab VSM sarà disponibile in un prossimo aggiornamento."),
-                parent=self.root
-            )
+        # VSM tabs: dispatch to dedicated VSM export
+        if status.startswith('vsm_'):
+            self._export_vsm_excel(status, current_tree)
+            return
+        
+        if current_tree is None:
             return
         
         # 2. Recupera TUTTI gli ID che corrispondono ai filtri attivi (non solo quelli visualizzati nel sheet)
@@ -6449,6 +6451,85 @@ class MainWindow:
         except Exception as e:
             logger.error(f"Errore Export Excel: {e}", exc_info=True)
             messagebox.showerror(_("Errore"), _("Errore durante l'esportazione: {}").format(e), parent=self.root)
+
+    def _export_vsm_excel(self, status, sheet):
+        """Esporta i dati VSM del tab corrente in un file Excel."""
+        status_to_event_type = {
+            'vsm_saving': 'Saving',
+            'vsm_cost_avoidance': 'Cost Avoidance',
+            'vsm_derisking': 'Derisking',
+        }
+        event_type = status_to_event_type.get(status, status)
+
+        # Dati e intestazioni già disponibili sullo sheet (caricati in _populate_vsm_sheet)
+        data_rows = sheet.get_sheet_data()
+        headers = getattr(sheet, '_vsm_headers', [])
+
+        if not data_rows:
+            messagebox.showwarning(
+                _("Attenzione"),
+                _("Nessun dato da esportare nella vista corrente."),
+                parent=self.root
+            )
+            return
+
+        # Setup Excel (stesse librerie/stili del mega_export_excel RFQ)
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = event_type[:31]  # Excel limita il nome foglio a 31 caratteri
+
+        thin_border = Border(
+            left=Side(style='thin'), right=Side(style='thin'),
+            top=Side(style='thin'), bottom=Side(style='thin')
+        )
+        bold_font = Font(bold=True)
+        header_fill = PatternFill(start_color='DDDDDD', end_color='DDDDDD', fill_type='solid')
+
+        # Intestazioni
+        for col_idx, header in enumerate(headers, start=1):
+            cell = ws.cell(row=1, column=col_idx, value=header)
+            cell.font = bold_font
+            cell.border = thin_border
+            cell.fill = header_fill
+            cell.alignment = Alignment(horizontal='center')
+
+        # Righe dati
+        for row_idx, row_data in enumerate(data_rows, start=2):
+            for col_idx, value in enumerate(row_data, start=1):
+                cell = ws.cell(row=row_idx, column=col_idx, value=value)
+                cell.border = thin_border
+
+        # Larghezze colonne adattive (converti px tkinter → unità Excel: 1 unit ≈ 7px)
+        col_widths_px = getattr(sheet, '_vsm_col_widths', None)
+        if col_widths_px:
+            for i, px_width in enumerate(col_widths_px):
+                col_letter = ws.cell(row=1, column=i + 1).column_letter
+                ws.column_dimensions[col_letter].width = max(10, px_width / 7)
+
+        # Salvataggio
+        default_name = f"Export_VSM_{event_type.replace(' ', '_')}_{datetime.now().strftime('%Y%m%d')}.xlsx"
+        try:
+            save_path = filedialog.asksaveasfilename(
+                title=_("Salva Export VSM"),
+                defaultextension=".xlsx",
+                initialfile=default_name,
+                filetypes=[("Excel Files", "*.xlsx")]
+            )
+            if save_path:
+                wb.save(save_path)
+                messagebox.showinfo(
+                    _("Successo"),
+                    _("Export completato con successo:\n{}").format(save_path),
+                    parent=self.root
+                )
+                logger.info(f"Export VSM Excel salvato in: {save_path}")
+        except Exception as e:
+            logger.error(f"Errore Export VSM Excel: {e}", exc_info=True)
+            messagebox.showerror(
+                _("Errore"),
+                _("Errore durante l'esportazione: {}").format(e),
+                parent=self.root
+            )
 
     def _format_date_for_display(self, db_date):
         if not db_date: return ""
