@@ -196,12 +196,14 @@ class MainDashboardToolbar(ttk.Frame):
         # Leggi testo dalla Global Search
         search_text = self.search_entry.get().strip()
         
-        # Se vuoto (solo spazi), comportati come "Clear Filters"
-        # Riusa la logica esistente del pulsante reset per coerenza UX
+        # Se vuoto (solo spazi), comportati come "Clear Filters" poi propaga a search_requests().
+        # clear_filters() resetta i filtri avanzati e ricarica i dati RFQ.
+        # search_requests() viene sempre chiamato per garantire il reset anche sui tab VSM
+        # (che non sono gestiti da clear_filters/refresh_data).
         if not search_text:
             if hasattr(self.main_window, 'clear_filters'):
                 self.main_window.clear_filters()
-            return
+            # Non restituire: lascia che search_requests() venga chiamato per i tab VSM.
         
         # Popola il campo 'global' per ricerca multi-campo con OR
         # OPZIONE A: global search + filtri avanzati coesistono
