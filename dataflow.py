@@ -5464,11 +5464,75 @@ class MainWindow:
                 # Applica esplicitamente sfondo bianco con testo nero per righe pari non scadute
                 sheet.highlight_rows([i], bg='white', fg='black')
 
+    # ===========================
+    # Global Search — VSM handler
+    # ===========================
+
+    _VSM_STATUS_TO_TYPE = {
+        'vsm_saving': 'Saving',
+        'vsm_cost_avoidance': 'Cost Avoidance',
+        'vsm_derisking': 'Derisking',
+    }
+
+    def _search_vsm_events(self, sheet, status):
+        """Handler di ricerca globale per il modulo VSM.
+
+        Dispatch point isolato per i tab VSM.
+        Completamente separato dalla logica RFQ: nessuna condizione condivisa.
+        Per aggiungere un nuovo modulo: creare _search_<modulo>() e aggiungerlo
+        al dispatch in search_requests().
+
+        Args:
+            sheet: Widget tksheet del tab corrente
+            status: Status stringa del tab (es. 'vsm_saving')
+        """
+        event_type = self._VSM_STATUS_TO_TYPE.get(status)
+        if not event_type:
+            return  # Fail-safe per stati non mappati
+
+        query = self.search_vars['global'].get().strip().lower()
+
+        if not query:
+            # Query vuota: ripristina dataset completo (comportamento identico al caricamento iniziale)
+            self._load_vsm_events(event_type, sheet)
+            return
+
+        # Campi su cui viene applicata la ricerca globale
+        _VSM_SEARCH_FIELDS = (
+            'description', 'reference', 'buyer', 'driver',
+            'action', 'event_type', 'new_supplier', 'note',
+        )
+
+        try:
+            with DatabaseManager(get_db_path()) as db_manager:
+                all_events = db_manager.get_all_vsm_events(username=self.current_username)
+        except DatabaseError as e:
+            logger.error(f"[VSMSearch] Errore caricamento eventi: {e}")
+            return
+
+        # Filtra per event_type poi per query globale (case-insensitive, None-safe)
+        results = [
+            ev for ev in all_events
+            if ev.event_type == event_type
+            and any(
+                query in (getattr(ev, field) or "").lower()
+                for field in _VSM_SEARCH_FIELDS
+            )
+        ]
+
+        logger.info(f"[VSMSearch] query='{query}' event_type='{event_type}' risultati={len(results)}")
+        self._populate_vsm_sheet(sheet, results, event_type=event_type)
+
     def search_requests(self):
         tree, status = self.get_current_tree_and_status()
-        
-        # Step 4B: Skip search for VSM tabs (UI ready, logic not yet connected)
-        if tree is None or status.startswith('vsm_'):
+
+        if tree is None:
+            return
+
+        # Dispatch al handler del modulo corrente.
+        # Per aggiungere un nuovo modulo: aggiungere un elif e creare _search_<modulo>().
+        if status.startswith('vsm_'):
+            self._search_vsm_events(tree, status)
             return
         
         username_filter = self._get_active_username_filter()
