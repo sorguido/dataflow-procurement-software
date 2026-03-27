@@ -3574,6 +3574,8 @@ class MainWindow:
         self.all_users_placeholder = _("Tutti gli utenti")
         self.username_filter_var = None
         self.user_filter_combo = None
+        self.vsm_username_filter_var = None
+        self.vsm_user_filter_combos = []
         self._load_identity_from_config()
         self.last_backup_date = None; self.db_path_standard = self.get_standard_db_path()
         
@@ -3662,27 +3664,33 @@ class MainWindow:
         self.collapsible_filters.collapse()
         # ===== FINE CONVERSIONE LAYOUT =====
         
-        # search_frame è il filters_frame interno di CollapsibleFilters
-        # TUTTI i widget dei filtri vengono creati dentro questo frame
+        # search_frame è il filters_frame interno di CollapsibleFilters.
+        # Ospita due sub-frame: rfq_filter_subframe e vsm_filter_subframe,
+        # visibili alternativamente in base al tab attivo (context-aware).
+        # Col=0 si espande (contenuto context), col=1 fisso (pulsanti condivisi).
         search_frame = self.collapsible_filters.filters_frame
+        search_frame.columnconfigure(0, weight=1)
+
+        # --- Sub-frame RFQ (visibile di default: il primo tab è RFQ) ---
+        self.rfq_filter_subframe = ttk.Frame(search_frame)
+        self.rfq_filter_subframe.grid(row=0, column=0, sticky="nsew")
+        _rf = self.rfq_filter_subframe  # alias locale per brevità
         self.search_vars = {name: tk.StringVar() for name in ['global', 'num', 'ref', 'forn', 'cod', 'desc', 'ord', 'cod_grezzo', 'dis_grezzo', 'mat_cl']}; self.search_tipo = tk.StringVar(value=_("Tutte"))
-        ttk.Label(search_frame, text=_("Numero RdO:")).grid(row=0, column=0, sticky="w"); ttk.Entry(search_frame, textvariable=self.search_vars['num']).grid(row=0, column=1, sticky="ew")
-        ttk.Label(search_frame, text=_("Tipo RdO:")).grid(row=0, column=2, sticky="w"); ttk.Combobox(search_frame, textvariable=self.search_tipo, values=[_("Tutte"), _("Fornitura piena"), _("Conto lavoro")], state="readonly").grid(row=0, column=3, sticky="ew")
-        ttk.Label(search_frame, text=_("Riferimento:")).grid(row=1, column=0, sticky="w"); ttk.Entry(search_frame, textvariable=self.search_vars['ref']).grid(row=1, column=1, sticky="ew")
-        ttk.Label(search_frame, text=_("Fornitore:")).grid(row=1, column=2, sticky="w"); ttk.Entry(search_frame, textvariable=self.search_vars['forn']).grid(row=1, column=3, sticky="ew")
-        ttk.Label(search_frame, text=_("Cod. Materiale:")).grid(row=2, column=0, sticky="w"); ttk.Entry(search_frame, textvariable=self.search_vars['cod']).grid(row=2, column=1, sticky="ew")
-        ttk.Label(search_frame, text=_("Desc. Materiale:")).grid(row=2, column=2, sticky="w"); ttk.Entry(search_frame, textvariable=self.search_vars['desc']).grid(row=2, column=3, sticky="ew")
-        ttk.Label(search_frame, text=_("Num. Ordine:")).grid(row=0, column=4, sticky="w"); ttk.Entry(search_frame, textvariable=self.search_vars['ord']).grid(row=0, column=5, sticky="ew")
-        # --- INIZIO BLOCCO AGGIUNTO ---
-        ttk.Label(search_frame, text=_("Cod. Grezzo:")).grid(row=3, column=0, sticky="w"); ttk.Entry(search_frame, textvariable=self.search_vars['cod_grezzo']).grid(row=3, column=1, sticky="ew")
-        ttk.Label(search_frame, text=_("Allegato Grezzo:")).grid(row=3, column=2, sticky="w"); ttk.Entry(search_frame, textvariable=self.search_vars['dis_grezzo']).grid(row=3, column=3, sticky="ew")
-        ttk.Label(search_frame, text=_("Mat. c/lavoro:")).grid(row=3, column=4, sticky="w"); ttk.Entry(search_frame, textvariable=self.search_vars['mat_cl']).grid(row=3, column=5, sticky="ew")
-        # --- FINE BLOCCO AGGIUNTO ---
-        ttk.Label(search_frame, text=_("Utente:")).grid(row=1, column=4, sticky="w")
+        ttk.Label(_rf, text=_("Numero RdO:")).grid(row=0, column=0, sticky="w"); ttk.Entry(_rf, textvariable=self.search_vars['num']).grid(row=0, column=1, sticky="ew")
+        ttk.Label(_rf, text=_("Tipo RdO:")).grid(row=0, column=2, sticky="w"); ttk.Combobox(_rf, textvariable=self.search_tipo, values=[_("Tutte"), _("Fornitura piena"), _("Conto lavoro")], state="readonly").grid(row=0, column=3, sticky="ew")
+        ttk.Label(_rf, text=_("Riferimento:")).grid(row=1, column=0, sticky="w"); ttk.Entry(_rf, textvariable=self.search_vars['ref']).grid(row=1, column=1, sticky="ew")
+        ttk.Label(_rf, text=_("Fornitore:")).grid(row=1, column=2, sticky="w"); ttk.Entry(_rf, textvariable=self.search_vars['forn']).grid(row=1, column=3, sticky="ew")
+        ttk.Label(_rf, text=_("Cod. Materiale:")).grid(row=2, column=0, sticky="w"); ttk.Entry(_rf, textvariable=self.search_vars['cod']).grid(row=2, column=1, sticky="ew")
+        ttk.Label(_rf, text=_("Desc. Materiale:")).grid(row=2, column=2, sticky="w"); ttk.Entry(_rf, textvariable=self.search_vars['desc']).grid(row=2, column=3, sticky="ew")
+        ttk.Label(_rf, text=_("Num. Ordine:")).grid(row=0, column=4, sticky="w"); ttk.Entry(_rf, textvariable=self.search_vars['ord']).grid(row=0, column=5, sticky="ew")
+        ttk.Label(_rf, text=_("Cod. Grezzo:")).grid(row=3, column=0, sticky="w"); ttk.Entry(_rf, textvariable=self.search_vars['cod_grezzo']).grid(row=3, column=1, sticky="ew")
+        ttk.Label(_rf, text=_("Allegato Grezzo:")).grid(row=3, column=2, sticky="w"); ttk.Entry(_rf, textvariable=self.search_vars['dis_grezzo']).grid(row=3, column=3, sticky="ew")
+        ttk.Label(_rf, text=_("Mat. c/lavoro:")).grid(row=3, column=4, sticky="w"); ttk.Entry(_rf, textvariable=self.search_vars['mat_cl']).grid(row=3, column=5, sticky="ew")
+        ttk.Label(_rf, text=_("Utente:")).grid(row=1, column=4, sticky="w")
         default_user_value = self.current_username if getattr(self, 'current_username', '') else self.all_users_placeholder
         self.username_filter_var = tk.StringVar(value=default_user_value)
         self.user_filter_combo = ttk.Combobox(
-            search_frame,
+            _rf,
             textvariable=self.username_filter_var,
             state="readonly",
             values=[default_user_value]
@@ -3693,9 +3701,30 @@ class MainWindow:
         for i, (lbl, key) in enumerate([(_("Da:"), "emm_da"), (_("A:"), "emm_a"), (_("Da:"), "scad_da"), (_("A:"), "scad_a")]):
             row, col_lbl, col_entry = (4 + i // 2, (i % 2) * 2, (i % 2) * 2 + 1)
             prefix = _("Data Emissione ") if i < 2 else _("Data Scadenza ")
-            ttk.Label(search_frame, text=prefix + lbl).grid(row=row, column=col_lbl, sticky="w"); de = DateEntry(search_frame, date_pattern='dd/mm/yyyy', locale=('it_IT' if get_current_language() == 'it' else 'en_US')); de.grid(row=row, column=col_entry, sticky="ew"); de.delete(0, 'end'); self.date_entries[key] = de
-        for i in range(1, 6, 2): search_frame.grid_columnconfigure(i, weight=1)
-        btn_search_frame = ttk.Frame(search_frame); btn_search_frame.grid(row=0, column=6, rowspan=6, sticky="nsew", padx=20)
+            ttk.Label(_rf, text=prefix + lbl).grid(row=row, column=col_lbl, sticky="w"); de = DateEntry(_rf, date_pattern='dd/mm/yyyy', locale=('it_IT' if get_current_language() == 'it' else 'en_US')); de.grid(row=row, column=col_entry, sticky="ew"); de.delete(0, 'end'); self.date_entries[key] = de
+        for i in range(1, 6, 2): _rf.grid_columnconfigure(i, weight=1)
+
+        # --- Sub-frame VSM (nascosto di default: il primo tab è RFQ) ---
+        # Unico contenitore per i filtri VSM, nella stessa posizione fisica dei filtri RFQ.
+        self.vsm_filter_subframe = ttk.Frame(search_frame)
+        self.vsm_filter_subframe.grid(row=0, column=0, sticky="nsew")
+        self.vsm_filter_subframe.grid_remove()  # nascosto finché non si attiva un tab VSM
+        default_vsm_user = self.current_username if getattr(self, 'current_username', '') else self.all_users_placeholder
+        self.vsm_username_filter_var = tk.StringVar(value=default_vsm_user)
+        ttk.Label(self.vsm_filter_subframe, text=_("Utente:")).grid(row=0, column=0, sticky="w", padx=(0, 5), pady=5)
+        _vsm_cb = ttk.Combobox(
+            self.vsm_filter_subframe,
+            textvariable=self.vsm_username_filter_var,
+            state="readonly",
+            width=24,
+        )
+        _vsm_cb.grid(row=0, column=1, sticky="w", pady=5)
+        _vsm_cb.bind("<<ComboboxSelected>>", lambda _e: self._on_vsm_username_filter_changed())
+        self.vsm_user_filter_combos = [_vsm_cb]
+
+        # --- Pulsanti condivisi (sempre visibili accanto al sub-frame attivo) ---
+        btn_search_frame = ttk.Frame(search_frame)
+        btn_search_frame.grid(row=0, column=1, sticky="ns", padx=20)
         ttk.Button(btn_search_frame, text=_("🔍 Cerca"), command=self.search_requests).pack(fill="x", expand=True, pady=2); ttk.Button(btn_search_frame, text=_("🔎 Pulisci Filtri"), command=self.clear_filters).pack(fill="x", expand=True, pady=2)
         
         # Row 3: Notebook (dopo i filtri collassabili)
@@ -3712,8 +3741,9 @@ class MainWindow:
         self.notebook.add(self.tab_cost_avoidance, text=_("Cost Avoidance"))
         self.notebook.add(self.tab_derisking, text=_("Derisking"))
         
-        # Step 4B: Riutilizzo UI VSM esistente (estratta da VSMManagementWindow)
-        # Crea sheet VSM per ogni tab usando la stessa struttura della UI originale
+        # Step 4B: Crea sheet VSM per ogni tab.
+        # Il filtro utente VSM è nel pannello condiviso Advanced Filters (sopra) —
+        # NON nei tab individuali. Cambio tab → _update_filter_panel_for_current_tab().
         self.sheet_saving = self._create_vsm_event_sheet(self.tab_saving, event_type="Saving")
         self.sheet_cost_avoidance = self._create_vsm_event_sheet(self.tab_cost_avoidance, event_type="Cost Avoidance")
         self.sheet_derisking = self._create_vsm_event_sheet(self.tab_derisking)
@@ -3726,6 +3756,7 @@ class MainWindow:
             ("Derisking", self.sheet_derisking),
         ]:
             self._load_vsm_events(event_type, sheet)
+        self.populate_vsm_username_filter()
         
         footer_frame = ttk.Frame(self.root); footer_frame.grid(row=4, column=0, sticky="ew", padx=10, pady=5)
         ttk.Label(footer_frame, text=_("v2.0.1 - Sviluppato da ")).pack(side="left")
@@ -3885,14 +3916,81 @@ class MainWindow:
         if current_value not in values:
             self.username_filter_var.set(self.current_username or self.all_users_placeholder)
 
-    def _get_active_username_filter(self):
-        if not self.username_filter_var:
+    def _get_active_username_filter(self, var=None):
+        """Ritorna lo username filtro attivo oppure None (= tutti gli utenti).
+
+        Accetta un parametro 'var' opzionale per riuso diretto da moduli separati
+        (es. VSM) senza duplicare la logica del placeholder e del lower-case.
+        Se 'var' non è fornito, usa self.username_filter_var (comportamento RFQ originale).
+        """
+        target_var = var if var is not None else self.username_filter_var
+        if not target_var:
             return None
-        value = self.username_filter_var.get().strip()
+        value = target_var.get().strip()
         if not value or value == self.all_users_placeholder:
             return None
         return value.lower()
-    
+
+    def populate_vsm_username_filter(self):
+        """Aggiorna la lista degli username disponibili nel filtro utente VSM.
+
+        Nota: duplicazione consapevole di populate_username_filter().
+        La fonte dati è diversa (vsm_events vs richieste_offerta) e il
+        percorso di aggregazione è separato. Un helper comune non è
+        giustificato a questo stadio.
+        """
+        if not self.vsm_user_filter_combos or not self.vsm_username_filter_var:
+            return
+
+        usernames = []
+
+        try:
+            with DatabaseManager(get_db_path()) as db_manager:
+                all_data = db_manager.get_all_vsm_events_aggregated(get_db_path())
+            usernames = list({
+                ev.username.strip().lower()
+                for ev, _im, _src in all_data
+                if ev.username and ev.username.strip()
+            })
+        except Exception as e:
+            logger.warning(f"[populate_vsm_username_filter] Fallback al DB locale: {e}")
+            try:
+                with DatabaseManager(get_db_path()) as db_manager:
+                    local_events = db_manager.get_all_vsm_events()
+                usernames = list({
+                    ev.username.strip().lower()
+                    for ev in local_events
+                    if ev.username and ev.username.strip()
+                })
+            except Exception as e2:
+                logger.error(f"[populate_vsm_username_filter] Errore nel fallback: {e2}")
+
+        # Assicura che l'utente corrente sia sempre nella lista
+        if self.current_username and self.current_username.lower() not in usernames:
+            usernames.append(self.current_username.lower())
+
+        clean_usernames = sorted({u for u in usernames if u})
+        values = [self.all_users_placeholder] + clean_usernames
+        current_value = self.vsm_username_filter_var.get()
+
+        for combo in self.vsm_user_filter_combos:
+            try:
+                combo.config(values=values)
+            except Exception:
+                pass  # Widget potrebbe essere già distrutto
+
+        if current_value not in values:
+            self.vsm_username_filter_var.set(self.current_username or self.all_users_placeholder)
+
+    def _on_vsm_username_filter_changed(self):
+        """Handler per cambio filtro utente VSM. Ricarica tutti i tab VSM."""
+        for event_type, sheet in [
+            ("Saving", self.sheet_saving),
+            ("Cost Avoidance", self.sheet_cost_avoidance),
+            ("Derisking", self.sheet_derisking),
+        ]:
+            self._load_vsm_events(event_type, sheet)
+
     def _has_active_search_filters(self):
         """Verifica se ci sono filtri di ricerca attivi (escludendo username e stato)"""
         # Controlla filtri di testo
@@ -4470,15 +4568,34 @@ class MainWindow:
             sheet: Widget tksheet da popolare
         """
         try:
+            vsm_username_filter = self._get_active_username_filter(self.vsm_username_filter_var)
             with DatabaseManager(get_db_path()) as db_manager:
-                # Carica tutti eventi per utente corrente
-                all_events = db_manager.get_all_vsm_events(username=self.current_username)
-            
-            # Filtra per event_type specificato
-            filtered_events = [e for e in all_events if e.event_type == event_type]
-            
+                if vsm_username_filter is None:
+                    # Tutti gli utenti: aggregazione multi-DB
+                    raw = db_manager.get_all_vsm_events_aggregated(get_db_path())
+                    all_events = [ev for ev, _im, _src in raw]
+                    extra_meta = [{'is_mine': im, 'source_file': src} for _, im, src in raw]
+                elif vsm_username_filter == (self.current_username or '').lower():
+                    # Utente corrente: ottimizzazione locale (nessuna aggregazione)
+                    all_events = db_manager.get_all_vsm_events(username=self.current_username)
+                    extra_meta = None
+                else:
+                    # Altro utente specifico: aggregazione con filtro username
+                    raw = db_manager.get_all_vsm_events_aggregated(get_db_path(), username=vsm_username_filter)
+                    all_events = [ev for ev, _im, _src in raw]
+                    extra_meta = [{'is_mine': im, 'source_file': src} for _, im, src in raw]
+
+            # Filtra per event_type preservando corrispondenza indice con extra_meta
+            if extra_meta is not None:
+                pairs = [(ev, m) for ev, m in zip(all_events, extra_meta) if ev.event_type == event_type]
+                filtered_events = [p[0] for p in pairs]
+                filtered_meta = [p[1] for p in pairs]
+            else:
+                filtered_events = [e for e in all_events if e.event_type == event_type]
+                filtered_meta = None
+
             # Popola sheet
-            self._populate_vsm_sheet(sheet, filtered_events, event_type=event_type)
+            self._populate_vsm_sheet(sheet, filtered_events, event_type=event_type, extra_metadata=filtered_meta)
             
             logger.debug(f"Caricati {len(filtered_events)} eventi VSM {event_type}")
             
@@ -4487,10 +4604,10 @@ class MainWindow:
             messagebox.showerror(
                 _("Errore Database"),
                 _("Impossibile caricare gli eventi VSM: {}\n").format(e),
-                parent=self
+                parent=self.root
             )
     
-    def _populate_vsm_sheet(self, sheet, events, event_type=None):
+    def _populate_vsm_sheet(self, sheet, events, event_type=None, extra_metadata=None):
         """
         Popola un tksheet con lista di eventi VSM.
         
@@ -4500,6 +4617,8 @@ class MainWindow:
             sheet: Widget tksheet da popolare
             events: Lista di VSMEvent
             event_type: Tipo evento ("Saving"|"Cost Avoidance"|None)
+            extra_metadata: Lista opzionale di dict {is_mine, source_file} per riga.
+                            Se fornita, sovrascrive il calcolo locale di is_mine.
         """
         data_rows = []
         metadata = []
@@ -4510,7 +4629,7 @@ class MainWindow:
         
         use_dual_value = event_type in ("Saving", "Cost Avoidance")
         
-        for event in events:
+        for i, event in enumerate(events):
             # Calcola valori
             valore_teorico = event.calculate_theoretical_value()
             
@@ -4560,10 +4679,19 @@ class MainWindow:
             data_rows.append(row)
             
             # Metadata per ownership e event_id
+            # Se extra_metadata è fornito (aggregazione multi-DB), usa is_mine/source_file
+            # dall'aggregatore; altrimenti calcola localmente.
+            if extra_metadata is not None and i < len(extra_metadata):
+                is_mine = extra_metadata[i].get('is_mine', event.username == self.current_username)
+                source_file = extra_metadata[i].get('source_file', 'local')
+            else:
+                is_mine = event.username == self.current_username
+                source_file = 'local'
             metadata.append({
                 'event_id': event.id,
                 'username': event.username,
-                'is_mine': event.username == self.current_username
+                'is_mine': is_mine,
+                'source_file': source_file,
             })
         
         # Aggiorna sheet
@@ -4627,11 +4755,24 @@ class MainWindow:
         
         # Valida ownership
         if not is_mine:
-            messagebox.showerror(
-                _("Operazione Non Consentita"),
-                _("Puoi modificare solo i tuoi eventi VSM."),
-                parent=self.root
+            # Apre in sola lettura invece di bloccare con un errore
+            from ui.dialogs.vsm_event_dialog import VSMEventDialog
+            event_type_map = {
+                'vsm_saving': 'Saving',
+                'vsm_cost_avoidance': 'Cost Avoidance',
+                'vsm_derisking': 'Derisking'
+            }
+            event_type = event_type_map.get(status)
+            if not event_type:
+                return
+            dialog = VSMEventDialog(
+                self.root,
+                current_username=self.current_username,
+                event_type=event_type,
+                event_id=event_id,
+                read_only=True,
             )
+            self.root.wait_window(dialog)
             return
         
         # Determina event_type da status
@@ -5094,7 +5235,28 @@ class MainWindow:
         else:
             self.refresh_data()
 
-    def on_tab_changed(self, event): self.update_button_visibility(); self.clear_selection()
+    def on_tab_changed(self, event):
+        self.update_button_visibility()
+        self.clear_selection()
+        self._update_filter_panel_for_current_tab()
+
+    def _update_filter_panel_for_current_tab(self):
+        """Aggiorna il contenuto del pannello Advanced Filters in base al tab attivo.
+
+        Esiste un solo pannello Advanced Filters nell'intera dashboard (collapsible_filters).
+        Questo metodo mostra il sub-frame corretto (RFQ o VSM) e nasconde l'altro,
+        senza spostare il pannello né crearne uno secondo.
+        """
+        if not hasattr(self, 'rfq_filter_subframe') or not hasattr(self, 'vsm_filter_subframe'):
+            return  # Inizializzazione non ancora completata
+        _, status = self.get_current_tree_and_status()
+        is_vsm = bool(status and status.startswith('vsm_'))
+        if is_vsm:
+            self.rfq_filter_subframe.grid_remove()
+            self.vsm_filter_subframe.grid()
+        else:
+            self.vsm_filter_subframe.grid_remove()
+            self.rfq_filter_subframe.grid()
     def update_button_visibility(self):
         """Aggiorna lo stato del pulsante Actions in base alla selezione e proprietà delle RfQ"""
         sheet, status = self.get_current_tree_and_status()
@@ -5503,25 +5665,44 @@ class MainWindow:
             'action', 'event_type', 'new_supplier', 'note',
         )
 
+        vsm_username_filter = self._get_active_username_filter(self.vsm_username_filter_var)
+
         try:
             with DatabaseManager(get_db_path()) as db_manager:
-                all_events = db_manager.get_all_vsm_events(username=self.current_username)
+                if vsm_username_filter is None:
+                    raw = db_manager.get_all_vsm_events_aggregated(get_db_path())
+                    raw_events = [ev for ev, _im, _src in raw]
+                    raw_meta = [{'is_mine': im, 'source_file': src} for _, im, src in raw]
+                elif vsm_username_filter == (self.current_username or '').lower():
+                    raw_events = db_manager.get_all_vsm_events(username=self.current_username)
+                    raw_meta = None
+                else:
+                    raw = db_manager.get_all_vsm_events_aggregated(get_db_path(), username=vsm_username_filter)
+                    raw_events = [ev for ev, _im, _src in raw]
+                    raw_meta = [{'is_mine': im, 'source_file': src} for _, im, src in raw]
         except DatabaseError as e:
             logger.error(f"[VSMSearch] Errore caricamento eventi: {e}")
             return
 
-        # Filtra per event_type poi per query globale (case-insensitive, None-safe)
-        results = [
-            ev for ev in all_events
-            if ev.event_type == event_type
-            and any(
-                query in (getattr(ev, field) or "").lower()
-                for field in _VSM_SEARCH_FIELDS
-            )
-        ]
+        # Filtra per event_type e query globale, mantenendo allineamento con raw_meta
+        if raw_meta is not None:
+            pairs = [
+                (ev, meta) for ev, meta in zip(raw_events, raw_meta)
+                if ev.event_type == event_type
+                and any(query in (getattr(ev, field) or "").lower() for field in _VSM_SEARCH_FIELDS)
+            ]
+            results = [p[0] for p in pairs]
+            result_meta = [p[1] for p in pairs]
+        else:
+            results = [
+                ev for ev in raw_events
+                if ev.event_type == event_type
+                and any(query in (getattr(ev, field) or "").lower() for field in _VSM_SEARCH_FIELDS)
+            ]
+            result_meta = None
 
         logger.info(f"[VSMSearch] query='{query}' event_type='{event_type}' risultati={len(results)}")
-        self._populate_vsm_sheet(sheet, results, event_type=event_type)
+        self._populate_vsm_sheet(sheet, results, event_type=event_type, extra_metadata=result_meta)
 
     def search_requests(self):
         tree, status = self.get_current_tree_and_status()
@@ -6050,6 +6231,8 @@ class MainWindow:
         for de in self.date_entries.values(): de.delete(0, 'end')
         if self.username_filter_var:
             self.username_filter_var.set(self.current_username or self.all_users_placeholder)
+        if self.vsm_username_filter_var:
+            self.vsm_username_filter_var.set(self.current_username or self.all_users_placeholder)
         self.refresh_data()
     
     def toggle_filters(self):

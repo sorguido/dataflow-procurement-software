@@ -2222,7 +2222,107 @@ class DatabaseManager:
         except Exception as e:
             print(f"[DB Manager] Errore get_all_vsm_events: {e}")
             raise DatabaseError(str(e)) from e
-    
+
+    def get_all_vsm_events_aggregated(self, my_db_full_path: str, username: str = None) -> list:
+        """
+        Recupera eventi VSM da tutti i database sibling nella cartella condivisa.
+
+        Pattern gemello di get_all_richieste_aggregated() per il modulo VSM.
+        Usa connessioni sqlite3 dirette in sola lettura per i DB esterni:
+        nessuna migrazione schema, nessuna scrittura.
+
+        Args:
+            my_db_full_path: Percorso completo del database corrente
+            username: Se specificato, filtra eventi per questo username
+
+        Returns:
+            list of (VSMEvent, is_mine: bool, source_file: str)
+        """
+        from models.vsm_event import VSMEvent
+
+        results = []
+
+        # 1. DB locale: usa il metodo esistente (già connesso, schema aggiornato)
+        try:
+            local_events = self.get_all_vsm_events(username=username)
+            for event in local_events:
+                results.append((event, True, 'local'))
+        except Exception as e:
+            print(f"[VSM Aggregation] Errore DB locale: {e}")
+
+        # 2. Ricerca DB sibling nella cartella condivisa
+        try:
+            my_db_norm = os.path.normpath(os.path.abspath(my_db_full_path))
+            user_df_dir = os.path.dirname(os.path.dirname(my_db_norm))
+            root_shared_dir = os.path.dirname(user_df_dir)
+            search_pattern = os.path.join(root_shared_dir, "**", "dataflow_db_*.db")
+            found_files = glob.glob(search_pattern, recursive=True)
+            found_files = [os.path.normpath(os.path.abspath(f)) for f in found_files]
+            print(f"[VSM Aggregation] Root: {root_shared_dir}, DB trovati: {len(found_files)}")
+        except Exception as e:
+            print(f"[VSM Aggregation] Ricerca DB sibling fallita: {e}")
+            return results
+
+        for found_file in found_files:
+            if found_file.lower() == my_db_norm.lower():
+                continue  # Skip DB locale già caricato
+
+            try:
+                uri = "file:{}?mode=ro".format(found_file.replace("\\", "/"))
+                conn = sqlite3.connect(uri, uri=True)
+                try:
+                    cursor = conn.cursor()
+                    cursor.execute("PRAGMA table_info(vsm_events)")
+                    available_cols = {row[1] for row in cursor.fetchall()}
+                    if not available_cols:
+                        continue
+
+                    payments_rate_expr = "payments_rate" if "payments_rate" in available_cols else "NULL"
+                    new_supplier_expr = "COALESCE(new_supplier, '')" if "new_supplier" in available_cols else "''"
+
+                    _q = (
+                        "SELECT event_id, username, event_date, buyer, event_type, action,"
+                        "       description, reference, importo_bdg, importo_negoziato,"
+                        "       importo_richiesto_iniziale, quantita_annua, percent_realizzo,"
+                        "       driver, giorni_pagamento_attuali, giorni_pagamento_negoziati,"
+                        "       spending_annuo, opex_ripetitivo, note, created_at, updated_at,"
+                        f"      {payments_rate_expr} as payments_rate,"
+                        f"      {new_supplier_expr} as new_supplier"
+                        " FROM vsm_events"
+                        " {where}"
+                        " ORDER BY event_date DESC, event_id DESC"
+                    )
+                    if username:
+                        cursor.execute(_q.format(where="WHERE username = ?"), (username,))
+                    else:
+                        cursor.execute(_q.format(where=""))
+
+                    for row in cursor.fetchall():
+                        event = VSMEvent(
+                            id=row[0], username=row[1],
+                            event_date=datetime.fromisoformat(row[2]) if row[2] else None,
+                            buyer=row[3], event_type=row[4], action=row[5],
+                            description=row[6], reference=row[7],
+                            importo_bdg=row[8], importo_negoziato=row[9],
+                            importo_richiesto_iniziale=row[10], quantita_annua=row[11],
+                            percent_realizzo=row[12], driver=row[13],
+                            giorni_pagamento_attuali=row[14], giorni_pagamento_negoziati=row[15],
+                            spending_annuo=row[16], opex_ripetitivo=bool(row[17]),
+                            note=row[18],
+                            created_at=datetime.fromisoformat(row[19]) if row[19] else datetime.now(),
+                            updated_at=datetime.fromisoformat(row[20]) if row[20] else datetime.now(),
+                            payments_rate=row[21], new_supplier=row[22] or "",
+                        )
+                        results.append((event, False, found_file))
+                finally:
+                    conn.close()
+            except Exception as e:
+                print(f"[VSM Aggregation] Errore lettura {os.path.basename(found_file)}: {e}")
+                continue
+
+        print(f"[VSM Aggregation] Totale eventi aggregati: {len(results)}")
+        return results
+
     def insert_vsm_impacts_batch(self, impacts: list) -> None:
         """
         Inserisce un batch di impatti VSM con transazione.

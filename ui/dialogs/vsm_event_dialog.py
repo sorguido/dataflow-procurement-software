@@ -43,7 +43,7 @@ class VSMEventDialog(tk.Toplevel):
     Form dinamico con campi condizionali basati su event_type.
     """
     
-    def __init__(self, parent, current_username, event_type="Saving", event_id=None):
+    def __init__(self, parent, current_username, event_type="Saving", event_id=None, read_only=False):
         """
         Inizializza il dialog.
         
@@ -52,6 +52,7 @@ class VSMEventDialog(tk.Toplevel):
             current_username: Username utente corrente
             event_type: Tipo evento di default ("Saving", "Cost Avoidance", "Derisking")
             event_id: Se None, modalità create; se int, modalità edit
+            read_only: Se True, apre in sola lettura (eventi di altri utenti)
         """
         super().__init__(parent)
         
@@ -59,12 +60,16 @@ class VSMEventDialog(tk.Toplevel):
         self.current_username = current_username
         self.event_id = event_id
         self.is_edit_mode = event_id is not None
+        self.read_only = read_only
         self.result = None  # Usato per indicare successo salvataggio
         
         # Setup finestra
         self.withdraw()
         set_window_icon(self)
-        self.title(_("Modifica Evento VSM") if self.is_edit_mode else _("Nuovo Evento VSM"))
+        if read_only:
+            self.title(_("Visualizza Evento VSM"))
+        else:
+            self.title(_("Modifica Evento VSM") if self.is_edit_mode else _("Nuovo Evento VSM"))
         self.transient(parent)
         self.resizable(False, False)
         
@@ -89,6 +94,8 @@ class VSMEventDialog(tk.Toplevel):
         # Se modalità edit, carica dati
         if self.is_edit_mode:
             self._load_event_data()
+            if self.read_only:
+                self._apply_read_only()
         else:
             # Modalità create: applica dinamismo iniziale
             self._on_event_type_changed()
@@ -328,18 +335,38 @@ class VSMEventDialog(tk.Toplevel):
         btn_frame.grid(row=5, column=0, sticky="ew", pady=(10, 0))
         btn_frame.columnconfigure(0, weight=1)
         
-        ttk.Button(
+        self.btn_cancel = ttk.Button(
             btn_frame,
             text=_("❌ Annulla"),
             command=self.destroy
-        ).pack(side="right", padx=(5, 0))
+        )
+        self.btn_cancel.pack(side="right", padx=(5, 0))
         
-        ttk.Button(
+        self.btn_save = ttk.Button(
             btn_frame,
             text=_("💾 Salva"),
             command=self._validate_and_save
-        ).pack(side="right")
-    
+        )
+        self.btn_save.pack(side="right")
+
+    # === MODALITÀ SOLA LETTURA ===
+
+    def _apply_read_only(self):
+        """Attiva la modalità sola lettura: disabilita tutti i campi, nasconde Salva."""
+        self.btn_save.pack_forget()
+        self._disable_widgets_recursive(self)
+        # Riabilita il bottone Chiudi (disabilitato dal loop ricorsivo)
+        self.btn_cancel.configure(state="normal", text=_("✖ Chiudi"))
+
+    def _disable_widgets_recursive(self, widget):
+        """Disabilita ricorsivamente tutti i widget interattivi nel dialog."""
+        for child in widget.winfo_children():
+            try:
+                child.configure(state="disabled")
+            except tk.TclError:
+                pass
+            self._disable_widgets_recursive(child)
+
     def _on_event_type_changed(self):
         """
         Handler per cambio event_type.
