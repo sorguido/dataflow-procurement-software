@@ -3709,18 +3709,91 @@ class MainWindow:
         self.vsm_filter_subframe = ttk.Frame(search_frame)
         self.vsm_filter_subframe.grid(row=0, column=0, sticky="nsew")
         self.vsm_filter_subframe.grid_remove()  # nascosto finché non si attiva un tab VSM
+        _vsf = self.vsm_filter_subframe
+
+        # --- Variabili filtro VSM ---
         default_vsm_user = self.current_username if getattr(self, 'current_username', '') else self.all_users_placeholder
         self.vsm_username_filter_var = tk.StringVar(value=default_vsm_user)
-        ttk.Label(self.vsm_filter_subframe, text=_("Utente:")).grid(row=0, column=0, sticky="w", padx=(0, 5), pady=5)
+        self.vsm_action_var = tk.StringVar()
+        self.vsm_repetitive_var = tk.StringVar()
+        self.vsm_theoretical_from_var = tk.StringVar()
+        self.vsm_theoretical_to_var = tk.StringVar()
+        self.vsm_actual_from_var = tk.StringVar()
+        self.vsm_actual_to_var = tk.StringVar()
+
+        # --- Riga 0: filtri comuni a tutti i tab VSM (Utente, Dal, Al) ---
+        ttk.Label(_vsf, text=_("Utente:")).grid(row=0, column=0, sticky="w", padx=(0, 5), pady=5)
         _vsm_cb = ttk.Combobox(
-            self.vsm_filter_subframe,
+            _vsf,
             textvariable=self.vsm_username_filter_var,
             state="readonly",
-            width=24,
+            width=20,
         )
         _vsm_cb.grid(row=0, column=1, sticky="w", pady=5)
         _vsm_cb.bind("<<ComboboxSelected>>", lambda _e: self._on_vsm_username_filter_changed())
         self.vsm_user_filter_combos = [_vsm_cb]
+        ttk.Label(_vsf, text=_("Dal:")).grid(row=0, column=2, sticky="w", padx=(10, 5), pady=5)
+        self.vsm_date_from_entry = DateEntry(
+            _vsf, date_pattern='dd/mm/yyyy',
+            locale=('it_IT' if get_current_language() == 'it' else 'en_US'),
+        )
+        self.vsm_date_from_entry.grid(row=0, column=3, sticky="w", pady=5)
+        self.vsm_date_from_entry.delete(0, 'end')
+        ttk.Label(_vsf, text=_("Al:")).grid(row=0, column=4, sticky="w", padx=(10, 5), pady=5)
+        self.vsm_date_to_entry = DateEntry(
+            _vsf, date_pattern='dd/mm/yyyy',
+            locale=('it_IT' if get_current_language() == 'it' else 'en_US'),
+        )
+        self.vsm_date_to_entry.grid(row=0, column=5, sticky="w", pady=5)
+        self.vsm_date_to_entry.delete(0, 'end')
+
+        # --- Spec frame Saving / Cost Avoidance (riga 1, condiviso) ---
+        _vsm_sc_spec = ttk.Frame(_vsf)
+        _vsm_sc_spec.grid(row=1, column=0, columnspan=6, sticky="ew")
+        ttk.Label(_vsm_sc_spec, text=_("Azione:")).grid(row=0, column=0, sticky="w", padx=(0, 5), pady=3)
+        ttk.Combobox(
+            _vsm_sc_spec,
+            textvariable=self.vsm_action_var,
+            state="readonly",
+            values=["", _("Negoziazione"), "Derisking", _("Altro")],
+            width=18,
+        ).grid(row=0, column=1, sticky="w", pady=3)
+        ttk.Label(_vsm_sc_spec, text=_("Ripetitivo:")).grid(row=0, column=2, sticky="w", padx=(10, 5), pady=3)
+        ttk.Combobox(
+            _vsm_sc_spec,
+            textvariable=self.vsm_repetitive_var,
+            state="readonly",
+            values=["", _("Sì"), _("No")],
+            width=8,
+        ).grid(row=0, column=3, sticky="w", pady=3)
+        ttk.Label(_vsm_sc_spec, text=_("Teorico Da:")).grid(row=1, column=0, sticky="w", padx=(0, 5), pady=3)
+        ttk.Entry(_vsm_sc_spec, textvariable=self.vsm_theoretical_from_var, width=12).grid(row=1, column=1, sticky="w", pady=3)
+        ttk.Label(_vsm_sc_spec, text=_("A:")).grid(row=1, column=2, sticky="w", padx=(10, 5), pady=3)
+        ttk.Entry(_vsm_sc_spec, textvariable=self.vsm_theoretical_to_var, width=12).grid(row=1, column=3, sticky="w", pady=3)
+        ttk.Label(_vsm_sc_spec, text=_("Effettivo Da:")).grid(row=2, column=0, sticky="w", padx=(0, 5), pady=3)
+        ttk.Entry(_vsm_sc_spec, textvariable=self.vsm_actual_from_var, width=12).grid(row=2, column=1, sticky="w", pady=3)
+        ttk.Label(_vsm_sc_spec, text=_("A:")).grid(row=2, column=2, sticky="w", padx=(10, 5), pady=3)
+        ttk.Entry(_vsm_sc_spec, textvariable=self.vsm_actual_to_var, width=12).grid(row=2, column=3, sticky="w", pady=3)
+
+        # --- Spec frame Derisking (riga 1, solo Ripetitivo) ---
+        _vsm_dr_spec = ttk.Frame(_vsf)
+        _vsm_dr_spec.grid(row=1, column=0, columnspan=6, sticky="ew")
+        _vsm_dr_spec.grid_remove()  # nascosto di default; mostrato solo nel tab Derisking
+        ttk.Label(_vsm_dr_spec, text=_("Ripetitivo:")).grid(row=0, column=0, sticky="w", padx=(0, 5), pady=3)
+        ttk.Combobox(
+            _vsm_dr_spec,
+            textvariable=self.vsm_repetitive_var,
+            state="readonly",
+            values=["", _("Sì"), _("No")],
+            width=8,
+        ).grid(row=0, column=1, sticky="w", pady=3)
+
+        # Mappa tab status → spec frame (per _update_filter_panel_for_current_tab)
+        self._vsm_spec_frames = {
+            'vsm_saving': _vsm_sc_spec,
+            'vsm_cost_avoidance': _vsm_sc_spec,
+            'vsm_derisking': _vsm_dr_spec,
+        }
 
         # --- Pulsanti condivisi (sempre visibili accanto al sub-frame attivo) ---
         btn_search_frame = ttk.Frame(search_frame)
@@ -4462,23 +4535,25 @@ class MainWindow:
             n_cols = 10
         else:
             headers = [
-                _("Data"), _("Tipo"), _("Azione"), _("Nuovo Fornitore"), _("Descrizione"),
-                _("Valore Teorico"), _("Realizzo %"), _("Ripetitivo"), _("Utente")
+                _("Data"), _("Nuovo Fornitore"), _("Descrizione"),
+                _("Ripetitivo"), _("Utente")
             ]
-            align_cols = [0, 1, 2, 3, 5, 6, 7, 8]
-            n_cols = 9
-        
-        # Calcola larghezze colonne dinamicamente dall'header (eccetto Descrizione, indice 3)
+            align_cols = [0, 3, 4]
+            n_cols = 5
+
+        # Calcola larghezze colonne dinamicamente dall'header (eccetto Descrizione)
         # Usa il font degli header (Calibri 11 bold) per misurare il testo reale visualizzato
         _HEADER_PADDING = 30  # px extra per evitare header troppo "tirati"
-        _DESC_COL_IDX = 4 if event_type is None else 3  # Derisking: New Supplier a col 3, Description a col 4
+        # Derisking: Descrizione a col 2; Saving/CA: Descrizione a col 3
+        _DESC_COL_IDX = 2 if event_type is None else 3
         _DESC_COL_WIDTH = 400
         _DATE_COL_IDX = 0
-        _ACTION_COL_IDX = 2
+        # Saving/CA: Azione a col 2, Tipo a col 1; Derisking: nessuna di queste colonne
+        _ACTION_COL_IDX = 2 if event_type is not None else None
         _ACTION_MIN_WIDTH = 150  # "Negoziazione" è il valore più lungo atteso (~115px + padding)
-        _TYPE_COL_IDX = 1
-        # New Supplier solo nel tab Derisking (event_type=None), in colonna 3
-        _NEW_SUPPLIER_COL_IDX = 3 if event_type is None else None
+        _TYPE_COL_IDX = 1 if event_type is not None else None
+        # New Supplier solo nel tab Derisking (event_type=None), in colonna 1
+        _NEW_SUPPLIER_COL_IDX = 1 if event_type is None else None
         try:
             import tkinter.font as tkfont
             _hfont = tkfont.Font(family="Calibri", size=11, weight="bold")
@@ -4594,6 +4669,11 @@ class MainWindow:
                 filtered_events = [e for e in all_events if e.event_type == event_type]
                 filtered_meta = None
 
+            # Applica filtri VSM avanzati (data, azione, ripetitivo, importi)
+            filtered_events, filtered_meta = self._apply_vsm_filters(
+                filtered_events, event_type, extra_meta=filtered_meta
+            )
+
             # Popola sheet
             self._populate_vsm_sheet(sheet, filtered_events, event_type=event_type, extra_metadata=filtered_meta)
             
@@ -4606,7 +4686,118 @@ class MainWindow:
                 _("Impossibile caricare gli eventi VSM: {}\n").format(e),
                 parent=self.root
             )
-    
+
+    def _apply_vsm_filters(self, events, event_type, extra_meta=None):
+        """Applica i filtri VSM avanzati (data, azione, ripetitivo, importi) a una lista di eventi.
+
+        Chiamato dopo il filtro per event_type in _load_vsm_events e _search_vsm_events.
+        I filtri vuoti vengono ignorati. Restituisce una tupla (filtered_events, filtered_meta)
+        con extra_meta allineato agli eventi filtrati (None se non era fornito).
+        """
+        # Raccolta valori filtro (con guard per inizializzazione parziale)
+        _de_from = getattr(self, 'vsm_date_from_entry', None)
+        date_from_str = _de_from.get().strip() if _de_from else ""
+        _de_to = getattr(self, 'vsm_date_to_entry', None)
+        date_to_str = _de_to.get().strip() if _de_to else ""
+        _av = getattr(self, 'vsm_action_var', None)
+        action_filter = _av.get().strip() if _av else ""
+        _rv = getattr(self, 'vsm_repetitive_var', None)
+        repetitive_filter = _rv.get().strip() if _rv else ""
+        _tfv = getattr(self, 'vsm_theoretical_from_var', None)
+        theoretical_from_str = _tfv.get().strip() if _tfv else ""
+        _ttv = getattr(self, 'vsm_theoretical_to_var', None)
+        theoretical_to_str = _ttv.get().strip() if _ttv else ""
+        _afv = getattr(self, 'vsm_actual_from_var', None)
+        actual_from_str = _afv.get().strip() if _afv else ""
+        _atv = getattr(self, 'vsm_actual_to_var', None)
+        actual_to_str = _atv.get().strip() if _atv else ""
+
+        # Short-circuit: nessun filtro attivo
+        if not any([date_from_str, date_to_str, action_filter, repetitive_filter,
+                    theoretical_from_str, theoretical_to_str, actual_from_str, actual_to_str]):
+            return events, extra_meta
+
+        # Parse date range
+        date_from = date_to = None
+        _FMT = '%d/%m/%Y'
+        try:
+            if date_from_str:
+                date_from = datetime.strptime(date_from_str, _FMT).date()
+        except ValueError:
+            pass
+        try:
+            if date_to_str:
+                date_to = datetime.strptime(date_to_str, _FMT).date()
+        except ValueError:
+            pass
+
+        # Parse importi (accetta sia "10.000,50" che "10000.50")
+        def _parse_amount(s):
+            if not s:
+                return None
+            s = s.strip()
+            if ',' in s:
+                s = s.replace('.', '').replace(',', '.')
+            else:
+                s = s.replace(',', '')
+            try:
+                return float(s)
+            except ValueError:
+                return None
+
+        theoretical_from = _parse_amount(theoretical_from_str)
+        theoretical_to = _parse_amount(theoretical_to_str)
+        actual_from = _parse_amount(actual_from_str)
+        actual_to = _parse_amount(actual_to_str)
+
+        use_dual_value = event_type in ("Saving", "Cost Avoidance")
+        meta_iter = extra_meta if extra_meta is not None else [None] * len(events)
+        filtered_pairs = []
+
+        for event, meta in zip(events, meta_iter):
+            # Filtro data
+            if event.event_date:
+                ev_date = event.event_date.date() if hasattr(event.event_date, 'date') else event.event_date
+                if date_from and ev_date < date_from:
+                    continue
+                if date_to and ev_date > date_to:
+                    continue
+            elif date_from or date_to:
+                continue  # Evento senza data escluso se filtro data attivo
+
+            # Filtro azione (solo Saving/CA; in Derisking l'azione è sempre "Derisking")
+            if action_filter and use_dual_value:
+                if _(event.action) != action_filter:
+                    continue
+
+            # Filtro ripetitivo
+            if repetitive_filter:
+                want = repetitive_filter == _("Sì")
+                if event.opex_ripetitivo != want:
+                    continue
+
+            # Filtro importo teorico
+            if theoretical_from is not None or theoretical_to is not None:
+                tval = event.calculate_theoretical_value()
+                if theoretical_from is not None and tval < theoretical_from:
+                    continue
+                if theoretical_to is not None and tval > theoretical_to:
+                    continue
+
+            # Filtro importo effettivo (solo Saving/CA)
+            if use_dual_value and (actual_from is not None or actual_to is not None):
+                aval = event.calculate_effective_value()
+                if actual_from is not None and aval < actual_from:
+                    continue
+                if actual_to is not None and aval > actual_to:
+                    continue
+
+            filtered_pairs.append((event, meta))
+
+        filtered_events = [p[0] for p in filtered_pairs]
+        filtered_meta = [p[1] for p in filtered_pairs] if extra_meta is not None else None
+        return filtered_events, filtered_meta
+
     def _populate_vsm_sheet(self, sheet, events, event_type=None, extra_metadata=None):
         """
         Popola un tksheet con lista di eventi VSM.
@@ -4667,12 +4858,8 @@ class MainWindow:
             else:
                 row = [
                     event.event_date.strftime("%d/%m/%Y") if event.event_date else "",
-                    event.event_type,
-                    _(event.action),
                     event.new_supplier or "",
                     (event.description or event.reference or "")[:50],
-                    format_currency_display(valore_teorico),
-                    f"{event.percent_realizzo:.0f}%",
                     "✓" if event.opex_ripetitivo else "",
                     event.username
                 ]
@@ -4703,7 +4890,10 @@ class MainWindow:
         col_widths = getattr(sheet, '_vsm_col_widths', None)
         if col_widths is None:
             # Fallback conservativo se lo sheet non ha le larghezze salvate
-            col_widths = [400 if i == 3 else 120 for i in range(10 if use_dual_value else 8)]
+            if use_dual_value:
+                col_widths = [400 if i == 3 else 120 for i in range(10)]
+            else:  # Derisking: 5 colonne, Descrizione a indice 2
+                col_widths = [400 if i == 2 else 120 for i in range(5)]
         sheet.set_column_widths(col_widths)
         
         # Riapplica allineamento centrato (set_sheet_data / set_column_widths lo resettano)
@@ -5254,6 +5444,13 @@ class MainWindow:
         if is_vsm:
             self.rfq_filter_subframe.grid_remove()
             self.vsm_filter_subframe.grid()
+            # Mostra lo spec frame VSM corretto per il tab attivo, nasconde gli altri
+            if hasattr(self, '_vsm_spec_frames'):
+                for key, frame in self._vsm_spec_frames.items():
+                    if key == status:
+                        frame.grid()
+                    else:
+                        frame.grid_remove()
         else:
             self.vsm_filter_subframe.grid_remove()
             self.rfq_filter_subframe.grid()
@@ -5702,6 +5899,7 @@ class MainWindow:
             result_meta = None
 
         logger.info(f"[VSMSearch] query='{query}' event_type='{event_type}' risultati={len(results)}")
+        results, result_meta = self._apply_vsm_filters(results, event_type, extra_meta=result_meta)
         self._populate_vsm_sheet(sheet, results, event_type=event_type, extra_metadata=result_meta)
 
     def search_requests(self):
@@ -6233,6 +6431,21 @@ class MainWindow:
             self.username_filter_var.set(self.current_username or self.all_users_placeholder)
         if self.vsm_username_filter_var:
             self.vsm_username_filter_var.set(self.current_username or self.all_users_placeholder)
+        # Resetta filtri VSM avanzati
+        for _var in (
+            getattr(self, 'vsm_action_var', None),
+            getattr(self, 'vsm_repetitive_var', None),
+            getattr(self, 'vsm_theoretical_from_var', None),
+            getattr(self, 'vsm_theoretical_to_var', None),
+            getattr(self, 'vsm_actual_from_var', None),
+            getattr(self, 'vsm_actual_to_var', None),
+        ):
+            if _var:
+                _var.set("")
+        if getattr(self, 'vsm_date_from_entry', None):
+            self.vsm_date_from_entry.delete(0, 'end')
+        if getattr(self, 'vsm_date_to_entry', None):
+            self.vsm_date_to_entry.delete(0, 'end')
         self.refresh_data()
     
     def toggle_filters(self):
