@@ -3202,3 +3202,18 @@ msgstr "CA Effettivo"
 
 msgid "Valore Teorico"
 msgstr "Valore Teorico"
+
+msgid "Ripetitivo:"
+msgstr "Ripetitivo:"
+
+msgid "Sì"
+msgstr "Sì"
+
+msgid "No"
+msgstr "No"
+
+msgid "Teorico Da:"
+msgstr "Teorico Da:"
+
+msgid "Effettivo Da:"
+msgstr "Effettivo Da:"

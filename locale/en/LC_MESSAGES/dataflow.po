@@ -3198,3 +3198,18 @@ msgstr "CA Actual"
 
 msgid "Valore Teorico"
 msgstr "Theoretical Value"
+
+msgid "Ripetitivo:"
+msgstr "Repetitive:"
+
+msgid "Sì"
+msgstr "Yes"
+
+msgid "No"
+msgstr "No"
+
+msgid "Teorico Da:"
+msgstr "Theoretical From:"
+
+msgid "Effettivo Da:"
+msgstr "Actual From:"

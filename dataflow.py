@@ -3732,14 +3732,14 @@ class MainWindow:
         _vsm_cb.grid(row=0, column=1, sticky="w", pady=5)
         _vsm_cb.bind("<<ComboboxSelected>>", lambda _e: self._on_vsm_username_filter_changed())
         self.vsm_user_filter_combos = [_vsm_cb]
-        ttk.Label(_vsf, text=_("Dal:")).grid(row=0, column=2, sticky="w", padx=(10, 5), pady=5)
+        ttk.Label(_vsf, text=_("Da:")).grid(row=0, column=2, sticky="w", padx=(10, 5), pady=5)
         self.vsm_date_from_entry = DateEntry(
             _vsf, date_pattern='dd/mm/yyyy',
             locale=('it_IT' if get_current_language() == 'it' else 'en_US'),
         )
         self.vsm_date_from_entry.grid(row=0, column=3, sticky="w", pady=5)
         self.vsm_date_from_entry.delete(0, 'end')
-        ttk.Label(_vsf, text=_("Al:")).grid(row=0, column=4, sticky="w", padx=(10, 5), pady=5)
+        ttk.Label(_vsf, text=_("A:")).grid(row=0, column=4, sticky="w", padx=(10, 5), pady=5)
         self.vsm_date_to_entry = DateEntry(
             _vsf, date_pattern='dd/mm/yyyy',
             locale=('it_IT' if get_current_language() == 'it' else 'en_US'),
@@ -4830,7 +4830,7 @@ class MainWindow:
                 if event.driver == "Pagamenti" and event.giorni_pagamento_attuali is not None and event.giorni_pagamento_negoziati is not None:
                     _delta = event.giorni_pagamento_negoziati - event.giorni_pagamento_attuali
                     _variance_pct = (_delta / 30.0) * event.effective_payments_rate_pct
-                    _variance_str = f"{_variance_pct:.2f}%"
+                    _variance_str = f"{_variance_pct:.2f}".replace('.', ',') + "%"
                 else:
                     # Variance % = (baseline - negoziato) / baseline * 100
                     # Saving usa importo_bdg; Cost Avoidance usa importo_richiesto_iniziale
@@ -4840,7 +4840,7 @@ class MainWindow:
                         _baseline = event.importo_bdg or 0.0
                     if _baseline != 0.0:
                         _variance_pct = (_baseline - (event.importo_negoziato or 0.0)) / _baseline * 100
-                        _variance_str = f"{_variance_pct:.1f}%"
+                        _variance_str = f"{_variance_pct:.2f}".replace('.', ',') + "%"
                     else:
                         _variance_str = "0%"
                 row = [
@@ -4850,7 +4850,7 @@ class MainWindow:
                     (event.description or event.reference or "")[:50],
                     format_currency_display(valore_teorico),
                     format_currency_display(valore_effettivo),
-                    f"{event.percent_realizzo:.0f}%",
+                    f"{event.percent_realizzo:.2f}".replace('.', ',') + "%",
                     _variance_str,
                     "✓" if event.opex_ripetitivo else "",
                     event.username
@@ -5446,11 +5446,17 @@ class MainWindow:
             self.vsm_filter_subframe.grid()
             # Mostra lo spec frame VSM corretto per il tab attivo, nasconde gli altri
             if hasattr(self, '_vsm_spec_frames'):
-                for key, frame in self._vsm_spec_frames.items():
-                    if key == status:
-                        frame.grid()
+                show_frame = self._vsm_spec_frames.get(status)
+                # Opera su frame unici: _vsm_sc_spec è condiviso tra Saving e CA,
+                # quindi non iterare sulle chiavi ma sugli oggetti distinti.
+                _seen = {}
+                for f in self._vsm_spec_frames.values():
+                    _seen[id(f)] = f
+                for f in _seen.values():
+                    if f is show_frame:
+                        f.grid()
                     else:
-                        frame.grid_remove()
+                        f.grid_remove()
         else:
             self.vsm_filter_subframe.grid_remove()
             self.rfq_filter_subframe.grid()
@@ -6447,6 +6453,15 @@ class MainWindow:
         if getattr(self, 'vsm_date_to_entry', None):
             self.vsm_date_to_entry.delete(0, 'end')
         self.refresh_data()
+        # refresh_data() ricarica solo i tab RFQ; ricarica esplicitamente anche i tab VSM
+        # (tutti e tre, perché i filtri VSM sono condivisi tra i tab)
+        for _et, _sh in [
+            ("Saving", getattr(self, 'sheet_saving', None)),
+            ("Cost Avoidance", getattr(self, 'sheet_cost_avoidance', None)),
+            ("Derisking", getattr(self, 'sheet_derisking', None)),
+        ]:
+            if _sh is not None:
+                self._load_vsm_events(_et, _sh)
     
     def toggle_filters(self):
         """Toggle visibilità filtri avanzati (Step 5: Collapsible Filters).
