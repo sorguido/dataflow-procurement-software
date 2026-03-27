@@ -4644,21 +4644,7 @@ class MainWindow:
         """
         try:
             vsm_username_filter = self._get_active_username_filter(self.vsm_username_filter_var)
-            with DatabaseManager(get_db_path()) as db_manager:
-                if vsm_username_filter is None:
-                    # Tutti gli utenti: aggregazione multi-DB
-                    raw = db_manager.get_all_vsm_events_aggregated(get_db_path())
-                    all_events = [ev for ev, _im, _src in raw]
-                    extra_meta = [{'is_mine': im, 'source_file': src} for _, im, src in raw]
-                elif vsm_username_filter == (self.current_username or '').lower():
-                    # Utente corrente: ottimizzazione locale (nessuna aggregazione)
-                    all_events = db_manager.get_all_vsm_events(username=self.current_username)
-                    extra_meta = None
-                else:
-                    # Altro utente specifico: aggregazione con filtro username
-                    raw = db_manager.get_all_vsm_events_aggregated(get_db_path(), username=vsm_username_filter)
-                    all_events = [ev for ev, _im, _src in raw]
-                    extra_meta = [{'is_mine': im, 'source_file': src} for _, im, src in raw]
+            all_events, extra_meta = self._get_vsm_dataset(vsm_username_filter)
 
             # Filtra per event_type preservando corrispondenza indice con extra_meta
             if extra_meta is not None:
@@ -4686,6 +4672,37 @@ class MainWindow:
                 _("Impossibile caricare gli eventi VSM: {}\n").format(e),
                 parent=self.root
             )
+
+    def _get_vsm_dataset(self, vsm_username_filter):
+        """Carica il dataset VSM grezzo in base allo scope utente del filtro UI.
+
+        Unica fonte di verità per lo scope utente nei metodi VSM.
+        Usato da _load_vsm_events e _search_vsm_events per evitare duplicazione.
+
+        Args:
+            vsm_username_filter: valore da _get_active_username_filter(vsm_username_filter_var).
+                None  → tutti gli utenti (aggregazione completa)
+                str   → utente specifico; se coincide con current_username usa path locale
+
+        Returns:
+            tuple(all_events: list[VSMEvent], extra_meta: list[dict] | None)
+        """
+        with DatabaseManager(get_db_path()) as db_manager:
+            if vsm_username_filter is None:
+                # Tutti gli utenti: aggregazione multi-DB
+                raw = db_manager.get_all_vsm_events_aggregated(get_db_path())
+                all_events = [ev for ev, _im, _src in raw]
+                extra_meta = [{'is_mine': im, 'source_file': src} for _, im, src in raw]
+            elif vsm_username_filter == (self.current_username or '').lower():
+                # Utente corrente: path locale ottimizzato (nessuna aggregazione)
+                all_events = db_manager.get_all_vsm_events(username=self.current_username)
+                extra_meta = None
+            else:
+                # Altro utente specifico: aggregazione con filtro username
+                raw = db_manager.get_all_vsm_events_aggregated(get_db_path(), username=vsm_username_filter)
+                all_events = [ev for ev, _im, _src in raw]
+                extra_meta = [{'is_mine': im, 'source_file': src} for _, im, src in raw]
+        return all_events, extra_meta
 
     def _apply_vsm_filters(self, events, event_type, extra_meta=None):
         """Applica i filtri VSM avanzati (data, azione, ripetitivo, importi) a una lista di eventi.
@@ -5858,54 +5875,50 @@ class MainWindow:
         query = self.search_vars['global'].get().strip().lower()
 
         if not query:
-            # Query vuota: ripristina dataset completo (comportamento identico al caricamento iniziale)
+            # Query vuota: ripristina dataset completo rispettando lo scope filtri attivi
             self._load_vsm_events(event_type, sheet)
             return
 
-        # Campi su cui viene applicata la ricerca globale
-        _VSM_SEARCH_FIELDS = (
-            'description', 'reference', 'buyer', 'driver',
-            'action', 'event_type', 'new_supplier', 'note',
-        )
-
+        # Scope utente determinato esclusivamente dal filtro UI (mai da current_username diretto)
         vsm_username_filter = self._get_active_username_filter(self.vsm_username_filter_var)
 
         try:
-            with DatabaseManager(get_db_path()) as db_manager:
-                if vsm_username_filter is None:
-                    raw = db_manager.get_all_vsm_events_aggregated(get_db_path())
-                    raw_events = [ev for ev, _im, _src in raw]
-                    raw_meta = [{'is_mine': im, 'source_file': src} for _, im, src in raw]
-                elif vsm_username_filter == (self.current_username or '').lower():
-                    raw_events = db_manager.get_all_vsm_events(username=self.current_username)
-                    raw_meta = None
-                else:
-                    raw = db_manager.get_all_vsm_events_aggregated(get_db_path(), username=vsm_username_filter)
-                    raw_events = [ev for ev, _im, _src in raw]
-                    raw_meta = [{'is_mine': im, 'source_file': src} for _, im, src in raw]
+            raw_events, raw_meta = self._get_vsm_dataset(vsm_username_filter)
         except DatabaseError as e:
             logger.error(f"[VSMSearch] Errore caricamento eventi: {e}")
             return
 
-        # Filtra per event_type e query globale, mantenendo allineamento con raw_meta
+        # Filtra per event_type mantenendo allineamento con raw_meta
         if raw_meta is not None:
+            pairs = [(ev, m) for ev, m in zip(raw_events, raw_meta) if ev.event_type == event_type]
+            results = [p[0] for p in pairs]
+            result_meta = [p[1] for p in pairs]
+        else:
+            results = [ev for ev in raw_events if ev.event_type == event_type]
+            result_meta = None
+
+        # Applica Advanced Filters (stesso scope di _load_vsm_events)
+        results, result_meta = self._apply_vsm_filters(results, event_type, extra_meta=result_meta)
+
+        # Applica query testuale globale
+        _VSM_SEARCH_FIELDS = (
+            'description', 'reference', 'buyer', 'driver',
+            'action', 'event_type', 'new_supplier', 'note',
+        )
+        if result_meta is not None:
             pairs = [
-                (ev, meta) for ev, meta in zip(raw_events, raw_meta)
-                if ev.event_type == event_type
-                and any(query in (getattr(ev, field) or "").lower() for field in _VSM_SEARCH_FIELDS)
+                (ev, m) for ev, m in zip(results, result_meta)
+                if any(query in (getattr(ev, f) or "").lower() for f in _VSM_SEARCH_FIELDS)
             ]
             results = [p[0] for p in pairs]
             result_meta = [p[1] for p in pairs]
         else:
             results = [
-                ev for ev in raw_events
-                if ev.event_type == event_type
-                and any(query in (getattr(ev, field) or "").lower() for field in _VSM_SEARCH_FIELDS)
+                ev for ev in results
+                if any(query in (getattr(ev, f) or "").lower() for f in _VSM_SEARCH_FIELDS)
             ]
-            result_meta = None
 
         logger.info(f"[VSMSearch] query='{query}' event_type='{event_type}' risultati={len(results)}")
-        results, result_meta = self._apply_vsm_filters(results, event_type, extra_meta=result_meta)
         self._populate_vsm_sheet(sheet, results, event_type=event_type, extra_metadata=result_meta)
 
     def search_requests(self):
