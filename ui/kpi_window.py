@@ -32,7 +32,6 @@ class KpiWindow(tk.Toplevel):
         self.withdraw()
         set_window_icon(self)
         self.title(_("KPI Analysis"))
-        self.transient(parent)
         self.resizable(True, True)
 
         # Variabili filtro (placeholder — nessuna logica dati)
