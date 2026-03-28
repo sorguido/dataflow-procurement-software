@@ -4898,12 +4898,15 @@ class MainWindow:
                 'source_file': source_file,
             })
         
-        # Aggiorna sheet
-        sheet.set_sheet_data(data_rows)
+        # Aggiorna sheet.
+        # reset_col_positions=False: lo schema colonne VSM è fisso per tutta la vita dello sheet;
+        # evita che MT.reset_col_positions() azzeri transientemente le larghezze a default_column_width,
+        # eliminando il micro-tremolio visivo durante search/refresh.
+        sheet.set_sheet_data(data_rows, reset_col_positions=False)
         sheet._event_metadata = metadata
-        
-        # Riapplica larghezze colonne (set_sheet_data le resetta)
-        # Usa le larghezze calcolate dinamicamente dall'header in _create_vsm_event_sheet
+
+        # Applica larghezze corrette (necessario al primo populate; no-op sui successivi
+        # perché reset_col_positions=False le preserva già).
         col_widths = getattr(sheet, '_vsm_col_widths', None)
         if col_widths is None:
             # Fallback conservativo se lo sheet non ha le larghezze salvate
@@ -4912,11 +4915,16 @@ class MainWindow:
             else:  # Derisking: 5 colonne, Descrizione a indice 2
                 col_widths = [400 if i == 2 else 120 for i in range(5)]
         sheet.set_column_widths(col_widths)
-        
-        # Riapplica allineamento centrato (set_sheet_data / set_column_widths lo resettano)
+
+        # Allineamento centrato: col_options NON viene toccato da reset_col_positions,
+        # quindi è già preservato dal populate precedente. La chiamata è mantenuta
+        # per garantire la corretta inizializzazione al primo populate.
         align_cols = getattr(sheet, '_vsm_align_cols', None)
         if align_cols:
-            sheet.align_columns(columns=align_cols, align="center")
+            sheet.align_columns(columns=align_cols, align="center", redraw=False)
+        # Redraw esplicito unico: sostituisce il timer deferred di set_sheet_data e
+        # align_columns, garantendo un solo ridisegno con stato già completamente coerente.
+        sheet.redraw(redraw_header=True, redraw_row_index=True)
 
     # ===========================
     # Step 4D.3: VSM CRUD Handlers (implementazione completa)
