@@ -2,27 +2,65 @@
 """
 KpiWindow - Finestra KPI Analysis per DataFlow Procurement Software.
 
-Fase 1: Shell UI senza logica dati.
+Fase 3: UI collegata al KPI engine.
 - Header con titolo, filtri periodo, selezione anno, Export Excel (placeholder)
 - Navigazione a tab: RFQ / Saving / Cost Avoidance / Derisking
-- Ogni sezione: area KPI cards + area chart (placeholder) + area tabella (placeholder)
+- KPI cards popolate con dati reali da services.kpi_engine
+- Chart e Details restano placeholder
 """
 
 import tkinter as tk
 from tkinter import ttk
 import builtins
+import logging
 
 from utils.window_utils import center_window
 from utils.resource_utils import set_window_icon
+from services.kpi_engine import (
+    get_rfq_kpi,
+    get_saving_kpi,
+    get_cost_avoidance_kpi,
+    get_derisking_kpi,
+)
 
 # Compatibilità: _() è installata in builtins da init_i18n().
 # Se non disponibile (es. test unitari), usa dummy.
 if not hasattr(builtins, '_'):
     builtins._ = lambda x: x
 
+logger = logging.getLogger('DataFlow.KpiWindow')
+
+
+# ---------------------------------------------------------------------------
+# Helpers di formattazione (solo display, nessuna logica KPI)
+# ---------------------------------------------------------------------------
+
+def _fmt_int(v) -> str:
+    """Formatta un valore come intero (conteggi RFQ, fornitori…)."""
+    try:
+        return str(int(v or 0))
+    except (TypeError, ValueError):
+        return "0"
+
+
+def _fmt_money(v) -> str:
+    """Formatta un valore monetario senza simbolo, separatore migliaia a virgola."""
+    try:
+        return f"{float(v or 0):,.0f}"
+    except (TypeError, ValueError):
+        return "0"
+
+
+def _fmt_pct(v) -> str:
+    """Formatta una percentuale con 2 decimali."""
+    try:
+        return f"{float(v or 0):.2f}%"
+    except (TypeError, ValueError):
+        return "0.00%"
+
 
 class KpiWindow(tk.Toplevel):
-    """Finestra KPI Analysis - Fase 1: struttura UI."""
+    """Finestra KPI Analysis — Fase 3: UI collegata all'engine."""
 
     _PERIOD_OPTIONS = ["1M", "3M", "12M", "3Y", "5Y", "10Y", _("All")]
     _YEAR_RANGE = list(range(2020, 2031))
@@ -34,12 +72,21 @@ class KpiWindow(tk.Toplevel):
         self.title(_("KPI Analysis"))
         self.resizable(True, True)
 
-        # Variabili filtro (placeholder — nessuna logica dati)
+        # Variabili filtro (preparate per futura implementazione, non ancora attive)
         self._selected_period = tk.StringVar(value="12M")
         self._selected_year = tk.StringVar(value="")
 
+        # Dizionari engine_key → ttk.Label (valore), popolati da _build_tab_*
+        self._rfq_labels: dict = {}
+        self._saving_labels: dict = {}
+        self._ca_labels: dict = {}
+        self._derisking_labels: dict = {}
+
         self._build_header()
         self._build_navigation()
+
+        # Carica dati reali dall'engine
+        self._load_kpi_data()
 
         self.protocol("WM_DELETE_WINDOW", self.destroy)
         self.update_idletasks()
@@ -144,72 +191,77 @@ class KpiWindow(tk.Toplevel):
     # ------------------------------------------------------------------
 
     def _build_tab_rfq(self, parent):
-        kpi_items = [
-            _("RFQ Active"),
-            _("RFQ Archived"),
-            _("RFQ Total"),
-            _("Offers Active"),
-            _("Offers Archived"),
-            _("Offers Total"),
-            _("Work Order"),
-            _("Full Supply"),
+        items = [
+            (_("RFQ Active"),      "rfq_active"),
+            (_("RFQ Archived"),    "rfq_archived"),
+            (_("RFQ Total"),       "rfq_total"),
+            (_("Offers Active"),   "offers_active"),
+            (_("Offers Archived"), "offers_archived"),
+            (_("Offers Total"),    "offers_total"),
+            (_("Work Order"),      "work_order"),
+            (_("Full Supply"),     "full_supply"),
         ]
-        self._build_section(parent, kpi_items)
+        self._rfq_labels = self._build_section(parent, items)
 
     # ------------------------------------------------------------------
     # TAB: Saving
     # ------------------------------------------------------------------
 
     def _build_tab_saving(self, parent):
-        kpi_items = [
-            _("Theoretical Saving"),
-            _("Actual Saving"),
-            _("Average Saving %"),
-            _("Best Saving %"),
-            _("Worst Saving %"),
-            _("Median Saving %"),
-            _("Recurring Impact"),
-            _("Non-Recurring Impact"),
+        items = [
+            (_("Theoretical Saving"),   "theoretical_saving"),
+            (_("Actual Saving"),         "actual_saving"),
+            (_("Average Saving %"),      "average_saving_pct"),
+            (_("Best Saving %"),         "best_saving_pct"),
+            (_("Worst Saving %"),        "worst_saving_pct"),
+            (_("Median Saving %"),       "median_saving_pct"),
+            (_("Recurring Impact"),      "recurring_impact"),
+            (_("Non-Recurring Impact"),  "non_recurring_impact"),
         ]
-        self._build_section(parent, kpi_items)
+        self._saving_labels = self._build_section(parent, items)
 
     # ------------------------------------------------------------------
     # TAB: Cost Avoidance
     # ------------------------------------------------------------------
 
     def _build_tab_cost_avoidance(self, parent):
-        kpi_items = [
-            _("Theoretical Cost Avoidance"),
-            _("Actual Cost Avoidance"),
-            _("Average %"),
-            _("Best %"),
-            _("Worst %"),
-            _("Median %"),
-            _("Recurring"),
-            _("Non-Recurring"),
+        items = [
+            (_("Theoretical Cost Avoidance"), "theoretical_cost_avoidance"),
+            (_("Actual Cost Avoidance"),       "actual_cost_avoidance"),
+            (_("Average %"),                   "average_pct"),
+            (_("Best %"),                      "best_pct"),
+            (_("Worst %"),                     "worst_pct"),
+            (_("Median %"),                    "median_pct"),
+            (_("Recurring"),                   "recurring"),
+            (_("Non-Recurring"),               "non_recurring"),
         ]
-        self._build_section(parent, kpi_items)
+        self._ca_labels = self._build_section(parent, items)
 
     # ------------------------------------------------------------------
     # TAB: Derisking
     # ------------------------------------------------------------------
 
     def _build_tab_derisking(self, parent):
-        kpi_items = [
-            _("Unique New Suppliers Introduced"),
+        items = [
+            (_("Unique New Suppliers Introduced"), "unique_new_suppliers_introduced"),
         ]
-        self._build_section(parent, kpi_items)
+        self._derisking_labels = self._build_section(parent, items)
 
     # ------------------------------------------------------------------
     # COSTRUZIONE SEZIONE GENERICA
     # ------------------------------------------------------------------
 
-    def _build_section(self, parent, kpi_items):
+    def _build_section(self, parent, items: list) -> dict:
         """
         Costruisce la struttura comune a ogni sezione:
-        1. Area KPI cards
-        2. Area chart (placeholder)
-        3. Area tabella (placeholder)
+        1. Area KPI cards  2. Area chart (placeholder)  3. Area tabella (placeholder)
+
+        Args:
+            parent: widget contenitore
+            items:  lista di tuple (label_testo, engine_key)
+
+        Returns:
+            dict: engine_key → ttk.Label (il widget del valore, per aggiornamenti)
         """
         outer = ttk.Frame(parent, padding=(8, 8, 8, 8))
         outer.pack(fill="both", expand=True)
@@ -218,7 +270,7 @@ class KpiWindow(tk.Toplevel):
         cards_label_frame = ttk.LabelFrame(outer, text=_("KPI"), padding=(10, 6))
         cards_label_frame.pack(side="top", fill="x", pady=(0, 8))
 
-        self._build_kpi_cards(cards_label_frame, kpi_items)
+        label_refs = self._build_kpi_cards(cards_label_frame, items)
 
         # --- 2. Chart area (placeholder) ---
         chart_label_frame = ttk.LabelFrame(outer, text=_("Chart"), padding=(10, 6))
@@ -242,27 +294,43 @@ class KpiWindow(tk.Toplevel):
             font=(None, 9, "italic"),
         ).pack(expand=True, pady=6)
 
+        return label_refs
+
     # ------------------------------------------------------------------
     # KPI CARDS
     # ------------------------------------------------------------------
 
-    def _build_kpi_cards(self, parent, kpi_items):
+    def _build_kpi_cards(self, parent, items: list) -> dict:
         """
         Dispone le KPI card in una griglia con 4 colonne.
-        Ogni card mostra: etichetta + valore placeholder.
+
+        Args:
+            parent: frame contenitore (LabelFrame)
+            items:  lista di tuple (label_testo, engine_key)
+
+        Returns:
+            dict: engine_key → ttk.Label del valore
         """
         cols = 4
-        for idx, label in enumerate(kpi_items):
+        label_refs: dict = {}
+        for idx, (label_text, key) in enumerate(items):
             col = idx % cols
             row = idx // cols
-            self._build_kpi_card(parent, label, row=row, col=col)
+            value_lbl = self._build_kpi_card(parent, label_text, row=row, col=col)
+            label_refs[key] = value_lbl
 
-        # Distribuisci spazio orizzontale uniformemente
         for c in range(cols):
             parent.columnconfigure(c, weight=1)
 
-    def _build_kpi_card(self, parent, label, row, col):
-        """Crea una singola KPI card."""
+        return label_refs
+
+    def _build_kpi_card(self, parent, label, row, col) -> ttk.Label:
+        """
+        Crea una singola KPI card.
+
+        Returns:
+            ttk.Label: il widget del valore (testo aggiornabile)
+        """
         card = ttk.Frame(parent, relief="groove", borderwidth=1, padding=(10, 8))
         card.grid(row=row, column=col, padx=5, pady=5, sticky="ew")
 
@@ -275,17 +343,104 @@ class KpiWindow(tk.Toplevel):
             justify="center",
         ).pack()
 
-        ttk.Label(
+        value_label = ttk.Label(
             card,
             text="—",
             font=(None, 16, "bold"),
             foreground="#888888",
-        ).pack(pady=(4, 0))
+        )
+        value_label.pack(pady=(4, 0))
+        return value_label
 
     # ------------------------------------------------------------------
     # PLACEHOLDER HANDLERS
     # ------------------------------------------------------------------
 
     def _on_export_excel(self):
-        """Placeholder: Export Excel (non implementato in Fase 1)."""
+        """Placeholder: Export Excel (non implementato)."""
         pass
+
+    # ------------------------------------------------------------------
+    # CARICAMENTO DATI (BINDING UI → ENGINE)
+    # ------------------------------------------------------------------
+
+    def _load_kpi_data(self):
+        """
+        Recupera i KPI dall'engine e aggiorna tutte le sezioni.
+
+        Strutturato in modo che in futuro sia sufficiente richiamare
+        questo metodo (es. dopo un cambio filtro) per aggiornare la UI.
+        """
+        try:
+            rfq_data = get_rfq_kpi()
+        except Exception as e:
+            logger.error("[KpiWindow] get_rfq_kpi failed: %s", e)
+            rfq_data = {}
+
+        try:
+            saving_data = get_saving_kpi()
+        except Exception as e:
+            logger.error("[KpiWindow] get_saving_kpi failed: %s", e)
+            saving_data = {}
+
+        try:
+            ca_data = get_cost_avoidance_kpi()
+        except Exception as e:
+            logger.error("[KpiWindow] get_cost_avoidance_kpi failed: %s", e)
+            ca_data = {}
+
+        try:
+            derisking_data = get_derisking_kpi()
+        except Exception as e:
+            logger.error("[KpiWindow] get_derisking_kpi failed: %s", e)
+            derisking_data = {}
+
+        self._update_rfq_cards(rfq_data)
+        self._update_saving_cards(saving_data)
+        self._update_ca_cards(ca_data)
+        self._update_derisking_cards(derisking_data)
+
+    # ------------------------------------------------------------------
+    # UPDATE CARDS PER SEZIONE
+    # ------------------------------------------------------------------
+
+    def _update_rfq_cards(self, data: dict):
+        """Aggiorna le card RFQ con i dati restituiti dall'engine."""
+        for key, lbl in self._rfq_labels.items():
+            v = data.get(key, 0)
+            lbl.config(text=_fmt_int(v), foreground="#222222")
+
+    def _update_saving_cards(self, data: dict):
+        """Aggiorna le card Saving con i dati restituiti dall'engine."""
+        pct_keys   = {"average_saving_pct", "best_saving_pct",
+                      "worst_saving_pct", "median_saving_pct"}
+        money_keys = {"theoretical_saving", "actual_saving",
+                      "recurring_impact", "non_recurring_impact"}
+        for key, lbl in self._saving_labels.items():
+            v = data.get(key, 0)
+            if key in pct_keys:
+                lbl.config(text=_fmt_pct(v), foreground="#222222")
+            elif key in money_keys:
+                lbl.config(text=_fmt_money(v), foreground="#222222")
+            else:
+                lbl.config(text=str(v or 0), foreground="#222222")
+
+    def _update_ca_cards(self, data: dict):
+        """Aggiorna le card Cost Avoidance con i dati restituiti dall'engine."""
+        pct_keys   = {"average_pct", "best_pct", "worst_pct", "median_pct"}
+        money_keys = {"theoretical_cost_avoidance", "actual_cost_avoidance",
+                      "recurring", "non_recurring"}
+        for key, lbl in self._ca_labels.items():
+            v = data.get(key, 0)
+            if key in pct_keys:
+                lbl.config(text=_fmt_pct(v), foreground="#222222")
+            elif key in money_keys:
+                lbl.config(text=_fmt_money(v), foreground="#222222")
+            else:
+                lbl.config(text=str(v or 0), foreground="#222222")
+
+    def _update_derisking_cards(self, data: dict):
+        """Aggiorna le card Derisking con i dati restituiti dall'engine."""
+        for key, lbl in self._derisking_labels.items():
+            v = data.get(key, 0)
+            lbl.config(text=_fmt_int(v), foreground="#222222")
