@@ -44,7 +44,16 @@ class KpiWindow(tk.Toplevel):
         self.protocol("WM_DELETE_WINDOW", self.destroy)
         self.update_idletasks()
         self.minsize(800, 580)
-        center_window(self)
+
+        # Apre massimizzata — stesso pattern della MainWindow (Linux/Windows)
+        try:
+            self.attributes("-zoomed", True)   # Linux / X11
+        except Exception:
+            try:
+                self.state("zoomed")            # Windows
+            except Exception:
+                center_window(self)             # Fallback generico
+
         self.deiconify()
 
     # ------------------------------------------------------------------
