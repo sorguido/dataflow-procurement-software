@@ -24,6 +24,7 @@ from typing import Optional
 
 from database_manager import DatabaseManager
 from services.app_paths import get_db_path
+from utils.vsm_config import get_pagamenti_coefficient
 
 logger = logging.getLogger('DataFlow.KPIEngine')
 
@@ -329,27 +330,59 @@ def get_saving_kpi(
             result["recurring_impact"]     = round(rec, 2)
             result["non_recurring_impact"] = round(non_rec, 2)
 
-            # Percentuale di saving per evento.
-            # Include tutti i driver; gli eventi senza importo_bdg valido
-            # restituiscono 0 da _safe_pct e non alterano la statistica.
+            # Percentuali di saving per evento.
+            # best / worst / median: statistiche per-evento (invariate semanticamente).
+            # average: media PESATA  sum(saving) / sum(base),
+            #   coerente con il modello VSM già presente in models/vsm_event.py:
+            #   - driver Prezzo:    base = importo_bdg * qty
+            #                       saving = (importo_bdg - importo_negoziato) * qty
+            #   - driver Pagamenti: base = spending_annuo
+            #                       saving = spending * (delta_gg / 30) * coefficiente
+            # Se l'evento non ha una base valida (bdg<=0 o spending<=0) viene ignorato
+            # senza generare eccezioni né alterare le altre statistiche.
             d_ev_clauses, d_ev_params = _build_date_filter(
                 "event_date", date_from, date_to, year
             )
-            w = _where(
-                ["event_type = ?", "importo_bdg > 0"],
-                d_ev_clauses,
-            )
+            w_ev = _where(["event_type = ?"], d_ev_clauses)
             c.execute(
-                f"SELECT importo_bdg, importo_negoziato FROM vsm_events {w}",
+                f"""SELECT importo_bdg, importo_negoziato, quantita_annua, driver,
+                           spending_annuo, giorni_pagamento_attuali,
+                           giorni_pagamento_negoziati, payments_rate
+                    FROM vsm_events {w_ev}""",
                 tuple(["Saving"] + d_ev_params),
             )
-            pcts = [
-                _safe_pct(row[0] - row[1], row[0])
-                for row in c.fetchall()
-                if row[0] and row[0] > 0
-            ]
+
+            pcts: list = []
+            weighted_num = 0.0   # somma saving di tutti gli eventi validi
+            weighted_den = 0.0   # somma basi di tutti gli eventi validi
+
+            for (bdg, neg, qty, drv,
+                 spending, gg_att, gg_neg, p_rate) in c.fetchall():
+
+                if drv == "Pagamenti":
+                    # Base economica: spending annuo
+                    # Saving: spending * (delta_giorni / 30) * coefficiente_opportunità
+                    if spending and spending > 0 \
+                            and gg_att is not None and gg_neg is not None:
+                        coeff = (p_rate / 100.0) if p_rate is not None \
+                            else get_pagamenti_coefficient()
+                        delta_gg   = (gg_neg or 0) - (gg_att or 0)
+                        saving_ev  = spending * (delta_gg / 30.0) * coeff
+                        weighted_num += saving_ev
+                        weighted_den += spending
+                        pcts.append(_safe_pct(saving_ev, spending))
+                else:
+                    # Driver Prezzo (default): base = importo_bdg × qty
+                    if bdg and bdg > 0:
+                        q          = qty if qty and qty > 0 else 1.0
+                        saving_ev  = ((bdg or 0) - (neg or 0)) * q
+                        base_ev    = bdg * q
+                        weighted_num += saving_ev
+                        weighted_den += base_ev
+                        pcts.append(_safe_pct((bdg or 0) - (neg or 0), bdg))
+
             stats = _pct_stats(pcts)
-            result["average_saving_pct"] = stats["average"]
+            result["average_saving_pct"] = round(_safe_pct(weighted_num, weighted_den), 4)
             result["best_saving_pct"]    = stats["best"]
             result["worst_saving_pct"]   = stats["worst"]
             result["median_saving_pct"]  = stats["median"]

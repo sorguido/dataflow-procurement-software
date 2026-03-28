@@ -44,11 +44,14 @@ def _fmt_int(v) -> str:
 
 
 def _fmt_money(v) -> str:
-    """Formatta un valore monetario senza simbolo, separatore migliaia a virgola."""
+    """Formatta un valore monetario: formato italiano (punto migliaia) con simbolo €.
+
+    Esempi:  20000 → "20.000 €"   |   1234567 → "1.234.567 €"
+    """
     try:
-        return f"{float(v or 0):,.0f}"
+        return f"{float(v or 0):,.0f}".replace(",", ".") + " €"
     except (TypeError, ValueError):
-        return "0"
+        return "0 €"
 
 
 def _fmt_pct(v) -> str:
@@ -215,8 +218,8 @@ class KpiWindow(tk.Toplevel):
             (_("Best Saving %"),         "best_saving_pct"),
             (_("Worst Saving %"),        "worst_saving_pct"),
             (_("Median Saving %"),       "median_saving_pct"),
-            (_("Recurring Impact"),      "recurring_impact"),
-            (_("Non-Recurring Impact"),  "non_recurring_impact"),
+            (_("Recurring Impact (€)"),     "recurring_impact"),
+            (_("Non-Recurring Impact (€)"),  "non_recurring_impact"),
         ]
         self._saving_labels = self._build_section(parent, items)
 
