@@ -529,3 +529,37 @@ def get_derisking_kpi(
         logger.error("[KPIEngine] get_derisking_kpi: %s", e, exc_info=True)
 
     return result
+
+
+def get_available_years(db_path: Optional[str] = None) -> list:
+    """
+    Restituisce la lista ordinata degli anni presenti nel DB nelle sorgenti
+    utilizzate dai KPI (vsm_events.event_date e richieste_offerta.data_emissione).
+
+    Usato dalla KpiWindow per popolare dinamicamente il filtro Year.
+
+    Returns:
+        list[int]: anni in ordine crescente; lista vuota in caso di errore.
+    """
+    years: set = set()
+    try:
+        path = db_path or get_db_path()
+        with DatabaseManager(path, read_only=True) as db:
+            c = db.cursor
+            c.execute(
+                "SELECT DISTINCT strftime('%Y', event_date) "
+                "FROM vsm_events WHERE event_date IS NOT NULL"
+            )
+            for (y,) in c.fetchall():
+                if y:
+                    years.add(int(y))
+            c.execute(
+                "SELECT DISTINCT strftime('%Y', data_emissione) "
+                "FROM richieste_offerta WHERE data_emissione IS NOT NULL"
+            )
+            for (y,) in c.fetchall():
+                if y:
+                    years.add(int(y))
+    except Exception as e:
+        logger.error("[KPIEngine] get_available_years: %s", e, exc_info=True)
+    return sorted(years)

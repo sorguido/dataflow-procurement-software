@@ -13,6 +13,7 @@ import tkinter as tk
 from tkinter import ttk
 import builtins
 import logging
+from datetime import date, timedelta
 
 from utils.window_utils import center_window
 from utils.resource_utils import set_window_icon
@@ -21,6 +22,7 @@ from services.kpi_engine import (
     get_saving_kpi,
     get_cost_avoidance_kpi,
     get_derisking_kpi,
+    get_available_years,
 )
 
 # Compatibilità: _() è installata in builtins da init_i18n().
@@ -66,7 +68,11 @@ class KpiWindow(tk.Toplevel):
     """Finestra KPI Analysis — Fase 3: UI collegata all'engine."""
 
     _PERIOD_OPTIONS = ["1M", "3M", "12M", "3Y", "5Y", "10Y", _("All")]
-    _YEAR_RANGE = list(range(2020, 2031))
+
+    # Giorni rolling per ogni preset periodo
+    _ROLLING_DAYS = {
+        "1M": 30, "3M": 90, "12M": 365, "3Y": 1095, "5Y": 1825, "10Y": 3650
+    }
 
     def __init__(self, parent):
         super().__init__(parent)
@@ -75,9 +81,13 @@ class KpiWindow(tk.Toplevel):
         self.title(_("KPI Analysis"))
         self.resizable(True, True)
 
-        # Variabili filtro (preparate per futura implementazione, non ancora attive)
-        self._selected_period = tk.StringVar(value="12M")
-        self._selected_year = tk.StringVar(value="")
+        # Variabili filtro
+        self._selected_period = tk.StringVar(value="")   # "" = nessun preset attivo
+        self._selected_year   = tk.StringVar(value="")
+
+        # Refs ai widget filtro (per binding callbacks)
+        self._period_buttons: list = []
+        self._year_combo = None
 
         # Dizionari engine_key → ttk.Label (valore), popolati da _build_tab_*
         self._rfq_labels: dict = {}
@@ -88,6 +98,8 @@ class KpiWindow(tk.Toplevel):
         self._build_header()
         self._build_navigation()
 
+        # Popola anni disponibili e imposta filtro default (anno corrente)
+        self._populate_year_filter()
         # Carica dati reali dall'engine
         self._load_kpi_data()
 
@@ -128,16 +140,19 @@ class KpiWindow(tk.Toplevel):
         # Label "Period:"
         ttk.Label(header, text=_("Period:")).pack(side="left", padx=(0, 4))
 
-        # Pulsanti periodo (radio-style)
+        # Pulsanti periodo (radio-style) — mutuamente esclusivi con filtro anno
         period_frame = ttk.Frame(header)
         period_frame.pack(side="left", padx=(0, 12))
         for option in self._PERIOD_OPTIONS:
-            ttk.Radiobutton(
+            btn = ttk.Radiobutton(
                 period_frame,
                 text=option,
                 variable=self._selected_period,
                 value=option,
-            ).pack(side="left", padx=2)
+                command=self._on_period_selected,
+            )
+            btn.pack(side="left", padx=2)
+            self._period_buttons.append(btn)
 
         # Separatore verticale
         ttk.Separator(header, orient="vertical").pack(side="left", fill="y", padx=(0, 12))
@@ -145,15 +160,16 @@ class KpiWindow(tk.Toplevel):
         # Label "Year:"
         ttk.Label(header, text=_("Year:")).pack(side="left", padx=(0, 4))
 
-        # Combobox anno
-        year_values = [""] + [str(y) for y in self._YEAR_RANGE]
-        ttk.Combobox(
+        # Combobox anno — mutuamente esclusivo con preset periodo
+        self._year_combo = ttk.Combobox(
             header,
             textvariable=self._selected_year,
-            values=year_values,
+            values=[],
             width=6,
             state="readonly",
-        ).pack(side="left", padx=(0, 20))
+        )
+        self._year_combo.pack(side="left", padx=(0, 20))
+        self._year_combo.bind("<<ComboboxSelected>>", self._on_year_selected)
 
         # Export Excel (placeholder — destra)
         ttk.Button(
@@ -214,7 +230,7 @@ class KpiWindow(tk.Toplevel):
         items = [
             (_("Theoretical Saving"),   "theoretical_saving"),
             (_("Actual Saving"),         "actual_saving"),
-            (_("Average Saving %"),      "average_saving_pct"),
+            (_("Average Theoretical Saving %"), "average_saving_pct"),
             (_("Best Saving %"),         "best_saving_pct"),
             (_("Worst Saving %"),        "worst_saving_pct"),
             (_("Median Saving %"),       "median_saving_pct"),
@@ -231,12 +247,12 @@ class KpiWindow(tk.Toplevel):
         items = [
             (_("Theoretical Cost Avoidance"), "theoretical_cost_avoidance"),
             (_("Actual Cost Avoidance"),       "actual_cost_avoidance"),
-            (_("Average %"),                   "average_pct"),
+            (_("Average Theoretical CA %"),    "average_pct"),
             (_("Best %"),                      "best_pct"),
             (_("Worst %"),                     "worst_pct"),
             (_("Median %"),                    "median_pct"),
-            (_("Recurring"),                   "recurring"),
-            (_("Non-Recurring"),               "non_recurring"),
+            (_("Recurring (\u20ac)"),     "recurring"),
+            (_("Non-Recurring (\u20ac)"), "non_recurring"),
         ]
         self._ca_labels = self._build_section(parent, items)
 
@@ -342,7 +358,7 @@ class KpiWindow(tk.Toplevel):
             text=label,
             font=(None, 8),
             foreground="#555555",
-            wraplength=140,
+            wraplength=200,
             justify="center",
         ).pack()
 
@@ -354,6 +370,68 @@ class KpiWindow(tk.Toplevel):
         )
         value_label.pack(pady=(4, 0))
         return value_label
+
+    # ------------------------------------------------------------------
+    # FILTRI TEMPORALI
+    # ------------------------------------------------------------------
+
+    def _period_to_dates(self, period: str) -> tuple:
+        """
+        Traduce un preset periodo in (date_from, date_to) come stringhe ISO.
+
+        Semantica rolling (tutti i valori calcolati a ritroso da oggi):
+            1M  = ultimi 30 giorni
+            3M  = ultimi 90 giorni
+            12M = ultimi 365 giorni
+            3Y  = ultimi 3 anni  (1 095 giorni)
+            5Y  = ultimi 5 anni  (1 825 giorni)
+            10Y = ultimi 10 anni (3 650 giorni)
+            All = nessun filtro  → (None, None)
+        """
+        today = date.today()
+        days  = self._ROLLING_DAYS.get(period)
+        if days is not None:
+            return (today - timedelta(days=days)).isoformat(), today.isoformat()
+        return None, None  # All o preset non riconosciuto
+
+    def _populate_year_filter(self):
+        """
+        Popola il combobox Year con gli anni realmente presenti nel DB.
+
+        Default: anno corrente se disponibile, altrimenti il più recente.
+        Stato iniziale: anno attivo, nessun preset periodo selezionato.
+        """
+        years = get_available_years()
+        year_values = [""] + [str(y) for y in years]
+        if self._year_combo is not None:
+            self._year_combo["values"] = year_values
+
+        current_year = str(date.today().year)
+        if current_year in year_values:
+            self._selected_year.set(current_year)
+        elif years:
+            self._selected_year.set(str(years[-1]))
+        else:
+            self._selected_year.set("")
+
+        # Anno attivo come default → nessun preset periodo
+        self._selected_period.set("")
+
+    def _on_period_selected(self):
+        """
+        Callback: l'utente ha cliccato un preset periodo.
+        Mutua esclusione: azzera l'anno e ricarica i KPI.
+        """
+        self._selected_year.set("")
+        self._load_kpi_data()
+
+    def _on_year_selected(self, event=None):
+        """
+        Callback: l'utente ha selezionato un anno dal combobox.
+        Mutua esclusione: azzera il preset periodo e ricarica i KPI.
+        """
+        self._selected_period.set("")
+        self._load_kpi_data()
 
     # ------------------------------------------------------------------
     # PLACEHOLDER HANDLERS
@@ -369,31 +447,50 @@ class KpiWindow(tk.Toplevel):
 
     def _load_kpi_data(self):
         """
-        Recupera i KPI dall'engine e aggiorna tutte le sezioni.
+        Recupera i KPI dall'engine con i filtri attivi e aggiorna tutte le sezioni.
 
-        Strutturato in modo che in futuro sia sufficiente richiamare
-        questo metodo (es. dopo un cambio filtro) per aggiornare la UI.
+        Logica filtri (mutuamente esclusivi, see _on_period_selected / _on_year_selected):
+        - Anno selezionato    → year=<int> all'engine, date_from/date_to=None
+        - Preset periodo      → date_from/date_to rolling, year=None
+        - Nessun filtro (All) → tutti i dati (nessun parametro passato)
         """
+        year_str = self._selected_year.get()
+        period   = self._selected_period.get()
+
+        year      = None
+        date_from = None
+        date_to   = None
+
+        if year_str:
+            try:
+                year = int(year_str)
+            except ValueError:
+                pass
+        elif period:
+            date_from, date_to = self._period_to_dates(period)
+
+        kw = dict(date_from=date_from, date_to=date_to, year=year)
+
         try:
-            rfq_data = get_rfq_kpi()
+            rfq_data = get_rfq_kpi(**kw)
         except Exception as e:
             logger.error("[KpiWindow] get_rfq_kpi failed: %s", e)
             rfq_data = {}
 
         try:
-            saving_data = get_saving_kpi()
+            saving_data = get_saving_kpi(**kw)
         except Exception as e:
             logger.error("[KpiWindow] get_saving_kpi failed: %s", e)
             saving_data = {}
 
         try:
-            ca_data = get_cost_avoidance_kpi()
+            ca_data = get_cost_avoidance_kpi(**kw)
         except Exception as e:
             logger.error("[KpiWindow] get_cost_avoidance_kpi failed: %s", e)
             ca_data = {}
 
         try:
-            derisking_data = get_derisking_kpi()
+            derisking_data = get_derisking_kpi(**kw)
         except Exception as e:
             logger.error("[KpiWindow] get_derisking_kpi failed: %s", e)
             derisking_data = {}
