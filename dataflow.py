@@ -4905,15 +4905,27 @@ class MainWindow:
         sheet.set_sheet_data(data_rows, reset_col_positions=False)
         sheet._event_metadata = metadata
 
-        # Applica larghezze corrette (necessario al primo populate; no-op sui successivi
-        # perché reset_col_positions=False le preserva già).
-        col_widths = getattr(sheet, '_vsm_col_widths', None)
-        if col_widths is None:
-            # Fallback conservativo se lo sheet non ha le larghezze salvate
-            if use_dual_value:
-                col_widths = [400 if i == 3 else 120 for i in range(10)]
-            else:  # Derisking: 5 colonne, Descrizione a indice 2
-                col_widths = [400 if i == 2 else 120 for i in range(5)]
+        # Larghezze colonne: parte dal template salvato in _create_vsm_event_sheet, poi aggiusta
+        # la colonna "Nuovo Fornitore" (Derisking, indice 1) in base al contenuto effettivo.
+        col_widths = list(getattr(sheet, '_vsm_col_widths', None) or
+                          ([400 if i == 3 else 120 for i in range(10)] if use_dual_value
+                           else [400 if i == 2 else 120 for i in range(5)]))
+
+        if not use_dual_value and data_rows:
+            # Derisking: calcola larghezza dinamica per "Nuovo Fornitore" (col 1)
+            _NEW_SUPPLIER_COL = 1
+            _CELL_PADDING = 20
+            try:
+                import tkinter.font as tkfont
+                _cfont = tkfont.Font(family="Calibri", size=11)
+                _hfont = tkfont.Font(family="Calibri", size=11, weight="bold")
+                _header_w = _hfont.measure(_("Nuovo Fornitore")) + 30
+                _longest = max((row[_NEW_SUPPLIER_COL] for row in data_rows if row[_NEW_SUPPLIER_COL]), key=len, default="")
+                _content_w = _cfont.measure(_longest) + _CELL_PADDING if _longest else 0
+                col_widths[_NEW_SUPPLIER_COL] = max(_header_w, _content_w)
+            except Exception:
+                pass  # Mantiene larghezza esistente se tkfont non disponibile
+
         sheet.set_column_widths(col_widths)
 
         # Allineamento centrato: col_options NON viene toccato da reset_col_positions,
