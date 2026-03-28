@@ -93,6 +93,7 @@ init_i18n()
 
 # Importa UI components (DOPO init_i18n per avere _() disponibile)
 from ui.help_window import HelpWindow
+from ui.kpi_window import KpiWindow
 from ui.windows.view_request_window import ViewRequestWindow
 from ui.components.main_dashboard_toolbar import MainDashboardToolbar
 from ui.components.collapsible_filters import CollapsibleFilters
@@ -4408,35 +4409,8 @@ class MainWindow:
     def open_settings_window(self): self.root.wait_window(SettingsWindow(self.root, self))
     
     def on_kpi_click(self):
-        """Handler per pulsante KPI (placeholder per step futuro)."""
-        dialog = tk.Toplevel(self.root)
-        dialog.withdraw()
-        set_window_icon(dialog)
-        dialog.title(_("KPI Analysis"))
-        dialog.transient(self.root)
-        dialog.grab_set()
-        dialog.resizable(False, False)
-
-        frame = ttk.Frame(dialog, padding="20")
-        frame.pack(fill="both", expand=True)
-
-        ttk.Label(frame, text=_("KPI Analysis"), font=(None, 10, "bold")).pack(pady=(0, 10))
-
-        body_text = _(
-            "Funzionalità KPI Analysis in arrivo nel prossimo step.\n\n"
-            "Prossime funzionalità:\n"
-            "• Aggregazioni mensili/trimestrali/annuali\n"
-            "• Confronto Saving vs Cost Avoidance vs Derisking\n"
-            "• Grafici Valore Teorico vs Effettivo\n"
-            "• Export Excel dashboard"
-        )
-        ttk.Label(frame, text=body_text, font=(None, 10), justify="left").pack(pady=(0, 15))
-
-        ttk.Button(frame, text="OK", command=dialog.destroy).pack()
-
-        dialog.protocol("WM_DELETE_WINDOW", dialog.destroy)
-        center_window(dialog)
-        self.root.wait_window(dialog)
+        """Apre la finestra KPI Analysis."""
+        KpiWindow(self.root)
     
     def create_request_treeview(self, parent):
         # Frame per contenere il Sheet
