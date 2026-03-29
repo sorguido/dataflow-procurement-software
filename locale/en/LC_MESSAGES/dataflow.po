@@ -3231,3 +3231,9 @@ msgstr "Save KPI Export"
 
 msgid "Export KPI completato:\n{}"
 msgstr "Export KPI completed:\n{}"
+
+msgid "RFQ Not Expired"
+msgstr "RFQ Not Expired"
+
+msgid "RFQ Expired"
+msgstr "RFQ Expired"

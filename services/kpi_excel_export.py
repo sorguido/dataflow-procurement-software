@@ -214,15 +214,13 @@ def _rows_rfq(data, is_ita):
     if not data:
         return []
     return [
-        ('RFQ', _t(is_ita, "RFQ Attive",          "RFQ Active"),       _i(data.get('rfq_active')),    None),
-        ('RFQ', _t(is_ita, "RFQ Archiviate",       "RFQ Archived"),     _i(data.get('rfq_archived')),  None),
-        ('RFQ', _t(is_ita, "RFQ Totali",           "RFQ Total"),        _i(data.get('rfq_total')),     None),
-        ('RFQ', _t(is_ita, "Offerte Attive",       "Offers Active"),    _i(data.get('offers_active')), None),
-        ('RFQ', _t(is_ita, "Offerte Archiviate",   "Offers Archived"),  _i(data.get('offers_archived')),None),
-        ('RFQ', _t(is_ita, "Offerte Totali",       "Offers Total"),     _i(data.get('offers_total')),  None),
-        ('RFQ', _t(is_ita, "Conto Lavoro",         "Work Order"),       _i(data.get('work_order')),    None),
-        ('RFQ', _t(is_ita, "Fornitura Piena",      "Full Supply"),      _i(data.get('full_supply')),   None),
-        ('RFQ', _t(is_ita, "Media Offerte/RFQ",    "Avg Offers/RFQ"),   _f(data.get('offers_per_rfq_avg')), '0.00'),
+        ('RFQ', _t(is_ita, "RFQ Attive",           "RFQ Active"),       _i(data.get('rfq_active')),       None),
+        ('RFQ', _t(is_ita, "RFQ Archiviate",        "RFQ Archived"),     _i(data.get('rfq_archived')),     None),
+        ('RFQ', _t(is_ita, "RFQ Totali",            "RFQ Total"),        _i(data.get('rfq_total')),        None),
+        ('RFQ', _t(is_ita, "RFQ Non Scadute",       "RFQ Not Expired"),  _i(data.get('rfq_not_expired')),  None),
+        ('RFQ', _t(is_ita, "RFQ Scadute",           "RFQ Expired"),      _i(data.get('rfq_expired')),      None),
+        ('RFQ', _t(is_ita, "Conto Lavoro",          "Work Order"),       _i(data.get('work_order')),       None),
+        ('RFQ', _t(is_ita, "Fornitura Piena",       "Full Supply"),      _i(data.get('full_supply')),      None),
     ]
 
 

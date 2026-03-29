@@ -20,6 +20,7 @@ Ogni funzione:
 
 import logging
 import statistics
+from datetime import date as _date
 from typing import Optional
 
 from database_manager import DatabaseManager
@@ -175,43 +176,38 @@ def get_rfq_kpi(
     Returns::
 
         {
-            "rfq_active":        int,   # RFQ con stato 'attiva'
-            "rfq_archived":      int,   # RFQ con stato 'archiviata'
-            "rfq_total":         int,
-            "offers_active":     int,   # Offerte ricevute per RFQ attive
-            "offers_archived":   int,   # Offerte ricevute per RFQ archiviate
-            "offers_total":      int,
-            "work_order":        int,   # RFQ di tipo 'Conto lavoro'
-            "full_supply":       int,   # RFQ di tipo 'Fornitura piena'
-            "offers_per_rfq_avg": float,
+            "rfq_active":       int,   # RFQ con stato 'attiva'
+            "rfq_archived":     int,   # RFQ con stato 'archiviata'
+            "rfq_total":        int,
+            "rfq_not_expired":  int,   # RFQ con data_scadenza >= oggi
+            "rfq_expired":      int,   # RFQ con data_scadenza < oggi
+            "work_order":       int,   # RFQ di tipo 'Conto lavoro'
+            "full_supply":      int,   # RFQ di tipo 'Fornitura piena'
         }
 
     I filtri ``date_from``, ``date_to``, ``year`` agiscono su ``data_emissione``.
+    Non scaduto/scaduto è calcolato rispetto alla data odierna su ``data_scadenza``.
     """
     result = {
-        "rfq_active":         0,
-        "rfq_archived":       0,
-        "rfq_total":          0,
-        "offers_active":      0,
-        "offers_archived":    0,
-        "offers_total":       0,
-        "work_order":         0,
-        "full_supply":        0,
-        "offers_per_rfq_avg": 0.0,
+        "rfq_active":      0,
+        "rfq_archived":    0,
+        "rfq_total":       0,
+        "rfq_not_expired": 0,
+        "rfq_expired":     0,
+        "work_order":      0,
+        "full_supply":     0,
     }
 
     try:
         path = db_path or get_db_path()
+        today = _date.today().isoformat()   # 'YYYY-MM-DD'
+
         with DatabaseManager(path, read_only=True) as db:
             c = db.cursor
 
-            # Clausole data per query dirette (singola tabella, no alias)
+            # Clausole data per query su data_emissione
             d_clauses, d_params = _build_date_filter(
                 "data_emissione", date_from, date_to, year
-            )
-            # Clausole data per query con JOIN (richieste_offerta aliasata 'ro')
-            d_clauses_ro, _ = _build_date_filter(
-                "ro.data_emissione", date_from, date_to, year
             )
 
             # --- RFQ per stato ---
@@ -227,41 +223,26 @@ def get_rfq_kpi(
                 tuple(d_params),
             )
 
+            # --- RFQ per scadenza (rispetto a oggi) ---
+            result["rfq_not_expired"] = _scalar(
+                c,
+                f"SELECT COUNT(*) FROM richieste_offerta"
+                f" {_where(['data_scadenza >= ?'], d_clauses)}",
+                tuple([today] + d_params),
+            )
+            result["rfq_expired"] = _scalar(
+                c,
+                f"SELECT COUNT(*) FROM richieste_offerta"
+                f" {_where(['data_scadenza < ?'], d_clauses)}",
+                tuple([today] + d_params),
+            )
+
             # --- RFQ per tipo ---
             for key, tipo in [("work_order", _TIPO_WORK_ORDER), ("full_supply", _TIPO_FULL_SUPPLY)]:
                 result[key] = _scalar(
                     c,
                     f"SELECT COUNT(*) FROM richieste_offerta {_where(['tipo_rdo = ?'], d_clauses)}",
                     tuple([tipo] + d_params),
-                )
-
-            # --- Offerte ricevute: distinct (id_richiesta, nome_fornitore) ---
-            # Un'offerta = una risposta univoca di un fornitore per una RFQ
-            _offers_sql = """
-                SELECT COUNT(*) FROM (
-                    SELECT DISTINCT dr.id_richiesta, orr.nome_fornitore
-                    FROM offerte_ricevute orr
-                    JOIN dettagli_richiesta dr ON orr.id_dettaglio = dr.id_dettaglio
-                    JOIN richieste_offerta ro ON dr.id_richiesta = ro.id_richiesta
-                    {where}
-                )
-            """
-            for key, stato in [("offers_active", "attiva"), ("offers_archived", "archiviata")]:
-                result[key] = _scalar(
-                    c,
-                    _offers_sql.format(where=_where(["ro.stato = ?"], d_clauses_ro)),
-                    tuple([stato] + d_params),
-                )
-            result["offers_total"] = _scalar(
-                c,
-                _offers_sql.format(where=_where(d_clauses_ro)),
-                tuple(d_params),
-            )
-
-            # --- Offerte medie per RFQ ---
-            if result["rfq_total"] > 0:
-                result["offers_per_rfq_avg"] = round(
-                    result["offers_total"] / result["rfq_total"], 2
                 )
 
     except Exception as e:

@@ -10,7 +10,7 @@ Fase 3: UI collegata al KPI engine.
 """
 
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, filedialog
 import builtins
 import logging
 from datetime import date, timedelta, datetime as _dt
@@ -281,14 +281,13 @@ class KpiWindow(tk.Toplevel):
 
     def _build_tab_rfq(self, parent):
         items = [
-            (_("RFQ Active"),      "rfq_active"),
-            (_("RFQ Archived"),    "rfq_archived"),
-            (_("RFQ Total"),       "rfq_total"),
-            (_("Offers Active"),   "offers_active"),
-            (_("Offers Archived"), "offers_archived"),
-            (_("Offers Total"),    "offers_total"),
-            (_("Work Order"),      "work_order"),
-            (_("Full Supply"),     "full_supply"),
+            (_("RFQ Active"),       "rfq_active"),
+            (_("RFQ Archived"),     "rfq_archived"),
+            (_("RFQ Total"),        "rfq_total"),
+            (_("RFQ Not Expired"),  "rfq_not_expired"),
+            (_("RFQ Expired"),      "rfq_expired"),
+            (_("Work Order"),       "work_order"),
+            (_("Full Supply"),      "full_supply"),
         ]
         self._rfq_labels = self._build_section(parent, items)
 
