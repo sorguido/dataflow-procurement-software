@@ -519,13 +519,17 @@ class KpiWindow(tk.Toplevel):
         self._detail_trees[section_key] = tree
 
     def _populate_table(self, key: str, data: list) -> None:
-        """Popola il Treeview Details con i dati del grafico (stessi bucket)."""
+        """Popola il Treeview Details con i dati del grafico (stessi bucket).
+
+        Ordine: decrescente per periodo (più recente in cima).
+        Il grafico non è modificato — usa la stessa list in ordine originale.
+        """
         tree = self._detail_trees.get(key)
         if tree is None:
             return
         for row in tree.get_children():
             tree.delete(row)
-        for d in data:
+        for d in reversed(data):
             if key in ('rfq', 'derisking'):
                 tree.insert('', 'end', values=(d['label'], _fmt_int(d['count'])))
             else:  # saving, ca
