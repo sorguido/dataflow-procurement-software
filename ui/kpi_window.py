@@ -66,6 +66,11 @@ def _fmt_pct(v) -> str:
         return "0.00%"
 
 
+def _t_ui(is_ita, ita, eng):
+    """Helper bilingua per stringhe UI calcolate a runtime (fuori da _())."""
+    return ita if is_ita else eng
+
+
 # ---------------------------------------------------------------------------
 # Dialog: scelta ambito export KPI
 # ---------------------------------------------------------------------------
@@ -596,10 +601,6 @@ class KpiWindow(tk.Toplevel):
             except Exception:
                 pass
 
-
-def _t_ui(is_ita, ita, eng):
-    """Helper bilingua per stringhe UI calcolate a runtime (fuori da _())."""
-    return ita if is_ita else eng
 
     # ------------------------------------------------------------------
     # CARICAMENTO DATI (BINDING UI → ENGINE)

@@ -331,7 +331,7 @@ def _build_ca(wb, data, filter_label, is_ita):
 def _build_derisking(wb, data, filter_label, is_ita):
     ws = wb.create_sheet("Derisking")
     _w(ws, 'A', 42)
-    _w(ws, 'B', 22)
+    _w(ws, 'B', 26)
     _sheet_meta(ws, _t(is_ita, "Derisking KPI", "Derisking KPI"), filter_label, is_ita)
     r = 4
     _hdr(ws, r, 1, "KPI")
