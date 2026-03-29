@@ -176,6 +176,9 @@ class KpiWindow(tk.Toplevel):
         self._chart_canvases: dict = {}
         self._chart_data:     dict = {}
 
+        # Tabelle Details: treeview per sezione
+        self._detail_trees: dict = {}
+
         self._build_header()
         self._build_navigation()
 
@@ -391,16 +394,11 @@ class KpiWindow(tk.Toplevel):
                 lambda e, k=section_key: self._on_chart_resize(k),
             )
 
-        # --- 3. Table area (placeholder) ---
-        table_label_frame = ttk.LabelFrame(outer, text=_("Details"), padding=(10, 6))
+        # --- 3. Table area ---
+        table_label_frame = ttk.LabelFrame(outer, text=_("Details"), padding=(4, 4))
         table_label_frame.pack(side="top", fill="x")
 
-        ttk.Label(
-            table_label_frame,
-            text=_("[ Data table — coming soon ]"),
-            foreground="gray",
-            font=(None, 9, "italic"),
-        ).pack(expand=True, pady=6)
+        self._build_detail_table(table_label_frame, section_key)
 
         return label_refs
 
@@ -459,6 +457,83 @@ class KpiWindow(tk.Toplevel):
         )
         value_label.pack(pady=(4, 0))
         return value_label
+
+    # ------------------------------------------------------------------
+    # DETAIL TABLE
+    # ------------------------------------------------------------------
+
+    def _build_detail_table(self, parent, section_key: str) -> None:
+        """Costruisce il Treeview read-only nella sezione Details."""
+        if not section_key:
+            return
+
+        is_ita = _("All") != "All"
+
+        if section_key == 'rfq':
+            col_specs = [
+                ('period', _t_ui(is_ita, 'Periodo',    'Period'),              70, 'center'),
+                ('count',  _t_ui(is_ita, 'RFQ Emesse', 'RFQ Issued'),         100, 'center'),
+            ]
+        elif section_key == 'saving':
+            col_specs = [
+                ('period', _t_ui(is_ita, 'Periodo',           'Period'),               70, 'center'),
+                ('theor',  _t_ui(is_ita, 'Saving Teorico',    'Theoretical Saving'),  150, 'e'),
+                ('actual', _t_ui(is_ita, 'Saving Effettivo',  'Actual Saving'),       150, 'e'),
+            ]
+        elif section_key == 'ca':
+            col_specs = [
+                ('period', _t_ui(is_ita, 'Periodo',                   'Period'),                        70, 'center'),
+                ('theor',  _t_ui(is_ita, 'Cost Avoidance Teorico',    'Theoretical Cost Avoidance'),   180, 'e'),
+                ('actual', _t_ui(is_ita, 'Cost Avoidance Effettivo',  'Actual Cost Avoidance'),        180, 'e'),
+            ]
+        elif section_key == 'derisking':
+            col_specs = [
+                ('period', _t_ui(is_ita, 'Periodo',        'Period'),                     70, 'center'),
+                ('count',  _t_ui(is_ita, 'Nuovi Fornitori','New Suppliers Introduced'),  160, 'center'),
+            ]
+        else:
+            return
+
+        col_ids = [c[0] for c in col_specs]
+
+        frame = ttk.Frame(parent)
+        frame.pack(fill='x')
+
+        tree = ttk.Treeview(
+            frame,
+            columns=col_ids,
+            show='headings',
+            height=6,
+            selectmode='browse',
+        )
+
+        for col_id, heading, width, anchor in col_specs:
+            tree.heading(col_id, text=heading)
+            tree.column(col_id, width=width, minwidth=40, anchor=anchor, stretch=True)
+
+        vsb = ttk.Scrollbar(frame, orient='vertical', command=tree.yview)
+        tree.configure(yscrollcommand=vsb.set)
+        vsb.pack(side='right', fill='y')
+        tree.pack(side='left', fill='x', expand=True)
+
+        self._detail_trees[section_key] = tree
+
+    def _populate_table(self, key: str, data: list) -> None:
+        """Popola il Treeview Details con i dati del grafico (stessi bucket)."""
+        tree = self._detail_trees.get(key)
+        if tree is None:
+            return
+        for row in tree.get_children():
+            tree.delete(row)
+        for d in data:
+            if key in ('rfq', 'derisking'):
+                tree.insert('', 'end', values=(d['label'], _fmt_int(d['count'])))
+            else:  # saving, ca
+                tree.insert('', 'end', values=(
+                    d['label'],
+                    _fmt_money(d['theoretical']),
+                    _fmt_money(d['actual']),
+                ))
 
     # ------------------------------------------------------------------
     # FILTRI TEMPORALI
@@ -719,6 +794,7 @@ class KpiWindow(tk.Toplevel):
             data = get_rfq_chart_data(**kw)
             self._chart_data['rfq'] = data
             self._render_rfq_chart(canvas, data)
+            self._populate_table('rfq', data)
 
         # Saving
         canvas = self._chart_canvases.get('saving')
@@ -726,6 +802,7 @@ class KpiWindow(tk.Toplevel):
             data = get_saving_chart_data(**kw)
             self._chart_data['saving'] = data
             self._render_saving_chart(canvas, data)
+            self._populate_table('saving', data)
 
         # Cost Avoidance
         canvas = self._chart_canvases.get('ca')
@@ -733,6 +810,7 @@ class KpiWindow(tk.Toplevel):
             data = get_cost_avoidance_chart_data(**kw)
             self._chart_data['ca'] = data
             self._render_ca_chart(canvas, data)
+            self._populate_table('ca', data)
 
         # Derisking
         canvas = self._chart_canvases.get('derisking')
@@ -740,6 +818,7 @@ class KpiWindow(tk.Toplevel):
             data = get_derisking_chart_data(**kw)
             self._chart_data['derisking'] = data
             self._render_derisking_chart(canvas, data)
+            self._populate_table('derisking', data)
 
     def _on_chart_resize(self, key: str) -> None:
         """Ridisegna il chart `key` al resize del Canvas (debounced 40 ms)."""
