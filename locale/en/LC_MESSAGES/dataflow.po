@@ -3213,3 +3213,21 @@ msgstr "Theoretical From:"
 
 msgid "Effettivo Da:"
 msgstr "Actual From:"
+
+msgid "Esporta KPI"
+msgstr "Export KPI"
+
+msgid "Seleziona cosa esportare:"
+msgstr "Select what to export:"
+
+msgid "📋 Sezione corrente"
+msgstr "📋 Current section"
+
+msgid "📊 Tutte le sezioni"
+msgstr "📊 All sections"
+
+msgid "Salva Export KPI"
+msgstr "Save KPI Export"
+
+msgid "Export KPI completato:\n{}"
+msgstr "Export KPI completed:\n{}"

@@ -13,10 +13,11 @@ import tkinter as tk
 from tkinter import ttk
 import builtins
 import logging
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime as _dt
 
 from utils.window_utils import center_window
 from utils.resource_utils import set_window_icon
+from ui.dialogs.common_dialogs import LanguagePrompt, SimpleMessageDialog
 from services.kpi_engine import (
     get_rfq_kpi,
     get_saving_kpi,
@@ -24,6 +25,7 @@ from services.kpi_engine import (
     get_derisking_kpi,
     get_available_years,
 )
+from services.kpi_excel_export import build_kpi_workbook
 
 # Compatibilità: _() è installata in builtins da init_i18n().
 # Se non disponibile (es. test unitari), usa dummy.
@@ -64,8 +66,68 @@ def _fmt_pct(v) -> str:
         return "0.00%"
 
 
+# ---------------------------------------------------------------------------
+# Dialog: scelta ambito export KPI
+# ---------------------------------------------------------------------------
+
+class KpiExportScopeDialog(tk.Toplevel):
+    """Dialog per scegliere se esportare la sezione corrente o tutte le sezioni.
+
+    Segue la stessa struttura di NewRdOTypeDialog in common_dialogs.py.
+    """
+
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.withdraw()
+        set_window_icon(self)
+        self.title(_("Esporta KPI"))
+        self.scope = None        # 'current' | 'all' | None (annullato)
+        self.transient(parent)
+        self.resizable(False, False)
+        self.grab_set()
+
+        frame = ttk.Frame(self, padding="20")
+        frame.pack(fill="both", expand=True)
+
+        ttk.Label(
+            frame,
+            text=_("Seleziona cosa esportare:"),
+            font=(None, 10),
+        ).pack(pady=(0, 15))
+
+        btn_frame = ttk.Frame(frame)
+        btn_frame.pack(pady=(0, 10))
+
+        ttk.Button(
+            btn_frame,
+            text=_("\U0001f4cb Sezione corrente"),
+            command=lambda: self._choose("current"),
+            width=22,
+        ).pack(side="left", padx=5)
+
+        ttk.Button(
+            btn_frame,
+            text=_("\U0001f4ca Tutte le sezioni"),
+            command=lambda: self._choose("all"),
+            width=22,
+        ).pack(side="left", padx=5)
+
+        ttk.Button(
+            frame,
+            text=_("\u274c Annulla"),
+            command=self.destroy,
+        ).pack(pady=(5, 0))
+
+        self.protocol("WM_DELETE_WINDOW", self.destroy)
+        center_window(self)
+
+    def _choose(self, scope):
+        self.scope = scope
+        self.destroy()
+
+
 class KpiWindow(tk.Toplevel):
-    """Finestra KPI Analysis — Fase 3: UI collegata all'engine."""
+    """Finestra KPI Analysis — Fase 3 + Export Excel."""
 
     _PERIOD_OPTIONS = ["1M", "3M", "12M", "3Y", "5Y", "10Y", _("All")]
 
@@ -94,6 +156,9 @@ class KpiWindow(tk.Toplevel):
         self._saving_labels: dict = {}
         self._ca_labels: dict = {}
         self._derisking_labels: dict = {}
+
+        # Dati correnti: popolati da _load_kpi_data, riusati da _on_export_excel
+        self._current_kpi_data: dict = {}
 
         self._build_header()
         self._build_navigation()
@@ -438,8 +503,103 @@ class KpiWindow(tk.Toplevel):
     # ------------------------------------------------------------------
 
     def _on_export_excel(self):
-        """Placeholder: Export Excel (non implementato)."""
-        pass
+        """Export Excel KPI: dialog scope → dialog lingua → build workbook → salva."""
+
+        # 1. Scelta ambito (sezione corrente / tutte le sezioni)
+        scope_dlg = KpiExportScopeDialog(self)
+        self.wait_window(scope_dlg)
+        if not scope_dlg.scope:
+            return
+
+        # 2. Scelta lingua (riusa LanguagePrompt già presente nel progetto)
+        lang_prompt = LanguagePrompt(self)
+        self.wait_window(lang_prompt)
+        if not lang_prompt.choice:
+            return
+
+        lang    = lang_prompt.choice
+        is_ita  = (lang == 'ita')
+
+        # 3. Sezione attiva nel notebook
+        try:
+            tab_idx = self._notebook.index(self._notebook.select())
+            _tab_map = ['RFQ', 'Saving', 'Cost Avoidance', 'Derisking']
+            current_section = _tab_map[tab_idx] if tab_idx < len(_tab_map) else 'RFQ'
+        except Exception:
+            current_section = 'RFQ'
+
+        # 4. Etichetta filtro (dipende dalla lingua scelta)
+        year_str = self._selected_year.get()
+        period   = self._selected_period.get()
+        if year_str:
+            filter_label = (_t_ui(is_ita, "Anno: ", "Year: ")) + year_str
+        elif period:
+            filter_label = (_t_ui(is_ita, "Periodo: ", "Period: ")) + period
+        else:
+            filter_label = _t_ui(is_ita, "Tutti i dati", "All data")
+
+        # 5. Costruisci workbook (riusa i dati già caricati)
+        kpi = self._current_kpi_data
+        try:
+            wb = build_kpi_workbook(
+                rfq_data=kpi.get('rfq', {}),
+                saving_data=kpi.get('saving', {}),
+                ca_data=kpi.get('ca', {}),
+                derisking_data=kpi.get('derisking', {}),
+                filter_label=filter_label,
+                scope=scope_dlg.scope,
+                current_section=current_section,
+                lang=lang,
+            )
+        except Exception as e:
+            logger.error("[KpiWindow] build_kpi_workbook failed: %s", e, exc_info=True)
+            SimpleMessageDialog(
+                self, _("Errore Esportazione"),
+                _("Errore durante l'esportazione: {}").format(e), "error"
+            )
+            return
+
+        # 6. Dialog salvataggio
+        ts           = _dt.now().strftime('%Y%m%d_%H%M')
+        default_name = f"KPI_DataFlow_{ts}.xlsx"
+        save_path = filedialog.asksaveasfilename(
+            parent=self,
+            title=_("Salva Export KPI"),
+            defaultextension=".xlsx",
+            initialfile=default_name,
+            filetypes=[("Excel Files", "*.xlsx")],
+        )
+        if not save_path:
+            try:
+                wb.close()
+            except Exception:
+                pass
+            return
+
+        # 7. Salva e notifica
+        try:
+            wb.save(save_path)
+            SimpleMessageDialog(
+                self, _("Successo"),
+                _("Export KPI completato:\n{}").format(save_path), "info"
+            )
+            logger.info("[KpiWindow] Export KPI salvato: %s", save_path)
+        except Exception as e:
+            logger.error("[KpiWindow] wb.save failed: %s", e, exc_info=True)
+            SimpleMessageDialog(
+                self, _("Errore Esportazione"),
+                _("Errore durante l'esportazione: {}").format(e), "error"
+            )
+        finally:
+            try:
+                wb.close()
+            except Exception:
+                pass
+
+
+def _t_ui(is_ita, ita, eng):
+    """Helper bilingua per stringhe UI calcolate a runtime (fuori da _())."""
+    return ita if is_ita else eng
 
     # ------------------------------------------------------------------
     # CARICAMENTO DATI (BINDING UI → ENGINE)
@@ -494,6 +654,13 @@ class KpiWindow(tk.Toplevel):
         except Exception as e:
             logger.error("[KpiWindow] get_derisking_kpi failed: %s", e)
             derisking_data = {}
+
+        self._current_kpi_data = {
+            'rfq':       rfq_data,
+            'saving':    saving_data,
+            'ca':        ca_data,
+            'derisking': derisking_data,
+        }
 
         self._update_rfq_cards(rfq_data)
         self._update_saving_cards(saving_data)
