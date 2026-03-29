@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-KPI Chart Data — serie temporali per i grafici della finestra KPI.
+KPI Chart Data — serie temporali deterministiche per i grafici della finestra KPI.
 
-Nessuna UI, nessuna logica KPI aggregata, nessun accesso diretto alla UI.
-Riceve gli stessi parametri filtro dell'engine e restituisce serie temporali
-già bucketizzate, pronte per il rendering su Canvas.
+Il dominio temporale è SEMPRE costruito dai filtri UI, non dai dati.
+Ogni bucket è garantito nel range; i bucket senza dati hanno valore 0.
 
 Funzioni pubbliche:
     get_rfq_chart_data(...)          → list[{'label', 'count'}]
@@ -24,50 +23,122 @@ logger = logging.getLogger('DataFlow.KpiChartData')
 
 
 # ---------------------------------------------------------------------------
-# Helpers privati
+# Bucket generator — cuore della logica deterministica
 # ---------------------------------------------------------------------------
 
-def _bucket_pattern(
+def _build_month_buckets(
     date_from: Optional[str],
     date_to:   Optional[str],
     year:      Optional[int],
-) -> str:
+    db_path:   Optional[str] = None,
+) -> list:
     """
-    Sceglie il pattern strftime per il bucketing in base all'ampiezza del filtro.
+    Costruisce la lista ORDINATA di bucket mensili (formato 'YYYY-MM')
+    basandosi ESCLUSIVAMENTE sui parametri filtro.
 
-    Logica:
-      - year     → mensile  ('%Y-%m', max 12 bucket)
-      - rolling ≤ 35 gg    → giornaliero  ('%Y-%m-%d')
-      - rolling > 35 gg    → mensile      ('%Y-%m')
-      - nessun filtro      → mensile      ('%Y-%m', tutti i mesi nel DB)
+    Regole:
+      YEAR selezionato   → 12 mesi fissi  YYYY-01 … YYYY-12
+                           capati al mese corrente (no mesi futuri).
+      Preset (rolling)   → mesi da (oggi - span) fino al mese corrente.
+                           Usa date_from / date_to già calcolati dalla UI.
+      Nessun filtro (All)→ mesi dal più vecchio record nel DB fino al mese
+                           corrente; fallback lista vuota su errore.
+
+    Returns:
+        list[str]: es. ['2025-10', '2025-11', '2025-12', '2026-01']
     """
+    today_ym = _date.today().strftime('%Y-%m')   # tetto: nessun mese futuro
+
+    # ------- CASE 1: anno fisso → 12 bucket -------
     if year is not None:
-        return '%Y-%m'
+        buckets = [f'{year:04d}-{m:02d}' for m in range(1, 13)]
+        return [b for b in buckets if b <= today_ym]
+
+    # ------- CASE 2: rolling preset (date_from + date_to fornite dalla UI) -------
     if date_from and date_to:
         try:
-            span = (_date.fromisoformat(date_to) - _date.fromisoformat(date_from)).days
-            return '%Y-%m-%d' if span <= 35 else '%Y-%m'
-        except (ValueError, TypeError):
-            pass
-    return '%Y-%m'
+            df = _date.fromisoformat(date_from)
+            dt = _date.fromisoformat(date_to)
+        except ValueError:
+            df = dt = _date.today()
+
+        # Normalizza al primo giorno del mese per entrambi gli estremi
+        first_ym = f'{df.year:04d}-{df.month:02d}'
+        last_ym  = min(f'{dt.year:04d}-{dt.month:02d}', today_ym)
+
+        return _month_range(first_ym, last_ym)
+
+    # ------- CASE 3: nessun filtro (All) → dal minimo del DB a oggi -------
+    try:
+        path = db_path or get_db_path()
+        first_ym = _db_min_month(path)
+    except Exception:
+        first_ym = None
+
+    if not first_ym:
+        return []
+    return _month_range(first_ym, today_ym)
 
 
-def _make_label(bucket: str, pattern: str) -> str:
+def _month_range(first_ym: str, last_ym: str) -> list:
+    """Genera lista inclusiva di 'YYYY-MM' da first_ym a last_ym."""
+    if first_ym > last_ym:
+        return []
+    result = []
+    y, m = int(first_ym[:4]), int(first_ym[5:7])
+    ey, em = int(last_ym[:4]), int(last_ym[5:7])
+    while (y, m) <= (ey, em):
+        result.append(f'{y:04d}-{m:02d}')
+        m += 1
+        if m > 12:
+            m = 1
+            y += 1
+    return result
+
+
+def _db_min_month(path: str) -> Optional[str]:
     """
-    Etichetta compatta leggibile dal bucket SQLite.
-
-    '%Y-%m'    '2025-10' → '25-10'
-    '%Y-%m-%d' '2025-10-15' → '10-15'
+    Restituisce il bucket 'YYYY-MM' più antico tra richieste_offerta e vsm_events.
+    Ritorna None se nessun record esiste o sulla tabella mancante.
     """
-    if not bucket:
-        return ''
-    if pattern == '%Y':
-        return bucket          # '2025'
-    return bucket[-5:]         # '25-10'  or '10-15'
+    candidates = []
+    try:
+        with DatabaseManager(path, read_only=True) as db:
+            # richieste_offerta
+            try:
+                db.cursor.execute(
+                    "SELECT MIN(strftime('%Y-%m', data_emissione))"
+                    " FROM richieste_offerta WHERE data_emissione IS NOT NULL"
+                )
+                row = db.cursor.fetchone()
+                if row and row[0]:
+                    candidates.append(row[0])
+            except Exception:
+                pass
+            # vsm_events
+            try:
+                db.cursor.execute(
+                    "SELECT MIN(strftime('%Y-%m', event_date))"
+                    " FROM vsm_events WHERE event_date IS NOT NULL"
+                )
+                row = db.cursor.fetchone()
+                if row and row[0]:
+                    candidates.append(row[0])
+            except Exception:
+                pass
+    except Exception:
+        pass
+    return min(candidates) if candidates else None
+
+
+def _label(ym: str) -> str:
+    """Etichetta compatta: 'YYYY-MM' → 'MM/YY' (es. '25-10' → '10/25')."""
+    if not ym or len(ym) < 7:
+        return ym
+    return f'{ym[5:7]}/{ym[2:4]}'   # MM/YY
 
 
 def _dclauses(col: str, date_from, date_to, year) -> tuple:
-    """Costruisce clausole e parametri per il filtro temporale."""
     clauses: list = []
     params:  list = []
     if year is not None:
@@ -99,32 +170,33 @@ def get_rfq_chart_data(
     year:      Optional[int] = None,
 ) -> list:
     """
-    Andamento RFQ nel tempo.
+    Andamento RFQ emesse nel tempo, per bucket mensile determinato dal filtro.
 
     Returns:
         list of {'label': str, 'count': int}
+        — tutti i bucket del range, 0 per i mesi senza dati.
     """
-    try:
-        pat  = _bucket_pattern(date_from, date_to, year)
-        path = db_path or get_db_path()
-        clauses, params = _dclauses('data_emissione', date_from, date_to, year)
+    path    = db_path or get_db_path()
+    buckets = _build_month_buckets(date_from, date_to, year, path)
+    if not buckets:
+        return []
 
+    try:
+        clauses, params = _dclauses('data_emissione', date_from, date_to, year)
         with DatabaseManager(path, read_only=True) as db:
             db.cursor.execute(
-                f"SELECT strftime('{pat}', data_emissione), COUNT(*)"
+                f"SELECT strftime('%Y-%m', data_emissione), COUNT(*)"
                 f" FROM richieste_offerta"
                 f" {_where(clauses)}"
-                f" GROUP BY 1 ORDER BY 1",
+                f" GROUP BY 1",
                 params,
             )
-            return [
-                {'label': _make_label(b, pat), 'count': int(c or 0)}
-                for b, c in db.cursor.fetchall()
-                if b
-            ]
+            lookup = {b: int(c or 0) for b, c in db.cursor.fetchall()}
     except Exception as exc:
         logger.error('[KpiChartData] get_rfq_chart_data: %s', exc)
-        return []
+        lookup = {}
+
+    return [{'label': _label(b), 'count': lookup.get(b, 0)} for b in buckets]
 
 
 def get_saving_chart_data(
@@ -134,19 +206,19 @@ def get_saving_chart_data(
     year:      Optional[int] = None,
 ) -> list:
     """
-    Andamento Theoretical vs Actual Saving nel tempo.
-
-    Bucketing per (anno, mese) da vsm_impacts; filtro data su vsm_events.event_date.
+    Andamento Theoretical vs Actual Saving per bucket mensile determinato dal filtro.
 
     Returns:
         list of {'label': str, 'theoretical': float, 'actual': float}
     """
+    path    = db_path or get_db_path()
+    buckets = _build_month_buckets(date_from, date_to, year, path)
+    if not buckets:
+        return []
+
     try:
-        path = db_path or get_db_path()
         clauses, params = _dclauses('ve.event_date', date_from, date_to, year)
-
         w = _where(["vi.tipo_valore = ?"], clauses)
-
         with DatabaseManager(path, read_only=True) as db:
             db.cursor.execute(
                 f"""SELECT printf('%04d-%02d', vi.anno, vi.mese),
@@ -155,22 +227,25 @@ def get_saving_chart_data(
                     FROM vsm_impacts vi
                     JOIN vsm_events ve ON vi.event_id = ve.event_id
                     {w}
-                    GROUP BY vi.anno, vi.mese
-                    ORDER BY vi.anno, vi.mese""",
+                    GROUP BY vi.anno, vi.mese""",
                 ['Saving'] + params,
             )
-            return [
-                {
-                    'label':       _make_label(b, '%Y-%m'),
-                    'theoretical': float(t or 0),
-                    'actual':      float(a or 0),
-                }
+            lookup = {
+                b: (float(t or 0), float(a or 0))
                 for b, t, a in db.cursor.fetchall()
-                if b
-            ]
+            }
     except Exception as exc:
         logger.error('[KpiChartData] get_saving_chart_data: %s', exc)
-        return []
+        lookup = {}
+
+    return [
+        {
+            'label':       _label(b),
+            'theoretical': lookup.get(b, (0.0, 0.0))[0],
+            'actual':      lookup.get(b, (0.0, 0.0))[1],
+        }
+        for b in buckets
+    ]
 
 
 def get_cost_avoidance_chart_data(
@@ -180,19 +255,19 @@ def get_cost_avoidance_chart_data(
     year:      Optional[int] = None,
 ) -> list:
     """
-    Andamento Theoretical vs Actual Cost Avoidance nel tempo.
-
-    Struttura identica a get_saving_chart_data.
+    Andamento Theoretical vs Actual Cost Avoidance per bucket mensile.
 
     Returns:
         list of {'label': str, 'theoretical': float, 'actual': float}
     """
+    path    = db_path or get_db_path()
+    buckets = _build_month_buckets(date_from, date_to, year, path)
+    if not buckets:
+        return []
+
     try:
-        path = db_path or get_db_path()
         clauses, params = _dclauses('ve.event_date', date_from, date_to, year)
-
         w = _where(["vi.tipo_valore = ?"], clauses)
-
         with DatabaseManager(path, read_only=True) as db:
             db.cursor.execute(
                 f"""SELECT printf('%04d-%02d', vi.anno, vi.mese),
@@ -201,22 +276,25 @@ def get_cost_avoidance_chart_data(
                     FROM vsm_impacts vi
                     JOIN vsm_events ve ON vi.event_id = ve.event_id
                     {w}
-                    GROUP BY vi.anno, vi.mese
-                    ORDER BY vi.anno, vi.mese""",
+                    GROUP BY vi.anno, vi.mese""",
                 ['Cost Avoidance'] + params,
             )
-            return [
-                {
-                    'label':       _make_label(b, '%Y-%m'),
-                    'theoretical': float(t or 0),
-                    'actual':      float(a or 0),
-                }
+            lookup = {
+                b: (float(t or 0), float(a or 0))
                 for b, t, a in db.cursor.fetchall()
-                if b
-            ]
+            }
     except Exception as exc:
         logger.error('[KpiChartData] get_cost_avoidance_chart_data: %s', exc)
-        return []
+        lookup = {}
+
+    return [
+        {
+            'label':       _label(b),
+            'theoretical': lookup.get(b, (0.0, 0.0))[0],
+            'actual':      lookup.get(b, (0.0, 0.0))[1],
+        }
+        for b in buckets
+    ]
 
 
 def get_derisking_chart_data(
@@ -226,37 +304,35 @@ def get_derisking_chart_data(
     year:      Optional[int] = None,
 ) -> list:
     """
-    Nuovi fornitori introdotti nel tempo.
+    Nuovi fornitori introdotti per bucket mensile determinato dal filtro.
 
     Returns:
         list of {'label': str, 'count': int}
     """
-    try:
-        pat  = _bucket_pattern(date_from, date_to, year)
-        path = db_path or get_db_path()
-        clauses, params = _dclauses('event_date', date_from, date_to, year)
+    path    = db_path or get_db_path()
+    buckets = _build_month_buckets(date_from, date_to, year, path)
+    if not buckets:
+        return []
 
+    try:
+        clauses, params = _dclauses('event_date', date_from, date_to, year)
         w = _where(
             ["event_type = ?",
              "new_supplier IS NOT NULL",
              "TRIM(new_supplier) != ''"],
             clauses,
         )
-
         with DatabaseManager(path, read_only=True) as db:
             db.cursor.execute(
-                f"SELECT strftime('{pat}', event_date),"
+                f"SELECT strftime('%Y-%m', event_date),"
                 f"       COUNT(DISTINCT TRIM(new_supplier))"
-                f" FROM vsm_events"
-                f" {w}"
-                f" GROUP BY 1 ORDER BY 1",
+                f" FROM vsm_events {w}"
+                f" GROUP BY 1",
                 ['Derisking'] + params,
             )
-            return [
-                {'label': _make_label(b, pat), 'count': int(c or 0)}
-                for b, c in db.cursor.fetchall()
-                if b
-            ]
+            lookup = {b: int(c or 0) for b, c in db.cursor.fetchall()}
     except Exception as exc:
         logger.error('[KpiChartData] get_derisking_chart_data: %s', exc)
-        return []
+        lookup = {}
+
+    return [{'label': _label(b), 'count': lookup.get(b, 0)} for b in buckets]
