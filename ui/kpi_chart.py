@@ -31,21 +31,32 @@ _MR = 10   # margine destro
 _MT = 10   # margine superiore (barra singola) / spazio legenda (dual)
 _MB = 44   # margine inferiore — spazio etichette X
 _LEGEND_H = 18   # altezza riservata alla legenda nei dual chart
+_TITLE_H  = 18   # altezza riservata al titolo del grafico
+_XLABEL_H = 14   # altezza riservata alla label asse X (sotto i tick)
 
 
 # ---------------------------------------------------------------------------
 # API pubblica
 # ---------------------------------------------------------------------------
 
-def draw_bar_chart(canvas: tk.Canvas, data: list, y_fmt: str = 'int') -> None:
+def draw_bar_chart(
+    canvas:  tk.Canvas,
+    data:    list,
+    y_fmt:   str = 'int',
+    title:   str = '',
+    y_label: str = '',
+    x_label: str = '',
+) -> None:
     """
     Disegna un bar chart a serie singola.
 
     Args:
-        canvas: tk.Canvas sul quale disegnare
-        data:   list of {'label': str, 'value': float|int}
-        y_fmt:  'int' → etichette Y come interi
-                'money' → etichette Y K/M
+        canvas:  tk.Canvas sul quale disegnare
+        data:    list of {'label': str, 'value': float|int}
+        y_fmt:   'int' → etichette Y come interi | 'money' → etichette Y K/M
+        title:   titolo del grafico (vuoto = nessun titolo)
+        y_label: label asse Y (es. "Numero RFQ")
+        x_label: label asse X (es. "Periodo")
     """
     _clear(canvas)
     W, H = _canvas_size(canvas)
@@ -56,13 +67,23 @@ def draw_bar_chart(canvas: tk.Canvas, data: list, y_fmt: str = 'int') -> None:
         _draw_no_data(canvas, W, H)
         return
 
+    mt = _MT + (_TITLE_H if title else 0)
+    mb = _MB + (_XLABEL_H if x_label else 0)
+
     plot_w = W - _ML - _MR
-    plot_h = H - _MT - _MB
+    plot_h = H - mt - mb
 
     vals  = [float(d.get('value', 0)) for d in data]
     max_v = max(vals) or 1.0
 
-    _draw_axes_and_grid(canvas, _ML, _MT, plot_w, plot_h, max_v, y_fmt)
+    if title:
+        _draw_chart_title(canvas, W, _MT, title)
+    if y_label:
+        _draw_y_label(canvas, mt, plot_h, y_label)
+    if x_label:
+        _draw_x_axis_label(canvas, W, H, x_label)
+
+    _draw_axes_and_grid(canvas, _ML, mt, plot_w, plot_h, max_v, y_fmt)
 
     n    = len(data)
     slot = plot_w / n
@@ -73,7 +94,7 @@ def draw_bar_chart(canvas: tk.Canvas, data: list, y_fmt: str = 'int') -> None:
         bar_h = int((v / max_v) * plot_h)
         x0    = x_c - bw // 2
         x1    = x0 + bw
-        y1    = _MT + plot_h
+        y1    = mt + plot_h
         y0    = y1 - bar_h
         if bar_h > 0:
             canvas.create_rectangle(x0, y0, x1, y1,
@@ -82,19 +103,25 @@ def draw_bar_chart(canvas: tk.Canvas, data: list, y_fmt: str = 'int') -> None:
 
 
 def draw_dual_bar_chart(
-    canvas: tk.Canvas,
-    data:   list,
-    label1: str = '',
-    label2: str = '',
+    canvas:  tk.Canvas,
+    data:    list,
+    label1:  str = '',
+    label2:  str = '',
+    title:   str = '',
+    y_label: str = '',
+    x_label: str = '',
 ) -> None:
     """
     Disegna un grouped bar chart a due serie (Theoretical / Actual).
 
     Args:
-        canvas: tk.Canvas
-        data:   list of {'label': str, 'theoretical': float, 'actual': float}
-        label1: testo legenda serie 1 (blu)
-        label2: testo legenda serie 2 (arancio)
+        canvas:  tk.Canvas
+        data:    list of {'label': str, 'theoretical': float, 'actual': float}
+        label1:  testo legenda serie 1 (blu)
+        label2:  testo legenda serie 2 (arancio)
+        title:   titolo del grafico
+        y_label: label asse Y (es. "Saving (€)")
+        x_label: label asse X (es. "Periodo")
     """
     _clear(canvas)
     W, H = _canvas_size(canvas)
@@ -105,16 +132,27 @@ def draw_dual_bar_chart(
         _draw_no_data(canvas, W, H)
         return
 
-    mt     = _MT + _LEGEND_H     # top rialzato per la legenda
+    # Spazio in cima: titolo  (se presente) + area legenda
+    mt = _MT + (_TITLE_H if title else 0) + _LEGEND_H
+    mb = _MB + (_XLABEL_H if x_label else 0)
+
     plot_w = W - _ML - _MR
-    plot_h = H - mt - _MB
+    plot_h = H - mt - mb
 
     t_vals = [float(d.get('theoretical', 0)) for d in data]
     a_vals = [float(d.get('actual',      0)) for d in data]
     max_v  = max(max(t_vals, default=0), max(a_vals, default=0)) or 1.0
 
+    legend_top = _MT + (_TITLE_H if title else 0)
+    if title:
+        _draw_chart_title(canvas, W, _MT, title)
+    if y_label:
+        _draw_y_label(canvas, mt, plot_h, y_label)
+    if x_label:
+        _draw_x_axis_label(canvas, W, H, x_label)
+
     _draw_axes_and_grid(canvas, _ML, mt, plot_w, plot_h, max_v, 'money')
-    _draw_legend(canvas, W, _MT, label1, label2)
+    _draw_legend(canvas, W, legend_top, label1, label2)
 
     n      = len(data)
     slot   = plot_w / n
@@ -274,3 +312,43 @@ def _fmt_y(v: float, fmt: str) -> str:
     if v >= 10_000:
         return f'{int(v / 1000)}K'
     return str(int(round(v)))
+
+
+def _draw_chart_title(canvas: tk.Canvas, W: int, top: int, title: str) -> None:
+    """Titolo centrato in cima al canvas, nella fascia _TITLE_H."""
+    canvas.create_text(
+        W // 2,
+        top + _TITLE_H // 2,
+        text=title,
+        fill=_C_TEXT,
+        font=(None, 8, 'bold'),
+        anchor='center',
+    )
+
+
+def _draw_y_label(canvas: tk.Canvas, mt: int, plot_h: int, y_label: str) -> None:
+    """
+    Label asse Y ruotata 90°, centrata verticalmente nella plot area.
+    Posizionata a x=8 (entro il margine sinistro _ML=58).
+    """
+    canvas.create_text(
+        8,
+        mt + plot_h // 2,
+        text=y_label,
+        fill=_C_TEXT,
+        font=(None, 7),
+        angle=90,
+        anchor='center',
+    )
+
+
+def _draw_x_axis_label(canvas: tk.Canvas, W: int, H: int, x_label: str) -> None:
+    """Label asse X centrata orizzontalmente nella fascia inferiore."""
+    canvas.create_text(
+        W // 2,
+        H - _XLABEL_H // 2,
+        text=x_label,
+        fill=_C_TEXT,
+        font=(None, 7),
+        anchor='center',
+    )

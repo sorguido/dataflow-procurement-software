@@ -725,14 +725,14 @@ class KpiWindow(tk.Toplevel):
         if canvas:
             data = get_saving_chart_data(**kw)
             self._chart_data['saving'] = data
-            self._render_dual_chart(canvas, data)
+            self._render_saving_chart(canvas, data)
 
         # Cost Avoidance
         canvas = self._chart_canvases.get('ca')
         if canvas:
             data = get_cost_avoidance_chart_data(**kw)
             self._chart_data['ca'] = data
-            self._render_dual_chart(canvas, data)
+            self._render_ca_chart(canvas, data)
 
         # Derisking
         canvas = self._chart_canvases.get('derisking')
@@ -761,32 +761,60 @@ class KpiWindow(tk.Toplevel):
             return
         if key == 'rfq':
             self._render_rfq_chart(canvas, data)
-        elif key in ('saving', 'ca'):
-            self._render_dual_chart(canvas, data)
+        elif key == 'saving':
+            self._render_saving_chart(canvas, data)
+        elif key == 'ca':
+            self._render_ca_chart(canvas, data)
         elif key == 'derisking':
             self._render_derisking_chart(canvas, data)
 
     def _render_rfq_chart(self, canvas, data: list) -> None:
+        is_ita = _("All") != "All"
         draw_bar_chart(
             canvas,
             [{'label': d['label'], 'value': d['count']} for d in data],
             y_fmt='int',
+            title=_t_ui(is_ita, "RFQ emesse per periodo", "RFQ issued per period"),
+            y_label=_t_ui(is_ita, "Numero RFQ", "No. RFQ"),
+            x_label=_t_ui(is_ita, "Periodo", "Period"),
         )
 
-    def _render_dual_chart(self, canvas, data: list) -> None:
+    def _render_saving_chart(self, canvas, data: list) -> None:
         is_ita = _("All") != "All"
         draw_dual_bar_chart(
             canvas,
             data,
             label1=_t_ui(is_ita, "Teorico", "Theoretical"),
             label2=_t_ui(is_ita, "Effettivo", "Actual"),
+            title=_t_ui(is_ita, "Saving teorico vs effettivo per periodo",
+                        "Theoretical vs Actual Saving per period"),
+            y_label="Saving (€)",
+            x_label=_t_ui(is_ita, "Periodo", "Period"),
+        )
+
+    def _render_ca_chart(self, canvas, data: list) -> None:
+        is_ita = _("All") != "All"
+        draw_dual_bar_chart(
+            canvas,
+            data,
+            label1=_t_ui(is_ita, "Teorico", "Theoretical"),
+            label2=_t_ui(is_ita, "Effettivo", "Actual"),
+            title=_t_ui(is_ita, "Cost avoidance teorico vs effettivo per periodo",
+                        "Theoretical vs Actual CA per period"),
+            y_label="Cost Avoidance (€)",
+            x_label=_t_ui(is_ita, "Periodo", "Period"),
         )
 
     def _render_derisking_chart(self, canvas, data: list) -> None:
+        is_ita = _("All") != "All"
         draw_bar_chart(
             canvas,
             [{'label': d['label'], 'value': d['count']} for d in data],
             y_fmt='int',
+            title=_t_ui(is_ita, "Nuovi fornitori introdotti per periodo",
+                        "New suppliers introduced per period"),
+            y_label=_t_ui(is_ita, "Nuovi fornitori", "New suppliers"),
+            x_label=_t_ui(is_ita, "Periodo", "Period"),
         )
 
     # ------------------------------------------------------------------
