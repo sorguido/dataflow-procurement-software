@@ -26,6 +26,13 @@ from services.kpi_engine import (
     get_available_years,
 )
 from services.kpi_excel_export import build_kpi_workbook
+from services.kpi_chart_data import (
+    get_rfq_chart_data,
+    get_saving_chart_data,
+    get_cost_avoidance_chart_data,
+    get_derisking_chart_data,
+)
+from ui.kpi_chart import draw_bar_chart, draw_dual_bar_chart
 
 # Compatibilità: _() è installata in builtins da init_i18n().
 # Se non disponibile (es. test unitari), usa dummy.
@@ -165,6 +172,10 @@ class KpiWindow(tk.Toplevel):
         # Dati correnti: popolati da _load_kpi_data, riusati da _on_export_excel
         self._current_kpi_data: dict = {}
 
+        # Grafici: canvas per sezione e ultimi dati caricati (per resize redraw)
+        self._chart_canvases: dict = {}
+        self._chart_data:     dict = {}
+
         self._build_header()
         self._build_navigation()
 
@@ -289,7 +300,7 @@ class KpiWindow(tk.Toplevel):
             (_("Work Order"),       "work_order"),
             (_("Full Supply"),      "full_supply"),
         ]
-        self._rfq_labels = self._build_section(parent, items)
+        self._rfq_labels = self._build_section(parent, items, section_key='rfq')
 
     # ------------------------------------------------------------------
     # TAB: Saving
@@ -306,7 +317,7 @@ class KpiWindow(tk.Toplevel):
             (_("Recurring Impact (€)"),     "recurring_impact"),
             (_("Non-Recurring Impact (€)"),  "non_recurring_impact"),
         ]
-        self._saving_labels = self._build_section(parent, items)
+        self._saving_labels = self._build_section(parent, items, section_key='saving')
 
     # ------------------------------------------------------------------
     # TAB: Cost Avoidance
@@ -323,7 +334,7 @@ class KpiWindow(tk.Toplevel):
             (_("Recurring (\u20ac)"),     "recurring"),
             (_("Non-Recurring (\u20ac)"), "non_recurring"),
         ]
-        self._ca_labels = self._build_section(parent, items)
+        self._ca_labels = self._build_section(parent, items, section_key='ca')
 
     # ------------------------------------------------------------------
     # TAB: Derisking
@@ -333,20 +344,21 @@ class KpiWindow(tk.Toplevel):
         items = [
             (_("Unique New Suppliers Introduced"), "unique_new_suppliers_introduced"),
         ]
-        self._derisking_labels = self._build_section(parent, items)
+        self._derisking_labels = self._build_section(parent, items, section_key='derisking')
 
     # ------------------------------------------------------------------
     # COSTRUZIONE SEZIONE GENERICA
     # ------------------------------------------------------------------
 
-    def _build_section(self, parent, items: list) -> dict:
+    def _build_section(self, parent, items: list, section_key: str = '') -> dict:
         """
         Costruisce la struttura comune a ogni sezione:
-        1. Area KPI cards  2. Area chart (placeholder)  3. Area tabella (placeholder)
+        1. Area KPI cards  2. Area chart (Canvas)  3. Area tabella (placeholder)
 
         Args:
-            parent: widget contenitore
-            items:  lista di tuple (label_testo, engine_key)
+            parent:      widget contenitore
+            items:       lista di tuple (label_testo, engine_key)
+            section_key: chiave per i dizionari _chart_canvases / _chart_data
 
         Returns:
             dict: engine_key → ttk.Label (il widget del valore, per aggiornamenti)
@@ -360,16 +372,24 @@ class KpiWindow(tk.Toplevel):
 
         label_refs = self._build_kpi_cards(cards_label_frame, items)
 
-        # --- 2. Chart area (placeholder) ---
-        chart_label_frame = ttk.LabelFrame(outer, text=_("Chart"), padding=(10, 6))
+        # --- 2. Chart area ---
+        chart_label_frame = ttk.LabelFrame(outer, text=_("Chart"), padding=(4, 4))
         chart_label_frame.pack(side="top", fill="both", expand=True, pady=(0, 8))
 
-        ttk.Label(
+        canvas = tk.Canvas(
             chart_label_frame,
-            text=_("[ Chart — coming soon ]"),
-            foreground="gray",
-            font=(None, 9, "italic"),
-        ).pack(expand=True)
+            height=190,
+            bg='#F8F8F8',
+            highlightthickness=0,
+        )
+        canvas.pack(fill="both", expand=True)
+
+        if section_key:
+            self._chart_canvases[section_key] = canvas
+            canvas.bind(
+                '<Configure>',
+                lambda e, k=section_key: self._on_chart_resize(k),
+            )
 
         # --- 3. Table area (placeholder) ---
         table_label_frame = ttk.LabelFrame(outer, text=_("Details"), padding=(10, 6))
@@ -666,6 +686,108 @@ class KpiWindow(tk.Toplevel):
         self._update_saving_cards(saving_data)
         self._update_ca_cards(ca_data)
         self._update_derisking_cards(derisking_data)
+
+        # Aggiorna i grafici subito dopo le card (schedule per permettere
+        # al layout di stabilizzarsi prima del rendering Canvas)
+        self.after(80, self._update_charts)
+
+    # ------------------------------------------------------------------
+    # GRAFICI
+    # ------------------------------------------------------------------
+
+    def _update_charts(self) -> None:
+        """Recupera le serie temporali e ridisegna tutti i chart Canvas attivi."""
+        year_str = self._selected_year.get()
+        period   = self._selected_period.get()
+        year      = None
+        date_from = None
+        date_to   = None
+
+        if year_str:
+            try:
+                year = int(year_str)
+            except ValueError:
+                pass
+        elif period:
+            date_from, date_to = self._period_to_dates(period)
+
+        kw = dict(date_from=date_from, date_to=date_to, year=year)
+
+        # RFQ
+        canvas = self._chart_canvases.get('rfq')
+        if canvas:
+            data = get_rfq_chart_data(**kw)
+            self._chart_data['rfq'] = data
+            self._render_rfq_chart(canvas, data)
+
+        # Saving
+        canvas = self._chart_canvases.get('saving')
+        if canvas:
+            data = get_saving_chart_data(**kw)
+            self._chart_data['saving'] = data
+            self._render_dual_chart(canvas, data)
+
+        # Cost Avoidance
+        canvas = self._chart_canvases.get('ca')
+        if canvas:
+            data = get_cost_avoidance_chart_data(**kw)
+            self._chart_data['ca'] = data
+            self._render_dual_chart(canvas, data)
+
+        # Derisking
+        canvas = self._chart_canvases.get('derisking')
+        if canvas:
+            data = get_derisking_chart_data(**kw)
+            self._chart_data['derisking'] = data
+            self._render_derisking_chart(canvas, data)
+
+    def _on_chart_resize(self, key: str) -> None:
+        """Ridisegna il chart `key` al resize del Canvas (debounced 40 ms)."""
+        attr = f'_resize_job_{key}'
+        existing = getattr(self, attr, None)
+        if existing:
+            try:
+                self.after_cancel(existing)
+            except Exception:
+                pass
+        job = self.after(40, lambda k=key: self._redraw_stored_chart(k))
+        setattr(self, attr, job)
+
+    def _redraw_stored_chart(self, key: str) -> None:
+        """Ridisegna usando i dati già in cache (nessuna query DB)."""
+        canvas = self._chart_canvases.get(key)
+        data   = self._chart_data.get(key)
+        if canvas is None or data is None:
+            return
+        if key == 'rfq':
+            self._render_rfq_chart(canvas, data)
+        elif key in ('saving', 'ca'):
+            self._render_dual_chart(canvas, data)
+        elif key == 'derisking':
+            self._render_derisking_chart(canvas, data)
+
+    def _render_rfq_chart(self, canvas, data: list) -> None:
+        draw_bar_chart(
+            canvas,
+            [{'label': d['label'], 'value': d['count']} for d in data],
+            y_fmt='int',
+        )
+
+    def _render_dual_chart(self, canvas, data: list) -> None:
+        is_ita = _("All") != "All"
+        draw_dual_bar_chart(
+            canvas,
+            data,
+            label1=_t_ui(is_ita, "Teorico", "Theoretical"),
+            label2=_t_ui(is_ita, "Effettivo", "Actual"),
+        )
+
+    def _render_derisking_chart(self, canvas, data: list) -> None:
+        draw_bar_chart(
+            canvas,
+            [{'label': d['label'], 'value': d['count']} for d in data],
+            y_fmt='int',
+        )
 
     # ------------------------------------------------------------------
     # UPDATE CARDS PER SEZIONE
