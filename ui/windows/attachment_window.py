@@ -406,13 +406,13 @@ class AttachmentWindow(tk.Toplevel):
                 result = db_manager.get_allegato_file_data(attachment_id)
             
             if not result:
-                messagebox.showerror(_("Errore"), _("Allegato non trovato."), parent=self)
+                SimpleMessageDialog(self, _("Errore"), _("Allegato non trovato."), "error")
                 return
                 
             nome_file, dati_file, percorso_esterno = result
         except DatabaseError as e:
             logger.error(f"Errore database in open_attachment: {e}", exc_info=True)
-            messagebox.showerror(_("Errore Database"), _("Impossibile recuperare l'allegato: {}").format(e), parent=self)
+            SimpleMessageDialog(self, _("Errore Database"), _("Impossibile recuperare l'allegato: {}").format(e), "error")
             return
 
         try:
