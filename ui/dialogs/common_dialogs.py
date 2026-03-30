@@ -189,10 +189,10 @@ class NewRdOTypeDialog(tk.Toplevel):
         
         # Etichetta domanda
         ttk.Label(
-            main_frame, 
-            text=_("Che tipo di RdO vuoi creare?"), 
-            font=("Arial", 11, "bold")
-        ).pack(pady=(0, 20))
+            main_frame,
+            text=_("Che tipo di RdO vuoi creare?"),
+            font=(None, 10)
+        ).pack(pady=(0, 15))
         
         # Frame pulsanti tipo
         btn_frame = ttk.Frame(main_frame)
@@ -253,6 +253,7 @@ class UserIdentityDialog(tk.Toplevel):
         ttk.Label(
             frame,
             text=_("Per procedere è necessario indicare il tuo nome e cognome."),
+            font=(None, 10),
             wraplength=320,
             justify="left"
         ).grid(row=0, column=0, columnspan=2, sticky="w", pady=(0, 10))

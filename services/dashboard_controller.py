@@ -20,7 +20,7 @@ NON RESPONSABILE DI
 
 import re
 import logging
-from tkinter import messagebox
+from ui.dialogs.common_dialogs import SimpleMessageDialog
 
 from database_manager import DatabaseManager, DatabaseError
 from services.app_paths import get_db_path
@@ -162,13 +162,8 @@ class DashboardController:
         # Controlla che nessun campo di ricerca sia troppo lungo
         for field_name, value in crit.items():
             if value and len(value) > MAX_SEARCH_LENGTH:
-                messagebox.showwarning(
-                    _("Input Troppo Lungo"),
-                    _("Il testo di ricerca nel campo '{}' è troppo lungo (max {} caratteri)").format(
-                        field_name, MAX_SEARCH_LENGTH
-                    ),
-                    parent=self.app.root
-                )
+                SimpleMessageDialog(self.app.root, _("Input Troppo Lungo"), _("Il testo di ricerca nel campo '{}' è troppo lungo (max {} caratteri)").format(field_name, MAX_SEARCH_LENGTH), "warning")
+                return
                 return
 
             # BUG #5 FIX: Rimuovi caratteri pericolosi per SQL injection
@@ -182,11 +177,7 @@ class DashboardController:
                 # Avvisa l'utente una sola volta per tutti i campi
                 if not hasattr(self.app, '_sql_injection_warning_shown'):
                     self.app._sql_injection_warning_shown = True
-                    messagebox.showinfo(
-                        _("Input Sanitizzato"),
-                        _("Alcuni caratteri speciali sono stati rimossi dai campi di ricerca per motivi di sicurezza."),
-                        parent=self.app.root
-                    )
+                    SimpleMessageDialog(self.app.root, _("Input Sanitizzato"), _("Alcuni caratteri speciali sono stati rimossi dai campi di ricerca per motivi di sicurezza."), "info")
                     # Reset flag dopo 2 secondi - BUG #48 FIX: cancella timer precedente per evitare memory leak
                     if self.app._sql_warning_after_id is not None:
                         try:
@@ -452,7 +443,7 @@ class DashboardController:
             self.app.update_treeview(tree, results)
         except DatabaseError as e:
             logger.error(f"Errore ricerca richieste: {e}", exc_info=True)
-            messagebox.showerror(_("Errore"), _("Errore ricerca: {}").format(e))
+            SimpleMessageDialog(self.app.root, _("Errore"), _("Errore ricerca: {}").format(e), "error")
 
     def clear_filters(self):
         for var in self.app.search_vars.values(): var.set("")

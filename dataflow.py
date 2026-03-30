@@ -3516,8 +3516,8 @@ class NewRdOTypeDialog(tk.Toplevel):
         ttk.Label(
             main_frame, 
             text=_("Che tipo di RdO vuoi creare?"), 
-            font=(None, 10, "bold")
-        ).pack(pady=(0, 20))
+            font=(None, 10)
+        ).pack(pady=(0, 15))
         
         # Frame pulsanti tipo
         btn_frame = ttk.Frame(main_frame)
@@ -3664,7 +3664,7 @@ class MainWindow:
                 with open(config_file, 'w', encoding='utf-8') as f:
                     config.write(f)
             except Exception as e:
-                messagebox.showerror(_("Errore"), _("Impossibile salvare l'impostazione della licenza: {}\n\nIl programma continuerà, ma la licenza potrebbe riapparire al prossimo avvio.").format(e), parent=self.root)
+                SimpleMessageDialog(self.root, _("Errore"), _("Impossibile salvare l'impostazione della licenza: {}\n\nIl programma continuerà, ma la licenza potrebbe riapparire al prossimo avvio.").format(e), "error")
             
             # Assicura che la finestra principale sia visibile e attiva
             self.root.deiconify()
@@ -3698,7 +3698,7 @@ class MainWindow:
             if not result:
                 if not self.root.winfo_exists():
                     return False
-                messagebox.showwarning(_("Dati mancanti"), _("Per utilizzare DataFlow devi inserire nome e cognome."), parent=self.root)
+                SimpleMessageDialog(self.root, _("Dati mancanti"), _("Per utilizzare DataFlow devi inserire nome e cognome."), "warning")
                 continue
             try:
                 save_user_identity(result['first_name'], result['last_name'], result['username'])
@@ -3707,7 +3707,7 @@ class MainWindow:
                 return True
             except Exception as e:
                 logger.error(f"Errore salvataggio identità utente: {e}", exc_info=True)
-                messagebox.showerror(_("Errore"), _("Impossibile salvare i dati utente: {}").format(e), parent=self.root)
+                SimpleMessageDialog(self.root, _("Errore"), _("Impossibile salvare i dati utente: {}").format(e), "error")
                 identity_kwargs = result
 
     def apply_user_identity_to_ui(self):
@@ -4370,11 +4370,7 @@ class MainWindow:
             
         except DatabaseError as e:
             logger.error(f"Errore caricamento eventi VSM {event_type}: {e}")
-            messagebox.showerror(
-                _("Errore Database"),
-                _("Impossibile caricare gli eventi VSM: {}\n").format(e),
-                parent=self.root
-            )
+            SimpleMessageDialog(self.root, _("Errore Database"), _("Impossibile caricare gli eventi VSM: {}\n").format(e), "error")
 
     def _get_vsm_dataset(self, vsm_username_filter):
         """Carica il dataset VSM grezzo in base allo scope utente del filtro UI.
@@ -4659,19 +4655,11 @@ class MainWindow:
         selected_rows = self._get_selected_row_indices(sheet)
         
         if not selected_rows:
-            messagebox.showwarning(
-                _("Nessuna Selezione"),
-                _("Seleziona un evento da modificare."),
-                parent=self.root
-            )
+            SimpleMessageDialog(self.root, _("Nessuna Selezione"), _("Seleziona un evento da modificare."), "warning")
             return
         
         if len(selected_rows) > 1:
-            messagebox.showwarning(
-                _("Selezione Multipla"),
-                _("Seleziona un solo evento per la modifica."),
-                parent=self.root
-            )
+            SimpleMessageDialog(self.root, _("Selezione Multipla"), _("Seleziona un solo evento per la modifica."), "warning")
             return
         
         # Ottieni event_id e ownership
@@ -4734,11 +4722,7 @@ class MainWindow:
         
         except Exception as e:
             logger.error(f"Errore apertura dialog modifica evento VSM: {e}", exc_info=True)
-            messagebox.showerror(
-                _("Errore"),
-                _("Impossibile aprire il form: {}").format(e),
-                parent=self.root
-            )
+            SimpleMessageDialog(self.root, _("Errore"), _("Impossibile aprire il form: {}").format(e), "error")
     
     def _delete_vsm_events(self):
         """Handler per eliminazione eventi VSM.
@@ -4754,11 +4738,7 @@ class MainWindow:
         selected_rows = self._get_selected_row_indices(sheet)
         
         if not selected_rows:
-            messagebox.showwarning(
-                _("Nessuna Selezione"),
-                _("Seleziona uno o più eventi da eliminare."),
-                parent=self.root
-            )
+            SimpleMessageDialog(self.root, _("Nessuna Selezione"), _("Seleziona uno o più eventi da eliminare."), "warning")
             return
         
         # Raccolta event_id e validazione ownership
@@ -4771,11 +4751,7 @@ class MainWindow:
             
             # Valida ownership
             if not metadata['is_mine']:
-                messagebox.showerror(
-                    _("Operazione Non Consentita"),
-                    _("Puoi eliminare solo i tuoi eventi VSM.\nAlcuni eventi selezionati appartengono ad altri utenti."),
-                    parent=self.root
-                )
+                SimpleMessageDialog(self.root, _("Operazione Non Consentita"), _("Puoi eliminare solo i tuoi eventi VSM.\nAlcuni eventi selezionati appartengono ad altri utenti."), "error")
                 return
             
             events_to_delete.append(metadata['event_id'])
@@ -4785,11 +4761,7 @@ class MainWindow:
         
         # Conferma eliminazione
         count = len(events_to_delete)
-        if not messagebox.askyesno(
-            _("Conferma Eliminazione"),
-            _("Sei sicuro di voler eliminare {} evento(i) VSM?\nQuesta operazione non può essere annullata.").format(count),
-            parent=self.root
-        ):
+        if not SimpleYesNoDialog(self.root, _("Conferma Eliminazione"), _("Sei sicuro di voler eliminare {} evento(i) VSM?\nQuesta operazione non può essere annullata.").format(count)).result:
             return
         
         # Determina event_type da status
@@ -4810,11 +4782,7 @@ class MainWindow:
                 for event_id in events_to_delete:
                     delete_event_and_impacts(db_manager, event_id)
             
-            messagebox.showinfo(
-                _("Successo"),
-                _("{} evento(i) VSM eliminato(i) con successo.").format(count),
-                parent=self.root
-            )
+            SimpleMessageDialog(self.root, _("Successo"), _("{} evento(i) VSM eliminato(i) con successo.").format(count), "info")
             
             # Refresh
             self._load_vsm_events(event_type, sheet)
@@ -4822,11 +4790,7 @@ class MainWindow:
         
         except (DatabaseError, VSMError) as e:
             logger.error(f"Errore eliminazione eventi VSM: {e}")
-            messagebox.showerror(
-                _("Errore Eliminazione"),
-                _("Impossibile eliminare gli eventi:\n{}").format(e),
-                parent=self.root
-            )
+            SimpleMessageDialog(self.root, _("Errore Eliminazione"), _("Impossibile eliminare gli eventi:\n{}").format(e), "error")
 
     def _on_vsm_sheet_double_click(self, sheet, event=None):
         """Gestisce doppio click su riga VSM per aprire edit evento.
@@ -4884,19 +4848,11 @@ class MainWindow:
         selected_rows = self._get_selected_row_indices(sheet)
         
         if not selected_rows:
-            messagebox.showwarning(
-                _("Selezione mancante"),
-                _("Selezionare un evento VSM da duplicare."),
-                parent=self.root
-            )
+            SimpleMessageDialog(self.root, _("Selezione mancante"), _("Selezionare un evento VSM da duplicare."), "warning")
             return
         
         if len(selected_rows) > 1:
-            messagebox.showwarning(
-                _("Selezione non valida"),
-                _("Seleziona un solo evento VSM per duplicarlo."),
-                parent=self.root
-            )
+            SimpleMessageDialog(self.root, _("Selezione non valida"), _("Seleziona un solo evento VSM per duplicarlo."), "warning")
             return
         
         row_idx = selected_rows[0]
@@ -4904,33 +4860,21 @@ class MainWindow:
         # Validazione ownership
         if row_idx >= len(sheet._event_metadata):
             logger.error(f"Indice VSM {row_idx} fuori range metadata")
-            messagebox.showerror(
-                _("Errore"),
-                _("Impossibile identificare l'evento selezionato."),
-                parent=self.root
-            )
+            SimpleMessageDialog(self.root, _("Errore"), _("Impossibile identificare l'evento selezionato."), "error")
             return
         
         metadata = sheet._event_metadata[row_idx]
         is_mine = metadata.get('is_mine', False)
         
         if not is_mine:
-            messagebox.showerror(
-                _("Operazione Non Consentita"),
-                _("Non puoi duplicare eventi VSM di altri utenti.\nPuoi operare solo sui tuoi eventi."),
-                parent=self.root
-            )
+            SimpleMessageDialog(self.root, _("Operazione Non Consentita"), _("Non puoi duplicare eventi VSM di altri utenti.\nPuoi operare solo sui tuoi eventi."), "error")
             logger.warning(f"Tentativo duplicazione evento VSM altrui bloccato: utente={self.current_username}")
             return
         
         event_id = metadata.get('event_id')
         if not event_id:
             logger.error(f"event_id mancante in metadata per riga {row_idx}")
-            messagebox.showerror(
-                _("Errore"),
-                _("Impossibile identificare l'evento selezionato."),
-                parent=self.root
-            )
+            SimpleMessageDialog(self.root, _("Errore"), _("Impossibile identificare l'evento selezionato."), "error")
             return
         
         # Recupero evento completo dal backend
@@ -4995,40 +4939,20 @@ class MainWindow:
                 self._load_vsm_events(event_type, sheet)
                 
                 # Success feedback
-                messagebox.showinfo(
-                    _("Successo"),
-                    _("Evento VSM duplicato."),
-                    parent=self.root
-                )
+                SimpleMessageDialog(self.root, _("Successo"), _("Evento VSM duplicato."), "info")
             else:
                 logger.warning(f"Tipo evento non riconosciuto per refresh: {status}")
-                messagebox.showinfo(
-                    _("Successo"),
-                    _("Evento VSM duplicato. Aggiorna manualmente per vedere la copia."),
-                    parent=self.root
-                )
+                SimpleMessageDialog(self.root, _("Successo"), _("Evento VSM duplicato. Aggiorna manualmente per vedere la copia."), "info")
         
         except VSMError as e:
             logger.error(f"Errore VSM durante duplicazione evento {event_id}: {e}", exc_info=True)
-            messagebox.showerror(
-                _("Errore VSM"),
-                _("Impossibile duplicare l'evento:\n{}").format(e),
-                parent=self.root
-            )
+            SimpleMessageDialog(self.root, _("Errore VSM"), _("Impossibile duplicare l'evento:\n{}").format(e), "error")
         except DatabaseError as e:
             logger.error(f"Errore database durante duplicazione evento {event_id}: {e}", exc_info=True)
-            messagebox.showerror(
-                _("Errore Database"),
-                _("Impossibile duplicare l'evento:\n{}").format(e),
-                parent=self.root
-            )
+            SimpleMessageDialog(self.root, _("Errore Database"), _("Impossibile duplicare l'evento:\n{}").format(e), "error")
         except Exception as e:
             logger.error(f"Errore imprevisto durante duplicazione evento {event_id}: {e}", exc_info=True)
-            messagebox.showerror(
-                _("Errore"),
-                _("Impossibile duplicare l'evento:\n{}").format(e),
-                parent=self.root
-            )
+            SimpleMessageDialog(self.root, _("Errore"), _("Impossibile duplicare l'evento:\n{}").format(e), "error")
 
     def _get_selected_row_indices(self, sheet):
         """
@@ -5133,11 +5057,7 @@ class MainWindow:
         
         # VALIDAZIONE SICUREZZA: Verifica che tutte le RfQ selezionate siano dell'utente corrente
         if not self._check_if_all_selected_are_mine(sheet, selected_rows_indices):
-            messagebox.showerror(
-                _("Operazione Non Consentita"),
-                _("Non puoi modificare lo stato di RfO di altri utenti.\nPuoi operare solo sulle tue RdO."),
-                parent=self.root
-            )
+            SimpleMessageDialog(self.root, _("Operazione Non Consentita"), _("Non puoi modificare lo stato di RfO di altri utenti.\nPuoi operare solo sulle tue RdO."), "error")
             logger.warning(f"Tentativo di modifica stato RfQ altrui bloccato: utente={self.current_username}")
             return
         
@@ -5161,7 +5081,7 @@ class MainWindow:
             with DatabaseManager(get_db_path()) as db_manager:
                 db_manager.update_stato_richieste(params)
         except DatabaseError as e:
-            messagebox.showerror(_("Errore"), _("Impossibile aggiornare stato: {}").format(e))
+            SimpleMessageDialog(self.root, _("Errore"), _("Impossibile aggiornare stato: {}").format(e), "error")
         else:
             self.refresh_data()
 
@@ -5379,7 +5299,7 @@ class MainWindow:
                 
         except DatabaseError as e:
             logger.error(f"Errore database in _load_requests_by_status: {e}", exc_info=True)
-            messagebox.showerror(_("Errore"), _("Impossibile caricare elenco: {}").format(e))
+            SimpleMessageDialog(self.root, _("Errore"), _("Impossibile caricare elenco: {}").format(e), "error")
 
     def update_treeview(self, sheet, requests):
         """Aggiorna il foglio tksheet con i dati delle richieste"""
@@ -5608,11 +5528,7 @@ class MainWindow:
         
         # VALIDAZIONE SICUREZZA: Verifica che tutte le RfQ selezionate siano dell'utente corrente
         if not self._check_if_all_selected_are_mine(sheet, selected_rows_indices):
-            messagebox.showerror(
-                _("Operazione Non Consentita"),
-                _("Non puoi eliminare RdO di altri utenti.\nPuoi operare solo sulle tue RdO."),
-                parent=self.root
-            )
+            SimpleMessageDialog(self.root, _("Operazione Non Consentita"), _("Non puoi eliminare RdO di altri utenti.\nPuoi operare solo sulle tue RdO."), "error")
             logger.warning(f"Tentativo di eliminazione RfQ altrui bloccato: utente={self.current_username}")
             return
         
@@ -5635,7 +5551,7 @@ class MainWindow:
             msg = _("Sei sicuro di voler eliminare la RdO N° {}?\nL'operazione è permanente.").format(rdo_num)
         else:
             msg = _("Sei sicuro di voler eliminare le {} RdO selezionate?\nL'operazione è permanente.").format(count)
-        if not messagebox.askyesno(_("Conferma Eliminazione"), msg, parent=self.root): return
+        if not SimpleYesNoDialog(self.root, _("Conferma Eliminazione"), msg).result: return
         
         try:
             print(f"[MainWindow.delete_selected_request] Eliminazione di {len(request_ids)} richieste: {request_ids}")
@@ -5687,9 +5603,9 @@ class MainWindow:
                 msg = _("1 RdO eliminata.")
             else:
                 msg = _("{} RdO eliminate.").format(count)
-            messagebox.showinfo(_("Successo"), msg, parent=self.root)
+            SimpleMessageDialog(self.root, _("Successo"), msg, "info")
         except DatabaseError as e:
-            messagebox.showerror(_("Errore"), _("Impossibile eliminare: {}").format(e), parent=self.root)
+            SimpleMessageDialog(self.root, _("Errore"), _("Impossibile eliminare: {}").format(e), "error")
 
     def duplicate_selected_request(self):
         sheet, _status = self.get_current_tree_and_status()
@@ -5710,36 +5626,32 @@ class MainWindow:
             selected_rows = sheet.get_selected_rows()
             if selected_rows:
                 if len(selected_rows) > 1:
-                    messagebox.showwarning(_("Selezione non valida"), _("Seleziona una sola RdO per duplicarla."), parent=self.root)
+                    SimpleMessageDialog(self.root, _("Selezione non valida"), _("Seleziona una sola RdO per duplicarla."), "warning")
                     return
                 row_index = selected_rows[0] if isinstance(selected_rows, (list, set, tuple)) else selected_rows
         
         # VALIDAZIONE SICUREZZA: Verifica che la RfQ selezionata sia dell'utente corrente
         if row_index is not None:
             if not self._check_if_all_selected_are_mine(sheet, [row_index]):
-                messagebox.showerror(
-                    _("Operazione Non Consentita"),
-                    _("Non puoi duplicare RdO di altri utenti.\nPuoi operare solo sulle tue RdO."),
-                    parent=self.root
-                )
+                SimpleMessageDialog(self.root, _("Operazione Non Consentita"), _("Non puoi duplicare RdO di altri utenti.\nPuoi operare solo sulle tue RdO."), "error")
                 logger.warning(f"Tentativo di duplicazione RfQ altrui bloccato: utente={self.current_username}")
                 return
         
         # Se non c'è nessuna selezione
         if row_index is None:
-            messagebox.showwarning(_("Selezione mancante"), _("Selezionare una RdO da duplicare."), parent=self.root)
+            SimpleMessageDialog(self.root, _("Selezione mancante"), _("Selezionare una RdO da duplicare."), "warning")
             return
 
         # Ottieni i dati della riga
         try:
             row_data = sheet.get_row_data(row_index)
             if not row_data or len(row_data) == 0:
-                messagebox.showerror(_("Errore"), _("Impossibile determinare la RdO selezionata."), parent=self.root)
+                SimpleMessageDialog(self.root, _("Errore"), _("Impossibile determinare la RdO selezionata."), "error")
                 return
             original_id = int(row_data[0])
         except (ValueError, TypeError, IndexError) as e:
             logger.error(f"Errore nel recupero dati riga per duplicazione: {e}", exc_info=True)
-            messagebox.showerror(_("Errore"), _("Impossibile determinare la RdO selezionata."), parent=self.root)
+            SimpleMessageDialog(self.root, _("Errore"), _("Impossibile determinare la RdO selezionata."), "error")
             return
 
         new_request_id = None
@@ -5769,15 +5681,15 @@ class MainWindow:
             logger.info(f"RdO duplicata: {original_id} -> {new_request_id}")
 
         except ValueError as ve:
-            messagebox.showerror(_("Errore"), str(ve), parent=self.root)
+            SimpleMessageDialog(self.root, _("Errore"), str(ve), "error")
             return
         except DatabaseError as e:
             logger.error(f"Errore duplicazione RdO {original_id}: {e}", exc_info=True)
-            messagebox.showerror(_("Errore"), _("Impossibile duplicare la RdO: {}").format(e), parent=self.root)
+            SimpleMessageDialog(self.root, _("Errore"), _("Impossibile duplicare la RdO: {}").format(e), "error")
             return
         except Exception as e:
             logger.error(f"Errore duplicazione RdO {original_id}: {e}", exc_info=True)
-            messagebox.showerror(_("Errore"), _("Impossibile duplicare: {}").format(e), parent=self.root)
+            SimpleMessageDialog(self.root, _("Errore"), _("Impossibile duplicare: {}").format(e), "error")
             return
 
         # Ora new_request_id è garantito essere valido
@@ -5796,7 +5708,7 @@ class MainWindow:
                 break
         
         self.update_button_visibility()
-        messagebox.showinfo(_("Successo"), _("RdO duplicata come N° {}.").format(new_request_id), parent=self.root)
+        SimpleMessageDialog(self.root, _("Successo"), _("RdO duplicata come N° {}.").format(new_request_id), "info")
 
     def clear_filters(self):
         self.dashboard_controller.clear_filters()
@@ -5938,11 +5850,7 @@ class MainWindow:
             
             except Exception as e:
                 logger.error(f"Errore creazione evento VSM: {e}", exc_info=True)
-                messagebox.showerror(
-                    _("Errore"),
-                    _("Impossibile aprire il form: {}").format(e),
-                    parent=self.root
-                )
+                SimpleMessageDialog(self.root, _("Errore"), _("Impossibile aprire il form: {}").format(e), "error")
 
     def open_new_request_window(self):
         """Crea una nuova RdO 'guscio' e apre l'editor"""
@@ -5974,11 +5882,7 @@ class MainWindow:
             
         except DatabaseError as e:
             logger.error(f"Errore creazione RdO guscio: {e}", exc_info=True)
-            messagebox.showerror(
-                _("Errore Database"),
-                _("Impossibile creare la nuova RdO: {}").format(e),
-                parent=self.root
-            )
+            SimpleMessageDialog(self.root, _("Errore Database"), _("Impossibile creare la nuova RdO: {}").format(e), "error")
         finally:
             # BUG #32 FIX: Garantisce chiusura connessione anche in caso di eccezione
             if db_manager is not None:
@@ -6112,14 +6016,14 @@ class MainWindow:
                     request_data.append((row[0], source_db_path))
             
             if not request_data:
-                messagebox.showwarning(_("Attenzione"), _("Nessuna RfQ da esportare nella vista corrente."), parent=self.root)
+                SimpleMessageDialog(self.root, _("Attenzione"), _("Nessuna RfQ da esportare nella vista corrente."), "warning")
                 return
             
             logger.info(f"[export_excel] Trovate {len(request_data)} RfQ da esportare: {[r[0] for r in request_data[:10]]}{'...' if len(request_data) > 10 else ''}")
             
         except Exception as e:
             logger.error(f"[export_excel] Errore nel recupero degli ID: {e}", exc_info=True)
-            messagebox.showerror(_("Errore"), _("Errore nel recupero delle RfQ da esportare: {}").format(e), parent=self.root)
+            SimpleMessageDialog(self.root, _("Errore"), _("Errore nel recupero delle RfQ da esportare: {}").format(e), "error")
             return
 
         # 2. Chiedi Lingua
@@ -6289,11 +6193,11 @@ class MainWindow:
             
             if save_path:
                 wb.save(save_path)
-                messagebox.showinfo(_("Successo"), _("Export completato con successo:\n{}").format(save_path), parent=self.root)
+                SimpleMessageDialog(self.root, _("Successo"), _("Export completato con successo:\n{}").format(save_path), "info")
                 logger.info(f"Export Excel salvato in: {save_path}")
         except Exception as e:
             logger.error(f"Errore Export Excel: {e}", exc_info=True)
-            messagebox.showerror(_("Errore"), _("Errore durante l'esportazione: {}").format(e), parent=self.root)
+            SimpleMessageDialog(self.root, _("Errore"), _("Errore durante l'esportazione: {}").format(e), "error")
 
     def _export_vsm_excel(self, status, sheet):
         """Esporta i dati VSM del tab corrente in un file Excel.
@@ -6484,6 +6388,7 @@ class UserIdentityDialog(tk.Toplevel):
         ttk.Label(
             frame,
             text=_("Per procedere è necessario indicare il tuo nome e cognome."),
+            font=(None, 10),
             wraplength=320,
             justify="left"
         ).grid(row=0, column=0, columnspan=2, sticky="w", pady=(0, 10))
@@ -6527,12 +6432,12 @@ class UserIdentityDialog(tk.Toplevel):
         first = self.first_var.get().strip()
         last = self.last_var.get().strip()
         if not first or not last:
-            messagebox.showerror(_("Campi obbligatori"), _("Inserisci sia il nome sia il cognome."), parent=self)
+            SimpleMessageDialog(self, _("Campi obbligatori"), _("Inserisci sia il nome sia il cognome."), "error")
             return
         try:
             username = generate_username(first, last)
         except ValueError as e:
-            messagebox.showerror(_("Formato non valido"), str(e), parent=self)
+            SimpleMessageDialog(self, _("Formato non valido"), str(e), "error")
             return
         self.result = {
             'first_name': first,
@@ -6543,7 +6448,7 @@ class UserIdentityDialog(tk.Toplevel):
         self.destroy()
 
     def _prevent_close(self):
-        messagebox.showwarning(_("Operazione necessaria"), _("Per utilizzare DataFlow è necessario completare i dati richiesti."), parent=self)
+        SimpleMessageDialog(self, _("Operazione necessaria"), _("Per utilizzare DataFlow è necessario completare i dati richiesti."), "warning")
 
     def _center_window(self):
         self.update_idletasks()
@@ -6801,7 +6706,7 @@ if __name__ == '__main__':
                 user_dataflow_dir = get_user_documents_dataflow_dir()
                 if not user_dataflow_dir:
                     logger.error("Impossibile creare la cartella utente: username mancante.")
-                    messagebox.showerror(_("Errore"), _("Impossibile creare la cartella utente."), parent=root)
+                    SimpleMessageDialog(root, _("Errore"), _("Impossibile creare la cartella utente."), "error")
                     try:
                         root.destroy()
                     except:
@@ -6826,7 +6731,7 @@ if __name__ == '__main__':
             crea_database_v4()
         except Exception as e:
             logger.error(f"Errore creazione DB utente: {e}", exc_info=True)
-            messagebox.showerror(_("Errore"), _("Impossibile creare il database utente: {}").format(e), parent=root)
+            SimpleMessageDialog(root, _("Errore"), _("Impossibile creare il database utente: {}").format(e), "error")
             try:
                 root.destroy()
             except:

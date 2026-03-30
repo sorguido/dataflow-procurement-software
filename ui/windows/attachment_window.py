@@ -20,6 +20,7 @@ from utils.window_utils import center_window
 from utils.resource_utils import set_window_icon
 from utils.i18n_utils import _
 from utils.validation_utils import sanitize_filename
+from ui.dialogs.common_dialogs import SimpleMessageDialog, SimpleYesNoDialog
 
 logger = logging.getLogger(__name__)
 
@@ -86,7 +87,7 @@ class AttachmentWindow(tk.Toplevel):
             warning_label = tk.Label(frame_warning, 
                                     text=_("⚠️ Seleziona prima un fornitore dall'elenco sottostante prima di aggiungere un allegato"), 
                                     fg="red", 
-                                    font=("Calibri", 10, "bold"))
+                                    font=(None, 10, "bold"))
             warning_label.pack()
         
         # Frame per i pulsanti (SEMPRE IN FONDO, non espandibile)
@@ -211,24 +212,20 @@ class AttachmentWindow(tk.Toplevel):
 
     def delete_attachment(self):
         if self.read_only:
-            messagebox.showwarning(
-                _("Operazione Non Consentita"),
-                _("Non puoi eliminare allegati di RdO di altri utenti."),
-                parent=self
-            )
+            SimpleMessageDialog(self, _("Operazione Non Consentita"), _("Non puoi eliminare allegati di RdO di altri utenti."), "warning")
             return
         
         selected = self.sheet_attachments.get_currently_selected()
         if not selected or selected.row is None:
-            messagebox.showwarning(_("Attenzione"), _("Seleziona un allegato da eliminare."), parent=self)
+            SimpleMessageDialog(self, _("Attenzione"), _("Seleziona un allegato da eliminare."), "warning")
             return
             
-        if messagebox.askyesno(_("Conferma Eliminazione"), _("Sei sicuro di voler eliminare questo allegato?"), parent=self):
+        if SimpleYesNoDialog(self, _("Conferma Eliminazione"), _("Sei sicuro di voler eliminare questo allegato?")).result:
             row_idx = selected.row
             
             if row_idx < 0 or row_idx >= len(self.attachment_ids):
                 logger.error(f"Indice riga non valido in delete: {row_idx}, totale: {len(self.attachment_ids)}")
-                messagebox.showerror(_("Errore"), _("Impossibile identificare l'allegato selezionato."), parent=self)
+                SimpleMessageDialog(self, _("Errore"), _("Impossibile identificare l'allegato selezionato."), "error")
                 return
             
             attachment_id = self.attachment_ids[row_idx]
@@ -260,7 +257,7 @@ class AttachmentWindow(tk.Toplevel):
                     except Exception as disk_error:
                         logger.warning(f"Impossibile eliminare il file allegato {file_to_delete}: {disk_error}")
                 
-                messagebox.showinfo(_("Eliminazione"), _("Allegato eliminato."), parent=self)
+                SimpleMessageDialog(self, _("Eliminazione"), _("Allegato eliminato."), "info")
                 self.load_attachments()
                 
                 # Se è stato eliminato un documento SQDC, aggiorna il pulsante nella finestra parent
@@ -272,7 +269,7 @@ class AttachmentWindow(tk.Toplevel):
                             logger.warning(f"Impossibile aggiornare pulsante SQDC nel parent: {e}")
                 
             except DatabaseError as e: 
-                messagebox.showerror(_("Errore Database"), _("Impossibile eliminare l'allegato: {}").format(e), parent=self)
+                SimpleMessageDialog(self, _("Errore Database"), _("Impossibile eliminare l'allegato: {}").format(e), "error")
 
     def load_attachments(self):
         try:
@@ -327,7 +324,7 @@ class AttachmentWindow(tk.Toplevel):
             
         except DatabaseError as e:
             logger.error(f"Errore database in load_attachments: {e}", exc_info=True)
-            messagebox.showerror("Errore Database", f"Impossibile caricare gli allegati: {e}", parent=self)
+            SimpleMessageDialog(self, "Errore Database", f"Impossibile caricare gli allegati: {e}", "error")
 
     def load_suppliers_for_request(self):
         try:
@@ -336,15 +333,11 @@ class AttachmentWindow(tk.Toplevel):
             self.combo_suppliers['values'] = [row[0] for row in rows]
         except DatabaseError as e:
             logger.error(f"Errore database in load_suppliers_for_request: {e}", exc_info=True)
-            messagebox.showerror(_("Errore Database"), _("Impossibile caricare i fornitori: {}").format(e), parent=self)
+            SimpleMessageDialog(self, _("Errore Database"), _("Impossibile caricare i fornitori: {}").format(e), "error")
 
     def add_attachment(self):
         if self.read_only:
-            messagebox.showwarning(
-                _("Operazione Non Consentita"),
-                _("Non puoi aggiungere allegati a RdO di altri utenti."),
-                parent=self
-            )
+            SimpleMessageDialog(self, _("Operazione Non Consentita"), _("Non puoi aggiungere allegati a RdO di altri utenti."), "warning")
             return
         
         self.grab_release()
@@ -359,12 +352,12 @@ class AttachmentWindow(tk.Toplevel):
         if not filepath: return
         supplier = self.combo_suppliers.get() if self.attachment_type == "Offerta Fornitore" else "Interno"
         if not supplier and self.attachment_type == "Offerta Fornitore":
-            messagebox.showwarning(_("Attenzione"), _("Seleziona un fornitore."), parent=self)
+            SimpleMessageDialog(self, _("Attenzione"), _("Seleziona un fornitore."), "warning")
             return
         
         archive_path = self.attachments_base
         if not archive_path:
-            messagebox.showerror(_("Errore"), _("Percorso allegati non disponibile."), parent=self)
+            SimpleMessageDialog(self, _("Errore"), _("Percorso allegati non disponibile."), "error")
             return
 
         try:
@@ -389,21 +382,21 @@ class AttachmentWindow(tk.Toplevel):
             with DatabaseManager(self.db_path, read_only=self.read_only) as db_manager:
                 db_manager.insert_allegato_richiesta_link(self.request_id, os.path.basename(filepath), self.attachment_type, supplier, new_filename)
         except Exception as e:
-            messagebox.showerror(_("Errore"), _("Impossibile aggiungere l'allegato: {}").format(e), parent=self)
+            SimpleMessageDialog(self, _("Errore"), _("Impossibile aggiungere l'allegato: {}").format(e), "error")
         
         self.load_attachments()
     
     def open_attachment(self):
         selected = self.sheet_attachments.get_currently_selected()
         if not selected or selected.row is None:
-            messagebox.showwarning(_("Attenzione"), _("Seleziona un allegato da aprire."), parent=self)
+            SimpleMessageDialog(self, _("Attenzione"), _("Seleziona un allegato da aprire."), "warning")
             return
 
         row_idx = selected.row
         
         if row_idx < 0 or row_idx >= len(self.attachment_ids):
             logger.error(f"Indice riga non valido: {row_idx}, totale attachment_ids: {len(self.attachment_ids)}")
-            messagebox.showerror(_("Errore"), _("Impossibile identificare l'allegato selezionato. Prova a ricaricare la finestra."), parent=self)
+            SimpleMessageDialog(self, _("Errore"), _("Impossibile identificare l'allegato selezionato. Prova a ricaricare la finestra."), "error")
             return
         
         attachment_id = self.attachment_ids[row_idx]
@@ -428,7 +421,7 @@ class AttachmentWindow(tk.Toplevel):
                 base_path = self.attachments_base
                 if not base_path:
                     logger.error("Percorso archivio non configurato")
-                    messagebox.showerror(_("Errore"), _("Percorso di archivio non configurato."), parent=self)
+                    SimpleMessageDialog(self, _("Errore"), _("Percorso di archivio non configurato."), "error")
                     return
                 
                 full_path = os.path.join(base_path, percorso_esterno)
@@ -438,14 +431,12 @@ class AttachmentWindow(tk.Toplevel):
                 
                 if not real_full.startswith(real_base + os.sep) and real_full != real_base:
                     logger.error(f"Tentativo di accesso non autorizzato a: {real_full}")
-                    messagebox.showerror(_("Errore Sicurezza"), 
-                                        _("Percorso file non valido. Possibile tentativo di accesso non autorizzato."), 
-                                        parent=self)
+                    SimpleMessageDialog(self, _("Errore Sicurezza"), _("Percorso file non valido. Possibile tentativo di accesso non autorizzato."), "error")
                     return
                 
                 if not os.path.exists(real_full):
                     logger.error(f"File esterno non trovato: {real_full}")
-                    messagebox.showerror(_("Errore"), _("File sorgente non trovato:\n{}").format(real_full), parent=self)
+                    SimpleMessageDialog(self, _("Errore"), _("File sorgente non trovato:\n{}").format(real_full), "error")
                     return
                 
                 webbrowser.open(f'file:///{real_full}')
@@ -493,33 +484,33 @@ class AttachmentWindow(tk.Toplevel):
                 
                 webbrowser.open(f'file:///{temp_path}')
             else:
-                logger.error("Allegato senza dati né percorso esterno")
-                messagebox.showerror(_("Errore"), _("Dati allegato non disponibili (né interni, né esterni)."), parent=self)
+                logger.error("Allegato senza dati né percorso esterno (open)")
+                SimpleMessageDialog(self, _("Errore"), _("Dati allegato non disponibili (né interni, né esterni)."), "error")
 
         except FileNotFoundError as e:
             logger.error(f"File non trovato in open_attachment: {e}", exc_info=True)
-            messagebox.showerror(_("Errore Apertura"), _("File non trovato: {}").format(e), parent=self)
+            SimpleMessageDialog(self, _("Errore Apertura"), _("File non trovato: {}").format(e), "error")
         except PermissionError as e:
             logger.error(f"Permessi insufficienti in open_attachment: {e}", exc_info=True)
-            messagebox.showerror(_("Errore Apertura"), _("Permessi insufficienti per aprire il file: {}").format(e), parent=self)
+            SimpleMessageDialog(self, _("Errore Apertura"), _("Permessi insufficienti per aprire il file: {}").format(e), "error")
         except OSError as e:
             logger.error(f"Errore sistema operativo in open_attachment: {e}", exc_info=True)
-            messagebox.showerror(_("Errore Apertura"), _("Errore sistema operativo: {}").format(e), parent=self)
+            SimpleMessageDialog(self, _("Errore Apertura"), _("Errore sistema operativo: {}").format(e), "error")
         except Exception as e:
             logger.error(f"Errore imprevisto in open_attachment: {e}", exc_info=True)
-            messagebox.showerror(_("Errore Apertura"), _("Impossibile aprire il file: {}").format(e), parent=self)
+            SimpleMessageDialog(self, _("Errore Apertura"), _("Impossibile aprire il file: {}").format(e), "error")
     
     def download_attachment(self):
         selected = self.sheet_attachments.get_currently_selected()
         if not selected or selected.row is None:
-            messagebox.showwarning(_("Attenzione"), _("Seleziona un allegato da scaricare."), parent=self)
+            SimpleMessageDialog(self, _("Attenzione"), _("Seleziona un allegato da scaricare."), "warning")
             return
 
         row_idx = selected.row
         
         if row_idx < 0 or row_idx >= len(self.attachment_ids):
             logger.error(f"Indice riga non valido in download: {row_idx}, totale: {len(self.attachment_ids)}")
-            messagebox.showerror(_("Errore"), _("Impossibile identificare l'allegato selezionato."), parent=self)
+            SimpleMessageDialog(self, _("Errore"), _("Impossibile identificare l'allegato selezionato."), "error")
             return
         
         attachment_id = self.attachment_ids[row_idx]
@@ -529,13 +520,13 @@ class AttachmentWindow(tk.Toplevel):
                 result = db_manager.get_allegato_file_data(attachment_id)
             
             if not result:
-                messagebox.showerror(_("Errore"), _("Allegato non trovato."), parent=self)
+                SimpleMessageDialog(self, _("Errore"), _("Allegato non trovato."), "error")
                 return
                 
             nome_file, dati_file, percorso_esterno = result
         except DatabaseError as e:
             logger.error(f"Errore database in download_attachment: {e}", exc_info=True)
-            messagebox.showerror(_("Errore Database"), _("Impossibile recuperare l'allegato: {}").format(e), parent=self)
+            SimpleMessageDialog(self, _("Errore Database"), _("Impossibile recuperare l'allegato: {}").format(e), "error")
             return
 
         self.grab_release()
@@ -555,7 +546,7 @@ class AttachmentWindow(tk.Toplevel):
             if percorso_esterno:
                 base_path = self.attachments_base
                 if not base_path:
-                    messagebox.showerror(_("Errore"), _("Percorso di archivio non configurato."), parent=self)
+                    SimpleMessageDialog(self, _("Errore"), _("Percorso di archivio non configurato."), "error")
                     return
                 
                 full_path = os.path.join(base_path, percorso_esterno)
@@ -564,13 +555,11 @@ class AttachmentWindow(tk.Toplevel):
                 real_full = os.path.realpath(full_path)
                 
                 if not real_full.startswith(real_base + os.sep) and real_full != real_base:
-                    messagebox.showerror(_("Errore Sicurezza"), 
-                                        _("Percorso file non valido. Possibile tentativo di accesso non autorizzato."), 
-                                        parent=self)
+                    SimpleMessageDialog(self, _("Errore Sicurezza"), _("Percorso file non valido. Possibile tentativo di accesso non autorizzato."), "error")
                     return
                 
                 if not os.path.exists(real_full):
-                    messagebox.showerror(_("Errore"), _("File sorgente non trovato:\n{}").format(real_full), parent=self)
+                    SimpleMessageDialog(self, _("Errore"), _("File sorgente non trovato:\n{}").format(real_full), "error")
                     return
                 
                 shutil.copy(real_full, save_path)
@@ -579,10 +568,10 @@ class AttachmentWindow(tk.Toplevel):
                 with open(save_path, 'wb') as f:
                     f.write(dati_file)
             else:
-                messagebox.showerror(_("Errore"), _("Dati allegato non disponibili (né interni, né esterni)."), parent=self)
+                SimpleMessageDialog(self, _("Errore"), _("Dati allegato non disponibili (né interni, né esterni)."), "error")
                 return
 
-            messagebox.showinfo(_("Successo"), _("File scaricato con successo in:\n{}").format(save_path), parent=self)
+            SimpleMessageDialog(self, _("Successo"), _("File scaricato con successo in:\n{}").format(save_path), "info")
 
         except Exception as e:
-            messagebox.showerror(_("Errore Download"), _("Impossibile salvare il file: {}").format(e), parent=self)
+            SimpleMessageDialog(self, _("Errore Download"), _("Impossibile salvare il file: {}").format(e), "error")

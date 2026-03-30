@@ -19,6 +19,7 @@ from utils.resource_utils import set_window_icon, resource_path
 from utils.i18n_utils import _, get_current_language
 from utils.format_utils import parse_float_from_comma_string
 from utils.validation_utils import sanitize_filename
+from ui.dialogs.common_dialogs import SimpleMessageDialog, SimpleYesNoDialog
 
 logger = logging.getLogger(__name__)
 
@@ -111,7 +112,7 @@ class SQDCAnalysisWindow(tk.Toplevel):
                                            'delivery': tk.StringVar(value=''), 'cost': tk.StringVar(value='')}
         except DatabaseError as e:
             logger.error(f"Errore database in load_suppliers: {e}", exc_info=True)
-            messagebox.showerror(_("Errore Database"), _("Impossibile caricare i fornitori: {}").format(e), parent=self)
+            SimpleMessageDialog(self, _("Errore Database"), _("Impossibile caricare i fornitori: {}").format(e), "error")
     
     def create_weights_tab(self, parent):
         """Crea il tab per l'inserimento dei pesi percentuali"""
@@ -302,14 +303,10 @@ class SQDCAnalysisWindow(tk.Toplevel):
             if 1 <= score <= 10:
                 return str(score)
             else:
-                messagebox.showwarning(_("Valore Non Valido"), 
-                                      _("I voti devono essere tra 1 e 10."),
-                                      parent=self)
+                SimpleMessageDialog(self, _("Valore Non Valido"), _("I voti devono essere tra 1 e 10."), "warning")
                 return None
         except ValueError:
-            messagebox.showwarning(_("Valore Non Valido"), 
-                                  _("I voti devono essere numeri interi da 1 a 10."),
-                                  parent=self)
+            SimpleMessageDialog(self, _("Valore Non Valido"), _("I voti devono essere numeri interi da 1 a 10."), "warning")
             return None
     
     def on_sqdc_cell_edit(self, event):
@@ -376,16 +373,12 @@ class SQDCAnalysisWindow(tk.Toplevel):
                            float(self.weights['delivery'].get() or 0) + 
                            float(self.weights['cost'].get() or 0))
         except (ValueError, TypeError):
-            messagebox.showerror(_("Errore Pesi"),
-                               _("I pesi devono essere numeri validi."),
-                               parent=self)
+            SimpleMessageDialog(self, _("Errore Pesi"), _("I pesi devono essere numeri validi."), "error")
             return
         
         # Verifica che la somma sia 100%
         if abs(total_weight - 100) > 0.01:
-            messagebox.showerror(_("Errore Pesi"),
-                               _("La somma dei pesi deve essere 100%. Attualmente: {:.1f}%").format(total_weight),
-                               parent=self)
+            SimpleMessageDialog(self, _("Errore Pesi"), _("La somma dei pesi deve essere 100%. Attualmente: {:.1f}%").format(total_weight), "error")
             return
         
         # Carica prezzi da database
@@ -473,9 +466,7 @@ class SQDCAnalysisWindow(tk.Toplevel):
 
         except DatabaseError as e:
             logger.error(f"SQDC auto_calculate_cost: Database error: {e}", exc_info=True)
-            messagebox.showerror(_("Errore Database"),
-                               _("Errore nel recupero dei prezzi dal database: {}").format(e),
-                               parent=self)
+            SimpleMessageDialog(self, _("Errore Database"), _("Errore nel recupero dei prezzi dal database: {}").format(e), "error")
         finally:
             self.refresh_scores_sheet()
             self.update_price_warning()
@@ -499,21 +490,15 @@ class SQDCAnalysisWindow(tk.Toplevel):
             try:
                 weight = float(self.weights[criterion].get() or 0)
                 if weight < 0 or weight > 100:
-                    messagebox.showerror(_("Errore Pesi"), 
-                                       _("I pesi devono essere tra 0 e 100."), 
-                                       parent=self)
+                    SimpleMessageDialog(self, _("Errore Pesi"), _("I pesi devono essere tra 0 e 100."), "error")
                     return False
                 total_weight += weight
             except ValueError:
-                messagebox.showerror(_("Errore Pesi"), 
-                                   _("I pesi devono essere numeri validi."), 
-                                   parent=self)
+                SimpleMessageDialog(self, _("Errore Pesi"), _("I pesi devono essere numeri validi."), "error")
                 return False
         
         if abs(total_weight - 100) > 0.01:
-            messagebox.showerror(_("Errore Pesi"), 
-                               _("La somma dei pesi deve essere 100%. Attualmente: {:.1f}%").format(total_weight), 
-                               parent=self)
+            SimpleMessageDialog(self, _("Errore Pesi"), _("La somma dei pesi deve essere 100%. Attualmente: {:.1f}%").format(total_weight), "error")
             return False
         
         return True
@@ -528,21 +513,15 @@ class SQDCAnalysisWindow(tk.Toplevel):
             for criterion in ['safety', 'quality', 'delivery', 'cost']:
                 value = self.scores[supplier][criterion].get()
                 if not value:
-                    messagebox.showerror(_("Errore Voti"), 
-                                       _("Devi compilare tutti i voti."), 
-                                       parent=self)
+                    SimpleMessageDialog(self, _("Errore Voti"), _("Devi compilare tutti i voti."), "error")
                     return False
                 try:
                     score = int(value)
                     if score < 1 or score > 10:
-                        messagebox.showerror(_("Errore Voti"), 
-                                           _("I voti devono essere tra 1 e 10.\nFornitore: {}\nCriterio: {}").format(supplier, criterion), 
-                                           parent=self)
+                        SimpleMessageDialog(self, _("Errore Voti"), _("I voti devono essere tra 1 e 10.\nFornitore: {}\nCriterio: {}").format(supplier, criterion), "error")
                         return False
                 except ValueError:
-                    messagebox.showerror(_("Errore Voti"), 
-                                       _("I voti devono essere numeri interi da 1 a 10.\nFornitore: {}\nCriterio: {}").format(supplier, criterion), 
-                                       parent=self)
+                    SimpleMessageDialog(self, _("Errore Voti"), _("I voti devono essere numeri interi da 1 a 10.\nFornitore: {}\nCriterio: {}").format(supplier, criterion), "error")
                     return False
         
         return True
@@ -585,9 +564,7 @@ class SQDCAnalysisWindow(tk.Toplevel):
         template_path = resource_path(os.path.join("add_data", template_name))
         
         if not os.path.exists(template_path):
-            messagebox.showerror(_("Errore"), 
-                               _("File modello non trovato!\nAssicurarsi che '{}' esista nella cartella 'add_data'.").format(template_name), 
-                               parent=self)
+            SimpleMessageDialog(self, _("Errore"), _("File modello non trovato!\nAssicurarsi che '{}' esista nella cartella 'add_data'.").format(template_name), "error")
             return
         
         wb = None
@@ -676,15 +653,11 @@ class SQDCAnalysisWindow(tk.Toplevel):
             if filepath:
                 wb.save(filepath)
                 logger.info(f"Analisi SQDC esportata: {filepath}")
-                messagebox.showinfo(_("Successo"), 
-                                  _("Analisi SQDC esportata con successo:\n{}").format(filepath), 
-                                  parent=self)
+                SimpleMessageDialog(self, _("Successo"), _("Analisi SQDC esportata con successo:\n{}").format(filepath), "info")
         
         except Exception as e:
             logger.error(f"Errore esportazione SQDC: {e}", exc_info=True)
-            messagebox.showerror(_("Errore Esportazione"), 
-                               _("Impossibile esportare l'analisi: {}").format(e), 
-                               parent=self)
+            SimpleMessageDialog(self, _("Errore Esportazione"), _("Impossibile esportare l'analisi: {}").format(e), "error")
         finally:
             if wb is not None:
                 try:
@@ -785,7 +758,7 @@ class SQDCAnalysisWindow(tk.Toplevel):
             
             archive_path = get_fixed_attachments_dir()
             if not archive_path:
-                messagebox.showerror(_("Errore"), _("Percorso allegati non disponibile."), parent=self)
+                SimpleMessageDialog(self, _("Errore"), _("Percorso allegati non disponibile."), "error")
                 return
             
             try:
@@ -808,22 +781,16 @@ class SQDCAnalysisWindow(tk.Toplevel):
                     db_manager.insert_or_update_allegato_sqdc(self.request_id, sqdc_filename, new_filename)
                 
                 logger.info(f"Analisi SQDC salvata come Documento Interno: {new_filename} -> {dest_path}")
-                messagebox.showinfo(_("Successo"), 
-                                  _("Analisi SQDC salvata correttamente nei Documenti Interni."), 
-                                  parent=self)
+                SimpleMessageDialog(self, _("Successo"), _("Analisi SQDC salvata correttamente nei Documenti Interni."), "info")
                 self.destroy()
                 
             except DatabaseError as e:
                 logger.error(f"Errore database in save_sqdc: {e}", exc_info=True)
-                messagebox.showerror(_("Errore Database"), 
-                                   _("Impossibile salvare l'analisi: {}").format(e), 
-                                   parent=self)
+                SimpleMessageDialog(self, _("Errore Database"), _("Impossibile salvare l'analisi: {}").format(e), "error")
         
         except Exception as e:
             logger.error(f"Errore nella creazione file SQDC: {e}", exc_info=True)
-            messagebox.showerror(_("Errore"), 
-                               _("Impossibile creare il file: {}").format(e), 
-                               parent=self)
+            SimpleMessageDialog(self, _("Errore"), _("Impossibile creare il file: {}").format(e), "error")
         finally:
             if wb is not None:
                 try:

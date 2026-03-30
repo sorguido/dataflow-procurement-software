@@ -14,6 +14,7 @@ from database_manager import DatabaseManager, DatabaseError
 from services.app_paths import get_db_path
 from utils.window_utils import center_window
 from utils.i18n_utils import _, get_current_language
+from ui.dialogs.common_dialogs import SimpleMessageDialog, SimpleYesNoDialog
 
 logger = logging.getLogger(__name__)
 
@@ -296,11 +297,7 @@ class PurchaseOrderWindow(tk.Toplevel):
         
         # BUG #35 FIX: Validazione esplicita campo vuoto con feedback utente
         if not po_number:
-            messagebox.showwarning(
-                _("Attenzione"),
-                _("Inserisci un numero ordine valido."),
-                parent=self
-            )
+            SimpleMessageDialog(self, _("Attenzione"), _("Inserisci un numero ordine valido."), "warning")
             return
         
         # BUG #25 FIX: Previeni SQL injection e caratteri pericolosi
@@ -317,32 +314,16 @@ class PurchaseOrderWindow(tk.Toplevel):
         
         if not po_number:
             if get_current_language() == 'it':
-                messagebox.showwarning(
-                    "Campo obbligatorio",
-                    "Inserire il numero ordine.",
-                    parent=self
-                )
+                SimpleMessageDialog(self, "Campo obbligatorio", "Inserire il numero ordine.", "warning")
             else:
-                messagebox.showwarning(
-                    "Required Field",
-                    "Please enter the PO number.",
-                    parent=self
-                )
+                SimpleMessageDialog(self, "Required Field", "Please enter the PO number.", "warning")
             return
         
         if not supplier:
             if get_current_language() == 'it':
-                messagebox.showwarning(
-                    "Campo obbligatorio",
-                    "Selezionare un fornitore.",
-                    parent=self
-                )
+                SimpleMessageDialog(self, "Campo obbligatorio", "Selezionare un fornitore.", "warning")
             else:
-                messagebox.showwarning(
-                    "Required Field",
-                    "Please select a supplier.",
-                    parent=self
-                )
+                SimpleMessageDialog(self, "Required Field", "Please select a supplier.", "warning")
             return
         
         # Aggiungi alla griglia
@@ -365,17 +346,9 @@ class PurchaseOrderWindow(tk.Toplevel):
         
         if not selected:
             if get_current_language() == 'it':
-                messagebox.showwarning(
-                    "Nessuna selezione",
-                    "Selezionare una riga da eliminare.",
-                    parent=self
-                )
+                SimpleMessageDialog(self, "Nessuna selezione", "Selezionare una riga da eliminare.", "warning")
             else:
-                messagebox.showwarning(
-                    "No Selection",
-                    "Please select a row to delete.",
-                    parent=self
-                )
+                SimpleMessageDialog(self, "No Selection", "Please select a row to delete.", "warning")
             return
         
         # BUG #18 FIX: Validazione robusta dell'indice riga prima dell'accesso
@@ -391,32 +364,16 @@ class PurchaseOrderWindow(tk.Toplevel):
         if not (0 <= row_idx < len(current_data)):
             logger.error(f"delete_selected_po: Indice {row_idx} fuori range (0-{len(current_data)-1})")
             if get_current_language() == 'it':
-                messagebox.showerror(
-                    "Errore",
-                    f"Impossibile eliminare: indice riga non valido ({row_idx}).",
-                    parent=self
-                )
+                SimpleMessageDialog(self, "Errore", f"Impossibile eliminare: indice riga non valido ({row_idx}).", "error")
             else:
-                messagebox.showerror(
-                    "Error",
-                    f"Cannot delete: invalid row index ({row_idx}).",
-                    parent=self
-                )
+                SimpleMessageDialog(self, "Error", f"Cannot delete: invalid row index ({row_idx}).", "error")
             return
         
         # Conferma eliminazione
         if get_current_language() == 'it':
-            confirm = messagebox.askyesno(
-                "Conferma eliminazione",
-                "Eliminare il numero ordine selezionato?",
-                parent=self
-            )
+            confirm = SimpleYesNoDialog(self, "Conferma eliminazione", "Eliminare il numero ordine selezionato?").result
         else:
-            confirm = messagebox.askyesno(
-                "Confirm Deletion",
-                "Delete the selected PO number?",
-                parent=self
-            )
+            confirm = SimpleYesNoDialog(self, "Confirm Deletion", "Delete the selected PO number?").result
         
         if confirm:
             del current_data[row_idx]
@@ -447,4 +404,4 @@ class PurchaseOrderWindow(tk.Toplevel):
             logger.info(f"Numeri ordine salvati per RdO {self.request_id}: {len(po_list)} entries")
         except DatabaseError as e:
             logger.error(f"Errore nel salvataggio numeri ordine: {e}")
-            messagebox.showerror(_("Errore"), _("Errore nel salvataggio dei numeri ordine."), parent=self)
+            SimpleMessageDialog(self, _("Errore"), _("Errore nel salvataggio dei numeri ordine."), "error")
