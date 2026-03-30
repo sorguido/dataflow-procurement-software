@@ -313,7 +313,7 @@ class UserIdentityDialog(tk.Toplevel):
         self.destroy()
 
     def _prevent_close(self):
-        messagebox.showwarning(_("Operazione necessaria"), _("Per utilizzare DataFlow è necessario completare i dati richiesti."), parent=self)
+        SimpleMessageDialog(self, _("Operazione necessaria"), _("Per utilizzare DataFlow è necessario completare i dati richiesti."), "warning")
 
     def _center_window(self):
         self.update_idletasks()
