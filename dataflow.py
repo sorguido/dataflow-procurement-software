@@ -94,6 +94,7 @@ init_i18n()
 # Importa UI components (DOPO init_i18n per avere _() disponibile)
 from ui.help_window import HelpWindow
 from ui.kpi_window import KpiWindow
+from ui.window_launchers import open_help_window, on_kpi_click
 from ui.windows.view_request_window import ViewRequestWindow
 from ui.components.main_dashboard_toolbar import MainDashboardToolbar
 from ui.components.collapsible_filters import CollapsibleFilters
@@ -4135,12 +4136,10 @@ class MainWindow:
         finally:
             self._backup_in_progress = False
 
-    def open_help_window(self): HelpWindow(self.root)
+    def open_help_window(self): open_help_window(self)
     def open_settings_window(self): self.root.wait_window(SettingsWindow(self.root, self))
-    
-    def on_kpi_click(self):
-        """Apre la finestra KPI Analysis."""
-        KpiWindow(self.root)
+
+    def on_kpi_click(self): on_kpi_click(self)
     
     def create_request_treeview(self, parent):
         # Frame per contenere il Sheet
