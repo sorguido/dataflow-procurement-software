@@ -4,7 +4,8 @@ Estratta da dataflow.py per compatibilità con PyInstaller.
 """
 
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import ttk
+from ui.dialogs.common_dialogs import SimpleMessageDialog
 import logging
 import json
 import ast
@@ -144,7 +145,7 @@ class NotesWindow(tk.Toplevel):
             if result and result[0]:
                 self.text_editor.delete("1.0", tk.END)
                 self.text_editor.insert("1.0", _("Impossibile ripristinare la formattazione. Nota caricata come testo semplice:\n\n{}").format(result[0]))
-            messagebox.showwarning(_("Errore Caricamento Nota"), _("Non è stato possibile ripristinare la formattazione della nota. Potrebbe essere stata salvata con una versione precedente.\n\nDettagli: {}").format(e), parent=self)
+            SimpleMessageDialog(self, _("Errore Caricamento Nota"), _("Non è stato possibile ripristinare la formattazione della nota. Potrebbe essere stata salvata con una versione precedente.\n\nDettagli: {}").format(e), "warning")
 
     def on_close(self):
         try:
@@ -181,8 +182,8 @@ class NotesWindow(tk.Toplevel):
             # Chiama il metodo del genitore per aggiornare il pulsante
             if hasattr(self.master, 'check_note_status_and_update_button'):
                 self.master.check_note_status_and_update_button()
-            messagebox.showinfo(_("Successo"), _("Nota salvata correttamente."), parent=self)
+            SimpleMessageDialog(self, _("Successo"), _("Nota salvata correttamente."), "info")
             self.on_close()
         except DatabaseError as e:
             logger.error(f"Errore database in save_note: {e}", exc_info=True)
-            messagebox.showerror(_("Errore Database"), _("Impossibile salvare la nota: {}").format(e), parent=self)
+            SimpleMessageDialog(self, _("Errore Database"), _("Impossibile salvare la nota: {}").format(e), "error")
