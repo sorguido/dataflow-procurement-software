@@ -201,7 +201,12 @@ class ViewRequestWindow(tk.Toplevel):
         is_cl = self.is_conto_lavoro if hasattr(self, 'is_conto_lavoro') else False
         optimal_geometry = calculate_optimal_window_size(self, num_suppliers, is_cl)
         self.geometry(optimal_geometry)
-        
+
+        try:
+            self.state('zoomed')
+        except Exception:
+            self.attributes('-zoomed', True)
+
         self.deiconify()
 
     def _disable_edit_controls(self):
