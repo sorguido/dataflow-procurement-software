@@ -259,7 +259,39 @@ class DatabaseManager:
             self.cursor.execute('CREATE INDEX IF NOT EXISTS idx_vsm_impacts_period ON vsm_impacts(anno, mese)')
             self.cursor.execute('CREATE INDEX IF NOT EXISTS idx_vsm_impacts_username ON vsm_impacts(username)')
             self.cursor.execute('CREATE INDEX IF NOT EXISTS idx_vsm_events_username ON vsm_events(username)')
-            
+
+            # ========== TABELLA FORNITORI POTENZIALI (Derisking anagrafica) ==========
+            # Entità separata da vsm_events: nessun legame con il flusso VSM.
+            # Migrazione conservativa: CREATE TABLE IF NOT EXISTS + ALTER TABLE IF NOT EXISTS.
+            self.cursor.execute('''
+                CREATE TABLE IF NOT EXISTS potential_suppliers (
+                    supplier_id       INTEGER PRIMARY KEY AUTOINCREMENT,
+                    supplier_name     TEXT    NOT NULL,
+                    macrocategory     TEXT    NOT NULL DEFAULT '',
+                    merchandise_class TEXT    NOT NULL DEFAULT '',
+                    supplier_status   TEXT    NOT NULL DEFAULT 'Prospect',
+                    contact_name      TEXT    NOT NULL DEFAULT '',
+                    email             TEXT    NOT NULL DEFAULT '',
+                    phone             TEXT    NOT NULL DEFAULT '',
+                    website           TEXT    NOT NULL DEFAULT '',
+                    notes             TEXT    NOT NULL DEFAULT '',
+                    username          TEXT    NOT NULL DEFAULT '',
+                    created_at        TEXT    DEFAULT CURRENT_TIMESTAMP,
+                    updated_at        TEXT    DEFAULT CURRENT_TIMESTAMP
+                )
+            ''')
+
+            # Indici per performance fornitori potenziali
+            self.cursor.execute(
+                'CREATE INDEX IF NOT EXISTS idx_ps_username ON potential_suppliers(username)'
+            )
+            self.cursor.execute(
+                'CREATE INDEX IF NOT EXISTS idx_ps_macrocategory ON potential_suppliers(macrocategory)'
+            )
+            self.cursor.execute(
+                'CREATE INDEX IF NOT EXISTS idx_ps_status ON potential_suppliers(supplier_status)'
+            )
+
             # Commit finale
             self.conn.commit()
             
@@ -2446,4 +2478,201 @@ class DatabaseManager:
             return impacts
         except Exception as e:
             print(f"[DB Manager] Errore get_vsm_impacts_by_period: {e}")
+            raise DatabaseError(str(e)) from e
+
+    # ========== METODI POTENTIAL_SUPPLIERS ==========
+
+    def insert_potential_supplier(self, supplier) -> int:
+        """
+        Inserisce un nuovo fornitore potenziale.
+
+        Args:
+            supplier: PotentialSupplier con id=None
+
+        Returns:
+            int: supplier_id assegnato dal database
+
+        Raises:
+            DatabaseError
+        """
+        try:
+            now = datetime.now().isoformat()
+            self.cursor.execute(
+                """
+                INSERT INTO potential_suppliers
+                    (supplier_name, macrocategory, merchandise_class,
+                     supplier_status, contact_name, email, phone,
+                     website, notes, username, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    supplier.supplier_name,
+                    supplier.macrocategory,
+                    supplier.merchandise_class,
+                    supplier.supplier_status,
+                    supplier.contact_name,
+                    supplier.email,
+                    supplier.phone,
+                    supplier.website,
+                    supplier.notes,
+                    supplier.username,
+                    now,
+                    now,
+                ),
+            )
+            self.conn.commit()
+            return self.cursor.lastrowid
+        except Exception as e:
+            print(f"[DB Manager] Errore insert_potential_supplier: {e}")
+            raise DatabaseError(str(e)) from e
+
+    def update_potential_supplier(self, supplier) -> None:
+        """
+        Aggiorna un fornitore potenziale esistente.
+
+        Args:
+            supplier: PotentialSupplier con id valido
+
+        Raises:
+            DatabaseError
+        """
+        try:
+            now = datetime.now().isoformat()
+            self.cursor.execute(
+                """
+                UPDATE potential_suppliers
+                SET supplier_name     = ?,
+                    macrocategory     = ?,
+                    merchandise_class = ?,
+                    supplier_status   = ?,
+                    contact_name      = ?,
+                    email             = ?,
+                    phone             = ?,
+                    website           = ?,
+                    notes             = ?,
+                    username          = ?,
+                    updated_at        = ?
+                WHERE supplier_id = ?
+                """,
+                (
+                    supplier.supplier_name,
+                    supplier.macrocategory,
+                    supplier.merchandise_class,
+                    supplier.supplier_status,
+                    supplier.contact_name,
+                    supplier.email,
+                    supplier.phone,
+                    supplier.website,
+                    supplier.notes,
+                    supplier.username,
+                    now,
+                    supplier.id,
+                ),
+            )
+            self.conn.commit()
+        except Exception as e:
+            print(f"[DB Manager] Errore update_potential_supplier: {e}")
+            raise DatabaseError(str(e)) from e
+
+    def delete_potential_supplier(self, supplier_id: int) -> None:
+        """
+        Elimina un fornitore potenziale per ID.
+
+        Raises:
+            DatabaseError
+        """
+        try:
+            self.cursor.execute(
+                "DELETE FROM potential_suppliers WHERE supplier_id = ?",
+                (supplier_id,),
+            )
+            self.conn.commit()
+        except Exception as e:
+            print(f"[DB Manager] Errore delete_potential_supplier: {e}")
+            raise DatabaseError(str(e)) from e
+
+    def get_potential_supplier_by_id(self, supplier_id: int):
+        """
+        Recupera un fornitore potenziale per ID.
+
+        Returns:
+            sqlite3.Row oppure None se non trovato
+        """
+        try:
+            self.cursor.execute(
+                """
+                SELECT supplier_id, supplier_name, macrocategory,
+                       merchandise_class, supplier_status, contact_name,
+                       email, phone, website, notes, username,
+                       created_at, updated_at
+                FROM potential_suppliers
+                WHERE supplier_id = ?
+                """,
+                (supplier_id,),
+            )
+            return self.cursor.fetchone()
+        except Exception as e:
+            print(f"[DB Manager] Errore get_potential_supplier_by_id: {e}")
+            raise DatabaseError(str(e)) from e
+
+    def get_all_potential_suppliers(self, username: str = None) -> list:
+        """
+        Restituisce tutti i fornitori potenziali, con filtro opzionale per username.
+
+        Args:
+            username: se fornito, filtra per questo utente;
+                      se None, restituisce tutti gli utenti.
+
+        Returns:
+            list[sqlite3.Row]
+        """
+        try:
+            if username:
+                self.cursor.execute(
+                    """
+                    SELECT supplier_id, supplier_name, macrocategory,
+                           merchandise_class, supplier_status, contact_name,
+                           email, phone, website, notes, username,
+                           created_at, updated_at
+                    FROM potential_suppliers
+                    WHERE username = ?
+                    ORDER BY supplier_name ASC
+                    """,
+                    (username,),
+                )
+            else:
+                self.cursor.execute(
+                    """
+                    SELECT supplier_id, supplier_name, macrocategory,
+                           merchandise_class, supplier_status, contact_name,
+                           email, phone, website, notes, username,
+                           created_at, updated_at
+                    FROM potential_suppliers
+                    ORDER BY supplier_name ASC
+                    """
+                )
+            return self.cursor.fetchall()
+        except Exception as e:
+            print(f"[DB Manager] Errore get_all_potential_suppliers: {e}")
+            raise DatabaseError(str(e)) from e
+
+    def get_distinct_macrocategories(self) -> list:
+        """
+        Restituisce la lista ordinata di macrocategorie distinte (non vuote).
+
+        Returns:
+            list[str]
+        """
+        try:
+            self.cursor.execute(
+                """
+                SELECT DISTINCT macrocategory
+                FROM potential_suppliers
+                WHERE macrocategory IS NOT NULL AND TRIM(macrocategory) != ''
+                ORDER BY macrocategory ASC
+                """
+            )
+            return [row[0] for row in self.cursor.fetchall()]
+        except Exception as e:
+            print(f"[DB Manager] Errore get_distinct_macrocategories: {e}")
             raise DatabaseError(str(e)) from e
