@@ -2035,7 +2035,7 @@ class MainWindow:
 
         sheet.set_column_widths(widths)
 
-    def _populate_potential_suppliers_sheet(self, sheet, suppliers):
+    def _populate_potential_suppliers_sheet(self, sheet, suppliers, *, resize_columns=True):
         """
         Popola il tksheet Derisking con una lista di PotentialSupplier.
 
@@ -2043,8 +2043,10 @@ class MainWindow:
         e azzera sheet._event_metadata per compatibilità con action-button logic.
 
         Args:
-            sheet: Widget tksheet del tab Derisking
-            suppliers: list[PotentialSupplier]
+            sheet:          Widget tksheet del tab Derisking
+            suppliers:      list[PotentialSupplier]
+            resize_columns: se False, salta il ricalcolo larghezze colonne (usato dal
+                            filtro Global Search per evitare micro-spostamenti visivi)
         """
         data_rows = []
         metadata = []
@@ -2068,8 +2070,9 @@ class MainWindow:
             })
 
         sheet.set_sheet_data(data_rows, reset_col_positions=False)
-        # Larghezze dinamiche (content-aware) + allineamento, prima del redraw
-        self._auto_size_supplier_sheet(sheet, data_rows)
+        # Larghezze dinamiche solo al caricamento iniziale, non durante i filtri search
+        if resize_columns:
+            self._auto_size_supplier_sheet(sheet, data_rows)
         if hasattr(sheet, '_vsm_align_cols'):
             sheet.align_columns(columns=sheet._vsm_align_cols, align="center")
         sheet.redraw()
@@ -3319,7 +3322,7 @@ class MainWindow:
         ]
 
         logger.info(f"[DerisSearch] query='{query}' risultati={len(results)}")
-        self._populate_potential_suppliers_sheet(sheet, results)
+        self._populate_potential_suppliers_sheet(sheet, results, resize_columns=False)
 
     def _search_vsm_events(self, sheet, status):
         """Handler di ricerca globale per il modulo VSM.
