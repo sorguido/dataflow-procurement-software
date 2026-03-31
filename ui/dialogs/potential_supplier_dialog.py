@@ -479,7 +479,8 @@ class PotentialSupplierDialog(tk.Toplevel):
             return
         self.clipboard_clear()
         self.clipboard_append(email)
-        SimpleMessageDialog(self, _("Info"), _("E-mail copiata"), "info")
+        self.update()
+        SimpleMessageDialog(self, _("Info"), _("Mail copied"), "info")
 
     def _on_web_click(self, event=None):
         """Apre il sito web nel browser predefinito."""

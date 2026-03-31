@@ -22,8 +22,7 @@ class SimpleMessageDialog(tk.Toplevel):
         self.title(title)
         self.transient(parent)
         self.resizable(False, False)
-        self.grab_set()
-        
+
         frame = ttk.Frame(self, padding="20")
         frame.pack(fill="both", expand=True)
         
@@ -49,6 +48,8 @@ class SimpleMessageDialog(tk.Toplevel):
         self.protocol("WM_DELETE_WINDOW", self.destroy)
         center_window(self)
         self.deiconify()
+        self.wait_visibility()
+        self.grab_set()
         self.wait_window()
 
 
