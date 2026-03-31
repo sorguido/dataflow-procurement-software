@@ -15,6 +15,7 @@ from services.supplier_persistence import (
     create_supplier,
     update_supplier,
     get_supplier_by_id,
+    get_distinct_macrocategories,
     SupplierError,
 )
 from models.potential_supplier import PotentialSupplier, SUPPLIER_STATUS_CHOICES
@@ -70,12 +71,16 @@ class PotentialSupplierDialog(tk.Toplevel):
 
         # --- Variabili tk ---
         self.var_supplier_name = tk.StringVar()
-        self.var_category = tk.StringVar()
-        self.var_status = tk.StringVar(value=SUPPLIER_STATUS_CHOICES[1])  # "Prospect"
+        self.var_category = tk.StringVar()       # selezione da dropdown
+        self.var_new_category = tk.StringVar()   # nuova categoria testo libero
+        self.var_status = tk.StringVar(value=SUPPLIER_STATUS_CHOICES[0])  # "Nuovo"
         self.var_contact = tk.StringVar()
         self.var_email = tk.StringVar()
         self.var_phone = tk.StringVar()
         self.var_website = tk.StringVar()
+
+        # Carica categorie esistenti dal DB per la combobox
+        self._known_categories = self._load_known_categories()
 
         # Costruisci UI
         self._build_ui()
@@ -128,10 +133,23 @@ class PotentialSupplierDialog(tk.Toplevel):
         ttk.Label(general, text=_("Categoria:"), font=(None, 10)).grid(
             row=row, column=0, sticky="w", padx=(0, 10), pady=5
         )
-        self._entry_category = ttk.Entry(
-            general, textvariable=self.var_category, width=38
+        self._combo_category = ttk.Combobox(
+            general,
+            textvariable=self.var_category,
+            values=self._known_categories,
+            state="readonly",
+            width=36,
         )
-        self._entry_category.grid(row=row, column=1, sticky="ew", pady=5)
+        self._combo_category.grid(row=row, column=1, sticky="ew", pady=5)
+        row += 1
+
+        ttk.Label(general, text=_("Nuova categoria:"), font=(None, 10)).grid(
+            row=row, column=0, sticky="w", padx=(0, 10), pady=(0, 8)
+        )
+        self._entry_new_category = ttk.Entry(
+            general, textvariable=self.var_new_category, width=38
+        )
+        self._entry_new_category.grid(row=row, column=1, sticky="ew", pady=(0, 8))
         row += 1
 
         ttk.Label(general, text=_("Stato:"), font=(None, 10)).grid(
@@ -256,10 +274,16 @@ class PotentialSupplierDialog(tk.Toplevel):
             return
 
         self.var_supplier_name.set(supplier.supplier_name or "")
-        self.var_category.set(supplier.category or "")
+        cat = supplier.category or ""
+        if cat in self._known_categories:
+            self.var_category.set(cat)
+            self.var_new_category.set("")
+        else:
+            self.var_category.set("")
+            self.var_new_category.set(cat)
         self.var_status.set(
             supplier.supplier_status if supplier.supplier_status in SUPPLIER_STATUS_CHOICES
-            else SUPPLIER_STATUS_CHOICES[1]
+            else SUPPLIER_STATUS_CHOICES[0]
         )
         self.var_contact.set(supplier.contact_name or "")
         self.var_email.set(supplier.email or "")
@@ -300,7 +324,7 @@ class PotentialSupplierDialog(tk.Toplevel):
         supplier = PotentialSupplier(
             id=self.supplier_id,  # None per NEW, int per EDIT
             supplier_name=supplier_name,
-            category=self.var_category.get().strip(),
+            category=self.var_new_category.get().strip() or self.var_category.get().strip(),
             supplier_status=self.var_status.get(),
             contact_name=self.var_contact.get().strip(),
             email=self.var_email.get().strip(),
@@ -339,7 +363,7 @@ class PotentialSupplierDialog(tk.Toplevel):
         """Disabilita tutti i campi di input (modalità read_only)."""
         for widget in (
             self._entry_supplier_name,
-            self._entry_category,
+            self._entry_new_category,
             self._entry_contact,
             self._entry_email,
             self._entry_phone,
@@ -347,5 +371,18 @@ class PotentialSupplierDialog(tk.Toplevel):
         ):
             widget.configure(state="disabled")
 
+        self._combo_category.configure(state="disabled")
         self._combo_status.configure(state="disabled")
         self._text_notes.configure(state="disabled")
+
+    # -----------------------------------------------------------------------
+    # HELPERS
+    # -----------------------------------------------------------------------
+
+    def _load_known_categories(self) -> list:
+        """Carica la lista di categorie distinte dal DB per la Combobox."""
+        try:
+            with DatabaseManager(get_db_path()) as db:
+                return get_distinct_macrocategories(db)
+        except Exception:
+            return []

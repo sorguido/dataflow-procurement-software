@@ -11,14 +11,16 @@ from typing import Optional
 
 
 # Valori ammessi per supplier_status (usati in UI e query KPI)
-SUPPLIER_STATUS_ACTIVE   = "Attivo"
-SUPPLIER_STATUS_PROSPECT = "Prospect"
-SUPPLIER_STATUS_INACTIVE = "Non attivo"
+SUPPLIER_STATUS_NUOVO          = "Nuovo"
+SUPPLIER_STATUS_IN_VALUTAZIONE = "In valutazione"
+SUPPLIER_STATUS_QUALIFICATO    = "Qualificato"
+SUPPLIER_STATUS_SCARTATO       = "Scartato"
 
 SUPPLIER_STATUS_CHOICES = [
-    SUPPLIER_STATUS_ACTIVE,
-    SUPPLIER_STATUS_PROSPECT,
-    SUPPLIER_STATUS_INACTIVE,
+    SUPPLIER_STATUS_NUOVO,
+    SUPPLIER_STATUS_IN_VALUTAZIONE,
+    SUPPLIER_STATUS_QUALIFICATO,
+    SUPPLIER_STATUS_SCARTATO,
 ]
 
 
@@ -51,7 +53,7 @@ class PotentialSupplier:
     # Dati anagrafici
     supplier_name: str = ""
     category: str = ""
-    supplier_status: str = SUPPLIER_STATUS_PROSPECT
+    supplier_status: str = SUPPLIER_STATUS_NUOVO
 
     # Contatti
     contact_name: str = ""
