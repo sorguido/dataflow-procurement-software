@@ -1972,6 +1972,64 @@ class MainWindow:
                 "error",
             )
 
+    def _auto_size_supplier_sheet(self, sheet, data_rows):
+        """
+        Calcola larghezze colonne in base a header + contenuto celle e le applica.
+
+        Tutte le colonne vengono misurate dinamicamente tranne "Note", che usa una
+        larghezza fissa (1.5x il valore iniziale in _vsm_col_widths), calcolata una
+        sola volta e invariante nei refresh successivi.
+
+        Deve essere chiamata PRIMA di redraw(), dopo set_sheet_data().
+        """
+        headers = getattr(sheet, '_vsm_headers', [])
+        if not headers:
+            return
+
+        # Identifica la colonna Note tramite header (non indice hardcoded)
+        _note_header = _("Note")
+        note_idx = next((i for i, h in enumerate(headers) if h == _note_header), None)
+
+        try:
+            import tkinter.font as tkfont
+            cell_font = tkfont.Font(family="Calibri", size=11, weight="normal")
+            header_font = tkfont.Font(family="Calibri", size=11, weight="bold")
+        except Exception:
+            # tkfont non disponibile: ripristina larghezze fisse originali
+            if hasattr(sheet, '_vsm_col_widths'):
+                sheet.set_column_widths(sheet._vsm_col_widths)
+            return
+
+        _PADDING = 20
+
+        # Larghezza Note: calcolata una sola volta (prima chiamata), poi immutabile
+        if note_idx is not None and not hasattr(sheet, '_note_col_width'):
+            base_widths = getattr(sheet, '_vsm_col_widths', None)
+            if base_widths and note_idx < len(base_widths):
+                sheet._note_col_width = int(base_widths[note_idx] * 1.5)
+            else:
+                sheet._note_col_width = 450
+
+        widths = []
+        for col_idx, header_text in enumerate(headers):
+            if col_idx == note_idx:
+                widths.append(sheet._note_col_width)
+                continue
+
+            # Larghezza minima = header con padding
+            w = header_font.measure(header_text) + _PADDING
+
+            # Allarga se una cella supera l'header
+            for row in data_rows:
+                if col_idx < len(row):
+                    cw = cell_font.measure(str(row[col_idx])) + _PADDING
+                    if cw > w:
+                        w = cw
+
+            widths.append(max(80, w))
+
+        sheet.set_column_widths(widths)
+
     def _populate_potential_suppliers_sheet(self, sheet, suppliers):
         """
         Popola il tksheet Derisking con una lista di PotentialSupplier.
@@ -2005,12 +2063,15 @@ class MainWindow:
             })
 
         sheet.set_sheet_data(data_rows, reset_col_positions=False)
-        # Riapplica larghezze e allineamento dopo set_sheet_data
-        if hasattr(sheet, '_vsm_col_widths'):
-            sheet.set_column_widths(sheet._vsm_col_widths)
+        # Larghezze dinamiche (content-aware) + allineamento, prima del redraw
+        self._auto_size_supplier_sheet(sheet, data_rows)
         if hasattr(sheet, '_vsm_align_cols'):
             sheet.align_columns(columns=sheet._vsm_align_cols, align="center")
         sheet.redraw()
+
+        sheet._supplier_metadata = metadata
+        # Azzera _event_metadata: evita che codice VSM operi su righe fornitore
+        sheet._event_metadata = []
 
         sheet._supplier_metadata = metadata
         # Azzera _event_metadata: evita che codice VSM operi su righe fornitore
