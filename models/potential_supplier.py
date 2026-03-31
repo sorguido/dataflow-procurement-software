@@ -33,8 +33,7 @@ class PotentialSupplier:
     Attributi:
         id:                Identificativo univoco (None per record non ancora persistito)
         supplier_name:     Ragione sociale / nome fornitore (obbligatorio)
-        macrocategory:     Macrocategoria merceologica (es. "Acciaio", "Plastica")
-        merchandise_class: Classe merceologica di dettaglio
+        category:          Categoria merceologica (es. "Acciaio", "Plastica")
         supplier_status:   Stato del fornitore (Attivo / Prospect / Non attivo)
         contact_name:      Nome referente commerciale
         email:             Email di contatto
@@ -51,8 +50,7 @@ class PotentialSupplier:
 
     # Dati anagrafici
     supplier_name: str = ""
-    macrocategory: str = ""
-    merchandise_class: str = ""
+    category: str = ""
     supplier_status: str = SUPPLIER_STATUS_PROSPECT
 
     # Contatti
@@ -84,19 +82,18 @@ class PotentialSupplier:
     def to_dict(self) -> dict:
         """Converte il record in dizionario per la persistenza."""
         return {
-            'id':                self.id,
-            'supplier_name':     self.supplier_name,
-            'macrocategory':     self.macrocategory,
-            'merchandise_class': self.merchandise_class,
-            'supplier_status':   self.supplier_status,
-            'contact_name':      self.contact_name,
-            'email':             self.email,
-            'phone':             self.phone,
-            'website':           self.website,
-            'notes':             self.notes,
-            'username':          self.username,
-            'created_at':        self.created_at.isoformat() if self.created_at else None,
-            'updated_at':        self.updated_at.isoformat() if self.updated_at else None,
+            'id':              self.id,
+            'supplier_name':   self.supplier_name,
+            'category':        self.category,
+            'supplier_status': self.supplier_status,
+            'contact_name':    self.contact_name,
+            'email':           self.email,
+            'phone':           self.phone,
+            'website':         self.website,
+            'notes':           self.notes,
+            'username':        self.username,
+            'created_at':      self.created_at.isoformat() if self.created_at else None,
+            'updated_at':      self.updated_at.isoformat() if self.updated_at else None,
         }
 
     @classmethod
@@ -111,28 +108,29 @@ class PotentialSupplier:
             # sqlite3.Row con row_factory abilitato
             data = dict(row)
         else:
-            # Fallback tuple posizionale (ordine colonne come in CREATE TABLE)
+            # Fallback tuple posizionale (ordine colonne come in SELECT)
+            # supplier_id(0), supplier_name(1), category(2), supplier_status(3),
+            # contact_name(4), email(5), phone(6), website(7), notes(8),
+            # username(9), created_at(10), updated_at(11)
             data = {
-                'supplier_id':       row[0],
-                'supplier_name':     row[1],
-                'macrocategory':     row[2],
-                'merchandise_class': row[3],
-                'supplier_status':   row[4],
-                'contact_name':      row[5],
-                'email':             row[6],
-                'phone':             row[7],
-                'website':           row[8],
-                'notes':             row[9],
-                'username':          row[10],
-                'created_at':        row[11],
-                'updated_at':        row[12],
+                'supplier_id':   row[0],
+                'supplier_name': row[1],
+                'category':      row[2],
+                'supplier_status': row[3],
+                'contact_name':  row[4],
+                'email':         row[5],
+                'phone':         row[6],
+                'website':       row[7],
+                'notes':         row[8],
+                'username':      row[9],
+                'created_at':    row[10],
+                'updated_at':    row[11],
             }
 
         return cls(
             id=data.get('supplier_id'),
             supplier_name=data.get('supplier_name') or '',
-            macrocategory=data.get('macrocategory') or '',
-            merchandise_class=data.get('merchandise_class') or '',
+            category=data.get('category') or '',
             supplier_status=data.get('supplier_status') or SUPPLIER_STATUS_PROSPECT,
             contact_name=data.get('contact_name') or '',
             email=data.get('email') or '',

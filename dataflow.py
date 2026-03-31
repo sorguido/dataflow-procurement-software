@@ -1804,12 +1804,12 @@ class MainWindow:
         frame.pack(fill="both", expand=True)
 
         headers = [
-            _("Fornitore"), _("Macrocategoria"), _("Classe merceologica"),
+            _("Fornitore"), _("Categoria"),
             _("Stato"), _("Contatto"), _("E-mail"),
             _("Telefono"), _("Web"), _("Note"), _("Utente"),
         ]
         # Colonne da centrare: Stato, Telefono, Utente
-        align_cols = [3, 6, 9]
+        align_cols = [2, 5, 8]
         n_cols = len(headers)
 
         # Larghezze fisse: Note è la colonna "lunga", le altre proporzionali
@@ -1818,7 +1818,7 @@ class MainWindow:
             _hfont = tkfont.Font(family="Calibri", size=11, weight="bold")
             _HEADER_PADDING = 30
             _NOTE_WIDTH = 300
-            _NOTE_IDX = 8
+            _NOTE_IDX = 7
             col_widths = [
                 _NOTE_WIDTH if i == _NOTE_IDX
                 else max(80, _hfont.measure(h) + _HEADER_PADDING)
@@ -1988,8 +1988,7 @@ class MainWindow:
         for s in suppliers:
             data_rows.append([
                 s.supplier_name or "",
-                s.macrocategory or "",
-                s.merchandise_class or "",
+                s.category or "",
                 s.supplier_status or "",
                 s.contact_name or "",
                 s.email or "",

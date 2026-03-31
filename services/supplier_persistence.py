@@ -185,22 +185,22 @@ def get_supplier_kpi(
     Returns::
 
         {
-            "total_suppliers":           int,   # totale record
-            "distinct_macrocategories":  int,   # macrocategorie distinte (non vuote)
-            "unclassified_suppliers":    int,   # senza macrocategoria
-            "by_status":                 dict,  # {status_str: count}
-            "by_macrocategory":          dict,  # {macrocategory_str: count}
-            "new_in_period":             int,   # inseriti nel periodo date_from/date_to
+            "total_suppliers":      int,   # totale record
+            "distinct_categories":  int,   # categorie distinte (non vuote)
+            "unclassified_suppliers": int,  # senza categoria
+            "by_status":            dict,  # {status_str: count}
+            "by_category":          dict,  # {category_str: count}
+            "new_in_period":        int,   # inseriti nel periodo date_from/date_to
         }
 
     Non lancia eccezioni: in caso di errore restituisce valori a zero.
     """
     result = {
         "total_suppliers":          0,
-        "distinct_macrocategories": 0,
+        "distinct_categories":      0,
         "unclassified_suppliers":   0,
         "by_status":                {},
-        "by_macrocategory":         {},
+        "by_category":              {},
         "new_in_period":            0,
     }
 
@@ -229,24 +229,24 @@ def get_supplier_kpi(
         row = cursor.fetchone()
         result["total_suppliers"] = row[0] if row and row[0] is not None else 0
 
-        # 2. Macrocategorie distinte (non vuote)
+        # 2. Categorie distinte (non vuote)
         cursor.execute(
             f"""
-            SELECT COUNT(DISTINCT macrocategory)
+            SELECT COUNT(DISTINCT category)
             FROM potential_suppliers
-            {_where(base_clauses + ["macrocategory IS NOT NULL", "TRIM(macrocategory) != ''"])}
+            {_where(base_clauses + ["category IS NOT NULL", "TRIM(category) != ''"])}
             """,
             tuple(base_params),
         )
         row = cursor.fetchone()
-        result["distinct_macrocategories"] = row[0] if row and row[0] is not None else 0
+        result["distinct_categories"] = row[0] if row and row[0] is not None else 0
 
-        # 3. Fornitori senza classificazione (macrocategory vuota o NULL)
+        # 3. Fornitori senza classificazione (category vuota o NULL)
         cursor.execute(
             f"""
             SELECT COUNT(*)
             FROM potential_suppliers
-            {_where(base_clauses + ["(macrocategory IS NULL OR TRIM(macrocategory) = '')"])}
+            {_where(base_clauses + ["(category IS NULL OR TRIM(category) = '')"])}
             """,
             tuple(base_params),
         )
@@ -268,18 +268,18 @@ def get_supplier_kpi(
             (row[0] or ""): row[1] for row in cursor.fetchall()
         }
 
-        # 5. Conteggio per macrocategoria (inclusa "" per non classificati)
+        # 5. Conteggio per categoria (inclusa "" per non classificati)
         cursor.execute(
             f"""
-            SELECT COALESCE(macrocategory, '') AS mc, COUNT(*) AS cnt
+            SELECT COALESCE(category, '') AS cat, COUNT(*) AS cnt
             FROM potential_suppliers
             {w_base}
-            GROUP BY mc
+            GROUP BY cat
             ORDER BY cnt DESC
             """,
             tuple(base_params),
         )
-        result["by_macrocategory"] = {
+        result["by_category"] = {
             row[0]: row[1] for row in cursor.fetchall()
         }
 

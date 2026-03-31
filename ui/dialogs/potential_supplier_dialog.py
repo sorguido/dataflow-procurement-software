@@ -70,8 +70,7 @@ class PotentialSupplierDialog(tk.Toplevel):
 
         # --- Variabili tk ---
         self.var_supplier_name = tk.StringVar()
-        self.var_macrocategory = tk.StringVar()
-        self.var_merchandise_class = tk.StringVar()
+        self.var_category = tk.StringVar()
         self.var_status = tk.StringVar(value=SUPPLIER_STATUS_CHOICES[1])  # "Prospect"
         self.var_contact = tk.StringVar()
         self.var_email = tk.StringVar()
@@ -129,19 +128,10 @@ class PotentialSupplierDialog(tk.Toplevel):
         ttk.Label(general, text=_("Categoria:"), font=(None, 10)).grid(
             row=row, column=0, sticky="w", padx=(0, 10), pady=5
         )
-        self._entry_macrocategory = ttk.Entry(
-            general, textvariable=self.var_macrocategory, width=38
+        self._entry_category = ttk.Entry(
+            general, textvariable=self.var_category, width=38
         )
-        self._entry_macrocategory.grid(row=row, column=1, sticky="ew", pady=5)
-        row += 1
-
-        ttk.Label(general, text=_("Classe merceologica:"), font=(None, 10)).grid(
-            row=row, column=0, sticky="w", padx=(0, 10), pady=5
-        )
-        self._entry_merch_class = ttk.Entry(
-            general, textvariable=self.var_merchandise_class, width=38
-        )
-        self._entry_merch_class.grid(row=row, column=1, sticky="ew", pady=5)
+        self._entry_category.grid(row=row, column=1, sticky="ew", pady=5)
         row += 1
 
         ttk.Label(general, text=_("Stato:"), font=(None, 10)).grid(
@@ -266,8 +256,7 @@ class PotentialSupplierDialog(tk.Toplevel):
             return
 
         self.var_supplier_name.set(supplier.supplier_name or "")
-        self.var_macrocategory.set(supplier.macrocategory or "")
-        self.var_merchandise_class.set(supplier.merchandise_class or "")
+        self.var_category.set(supplier.category or "")
         self.var_status.set(
             supplier.supplier_status if supplier.supplier_status in SUPPLIER_STATUS_CHOICES
             else SUPPLIER_STATUS_CHOICES[1]
@@ -311,8 +300,7 @@ class PotentialSupplierDialog(tk.Toplevel):
         supplier = PotentialSupplier(
             id=self.supplier_id,  # None per NEW, int per EDIT
             supplier_name=supplier_name,
-            macrocategory=self.var_macrocategory.get().strip(),
-            merchandise_class=self.var_merchandise_class.get().strip(),
+            category=self.var_category.get().strip(),
             supplier_status=self.var_status.get(),
             contact_name=self.var_contact.get().strip(),
             email=self.var_email.get().strip(),
@@ -351,8 +339,7 @@ class PotentialSupplierDialog(tk.Toplevel):
         """Disabilita tutti i campi di input (modalità read_only)."""
         for widget in (
             self._entry_supplier_name,
-            self._entry_macrocategory,
-            self._entry_merch_class,
+            self._entry_category,
             self._entry_contact,
             self._entry_email,
             self._entry_phone,

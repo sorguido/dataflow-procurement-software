@@ -292,6 +292,21 @@ class DatabaseManager:
                 'CREATE INDEX IF NOT EXISTS idx_ps_status ON potential_suppliers(supplier_status)'
             )
 
+            # Migrazione conservativa: aggiunge colonna category (idempotente)
+            self.cursor.execute("PRAGMA table_info(potential_suppliers)")
+            existing_cols = {row[1] for row in self.cursor.fetchall()}
+            if 'category' not in existing_cols:
+                self.cursor.execute(
+                    "ALTER TABLE potential_suppliers ADD COLUMN category TEXT NOT NULL DEFAULT ''"
+                )
+                self.cursor.execute(
+                    "UPDATE potential_suppliers SET category = macrocategory "
+                    "WHERE category = '' OR category IS NULL"
+                )
+            self.cursor.execute(
+                'CREATE INDEX IF NOT EXISTS idx_ps_category ON potential_suppliers(category)'
+            )
+
             # Commit finale
             self.conn.commit()
             
@@ -2500,15 +2515,14 @@ class DatabaseManager:
             self.cursor.execute(
                 """
                 INSERT INTO potential_suppliers
-                    (supplier_name, macrocategory, merchandise_class,
+                    (supplier_name, category,
                      supplier_status, contact_name, email, phone,
                      website, notes, username, created_at, updated_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     supplier.supplier_name,
-                    supplier.macrocategory,
-                    supplier.merchandise_class,
+                    supplier.category,
                     supplier.supplier_status,
                     supplier.contact_name,
                     supplier.email,
@@ -2542,8 +2556,7 @@ class DatabaseManager:
                 """
                 UPDATE potential_suppliers
                 SET supplier_name     = ?,
-                    macrocategory     = ?,
-                    merchandise_class = ?,
+                    category          = ?,
                     supplier_status   = ?,
                     contact_name      = ?,
                     email             = ?,
@@ -2556,8 +2569,7 @@ class DatabaseManager:
                 """,
                 (
                     supplier.supplier_name,
-                    supplier.macrocategory,
-                    supplier.merchandise_class,
+                    supplier.category,
                     supplier.supplier_status,
                     supplier.contact_name,
                     supplier.email,
@@ -2601,8 +2613,8 @@ class DatabaseManager:
         try:
             self.cursor.execute(
                 """
-                SELECT supplier_id, supplier_name, macrocategory,
-                       merchandise_class, supplier_status, contact_name,
+                SELECT supplier_id, supplier_name, category,
+                       supplier_status, contact_name,
                        email, phone, website, notes, username,
                        created_at, updated_at
                 FROM potential_suppliers
@@ -2630,8 +2642,8 @@ class DatabaseManager:
             if username:
                 self.cursor.execute(
                     """
-                    SELECT supplier_id, supplier_name, macrocategory,
-                           merchandise_class, supplier_status, contact_name,
+                    SELECT supplier_id, supplier_name, category,
+                           supplier_status, contact_name,
                            email, phone, website, notes, username,
                            created_at, updated_at
                     FROM potential_suppliers
@@ -2643,8 +2655,8 @@ class DatabaseManager:
             else:
                 self.cursor.execute(
                     """
-                    SELECT supplier_id, supplier_name, macrocategory,
-                           merchandise_class, supplier_status, contact_name,
+                    SELECT supplier_id, supplier_name, category,
+                           supplier_status, contact_name,
                            email, phone, website, notes, username,
                            created_at, updated_at
                     FROM potential_suppliers
@@ -2666,10 +2678,10 @@ class DatabaseManager:
         try:
             self.cursor.execute(
                 """
-                SELECT DISTINCT macrocategory
+                SELECT DISTINCT category
                 FROM potential_suppliers
-                WHERE macrocategory IS NOT NULL AND TRIM(macrocategory) != ''
-                ORDER BY macrocategory ASC
+                WHERE category IS NOT NULL AND TRIM(category) != ''
+                ORDER BY category ASC
                 """
             )
             return [row[0] for row in self.cursor.fetchall()]
