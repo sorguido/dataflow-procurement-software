@@ -3732,7 +3732,10 @@ class MainWindow:
         # 1. Identifica quale tabella è attiva e recupera lo stato corrente
         current_tree, status = self.get_current_tree_and_status()
         
-        # VSM tabs: dispatch to dedicated VSM export
+        # VSM tabs: dispatch to dedicated export handlers
+        if status == 'vsm_derisking':
+            self._export_derisking_excel()
+            return
         if status.startswith('vsm_'):
             self._export_vsm_excel(status, current_tree)
             return
@@ -4033,25 +4036,11 @@ class MainWindow:
             SimpleMessageDialog(self.root, _("Errore"), _("Errore durante l'esportazione: {}").format(e), "error")
 
     def _export_vsm_excel(self, status, sheet):
-        """Esporta i dati VSM del tab corrente in un file Excel.
+        """Esporta i dati VSM (Saving / Cost Avoidance) del tab corrente in un file Excel.
 
-        Flusso identico a mega_export_excel:
-        1. Dialog scelta lingua (LanguagePrompt)
-        2. Re-query DB → eventi raw (valori numerici puliti, senza simbolo €)
-        3. Intestazioni basate sulla lingua scelta
-        4. Scrittura Excel con numeri float, non stringhe formattate
+        Gestisce solo status in {'vsm_saving', 'vsm_cost_avoidance'}.
+        Il tab Derisking è gestito separatamente da _export_derisking_excel().
         """
-        # Il tab Derisking è supplier-based: l'export dei fornitori potenziali
-        # non è ancora disponibile (prossimo step con created_at + KPI temporali).
-        if status == 'vsm_derisking':
-            SimpleMessageDialog(
-                self.root,
-                _("Export non disponibile"),
-                _("L'export Excel per i fornitori potenziali non è ancora disponibile."),
-                "info"
-            )
-            return
-
         status_to_event_type = {
             'vsm_saving': 'Saving',
             'vsm_cost_avoidance': 'Cost Avoidance',
@@ -4090,9 +4079,6 @@ class MainWindow:
             elif event_type == "Cost Avoidance":
                 headers = ["Data", "Tipo", "Azione", "Descrizione",
                            "CA Teorico", "CA Effettivo", "Realizzo %", "Variance %", "Ripetitivo", "Utente"]
-            else:  # Derisking
-                headers = ["Data", "Tipo", "Azione", "Nuovo Fornitore", "Descrizione",
-                           "Valore Teorico", "Realizzo %", "Ripetitivo", "Utente"]
         else:
             if event_type == "Saving":
                 headers = ["Date", "Type", "Action", "Description",
@@ -4100,9 +4086,6 @@ class MainWindow:
             elif event_type == "Cost Avoidance":
                 headers = ["Date", "Type", "Action", "Description",
                            "CA Theoretical", "CA Actual", "Realization %", "Variance %", "Repetitive", "User"]
-            else:  # Derisking
-                headers = ["Date", "Type", "Action", "New Supplier", "Description",
-                           "Theoretical Value", "Realization %", "Repetitive", "User"]
 
         # 4. Costruzione righe con valori numerici raw (nessun simbolo €, nessuna formattazione display)
         data_rows = []
@@ -4131,15 +4114,6 @@ class MainWindow:
                     date_str, event.event_type, action_str, desc,
                     round(valore_teorico, 2), round(valore_effettivo, 2),
                     round(event.percent_realizzo, 1), _variance_pct,
-                    "✓" if event.opex_ripetitivo else "", event.username
-                ]
-            else:  # Derisking
-                row = [
-                    date_str, event.event_type, action_str,
-                    event.new_supplier or "",
-                    desc,
-                    round(valore_teorico, 2),
-                    round(event.percent_realizzo, 1),
                     "✓" if event.opex_ripetitivo else "", event.username
                 ]
             data_rows.append(row)
@@ -4201,6 +4175,101 @@ class MainWindow:
                 logger.info(f"Export VSM Excel salvato in: {save_path}")
         except Exception as e:
             logger.error(f"Errore Export VSM Excel: {e}", exc_info=True)
+            SimpleMessageDialog(self.root, _("Errore"), _("Errore durante l'esportazione: {}").format(e), "error")
+
+    def _export_derisking_excel(self):
+        """Esporta i fornitori potenziali del tab Derisking in un file Excel.
+
+        Routing separato da _export_vsm_excel: usa PotentialSupplier, non VSMEvent.
+        """
+        # 1. Scelta lingua — stesso pattern degli altri export
+        prompt = LanguagePrompt(self.root)
+        self.root.wait_window(prompt)
+        lang = prompt.choice  # 'ita' o 'eng'
+        if not lang:
+            return
+        is_ita = (lang == 'ita')
+
+        # 2. Carica tutti i fornitori potenziali dal DB (stesso pattern di _load_potential_suppliers)
+        try:
+            from services.supplier_persistence import get_all_suppliers
+            username_filter = self._get_active_username_filter(self.vsm_username_filter_var)
+            with DatabaseManager(get_db_path()) as db_manager:
+                suppliers = get_all_suppliers(db_manager, username=username_filter)
+        except Exception as e:
+            logger.error(f"[export_derisking] Errore recupero fornitori: {e}", exc_info=True)
+            SimpleMessageDialog(self.root, _("Errore"), _("Errore nel recupero dati: {}").format(e), "error")
+            return
+
+        if not suppliers:
+            SimpleMessageDialog(self.root, _("Attenzione"), _("Nessun dato da esportare nella vista corrente."), "warning")
+            return
+
+        # 3. Intestazioni localizzate (hardcoded IT/EN, stesso pattern di _export_vsm_excel)
+        if is_ita:
+            headers = ["Fornitore", "Categoria", "Stato", "Contatto", "E-mail", "Telefono", "Web", "Note", "User"]
+        else:
+            headers = ["Supplier", "Category", "Status", "Contact", "E-mail", "Phone", "Web", "Notes", "User"]
+
+        # 4. Costruzione righe dal modello PotentialSupplier
+        data_rows = []
+        for s in suppliers:
+            data_rows.append([
+                s.supplier_name,
+                s.category,
+                s.supplier_status,
+                s.contact_name,
+                s.email,
+                s.phone,
+                s.website,
+                s.notes,
+                s.username,
+            ])
+
+        # 5. Setup Excel — stessi stili di _export_vsm_excel
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = "Derisking"
+
+        thin_border = Border(
+            left=Side(style='thin'), right=Side(style='thin'),
+            top=Side(style='thin'), bottom=Side(style='thin')
+        )
+        bold_font = Font(bold=True)
+        header_fill = PatternFill(start_color='DDDDDD', end_color='DDDDDD', fill_type='solid')
+
+        for col_idx, header in enumerate(headers, start=1):
+            cell = ws.cell(row=1, column=col_idx, value=header)
+            cell.font = bold_font
+            cell.border = thin_border
+            cell.fill = header_fill
+            cell.alignment = Alignment(horizontal='center')
+
+        for row_idx, row_data in enumerate(data_rows, start=2):
+            for col_idx, value in enumerate(row_data, start=1):
+                cell = ws.cell(row=row_idx, column=col_idx, value=value)
+                cell.border = thin_border
+
+        # Larghezze colonne ragionevoli per i campi supplier-based
+        col_widths = [30, 20, 18, 25, 30, 18, 30, 40, 15]
+        for i, width in enumerate(col_widths, start=1):
+            ws.column_dimensions[ws.cell(row=1, column=i).column_letter].width = width
+
+        # 6. Salvataggio — stesso pattern di _export_vsm_excel
+        default_name = f"Export_Derisking_{datetime.now().strftime('%Y%m%d')}.xlsx"
+        try:
+            save_path = filedialog.asksaveasfilename(
+                title=_("Salva Export"),
+                defaultextension=".xlsx",
+                initialfile=default_name,
+                filetypes=[("Excel Files", "*.xlsx")]
+            )
+            if save_path:
+                wb.save(save_path)
+                SimpleMessageDialog(self.root, _("Successo"), _("Export completato con successo:\n{}").format(save_path), "info")
+                logger.info(f"Export Derisking Excel salvato in: {save_path}")
+        except Exception as e:
+            logger.error(f"Errore Export Derisking Excel: {e}", exc_info=True)
             SimpleMessageDialog(self.root, _("Errore"), _("Errore durante l'esportazione: {}").format(e), "error")
 
     def _format_date_for_display(self, db_date):
