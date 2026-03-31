@@ -1870,11 +1870,47 @@ class MainWindow:
         """
         Handler doppio click sul tab Derisking (fornitori potenziali).
 
-        Il dialog di modifica fornitore non è ancora implementato in questo step.
-        Il metodo è preparato per l'integrazione futura.
+        Apre PotentialSupplierDialog in modalità edit.
+        Se il fornitore non appartiene all'utente corrente, apre in read_only.
+        Pattern identico a _on_vsm_sheet_double_click (debounce incluso).
         """
-        # Nessuna azione per ora — dialog fornitore in step successivo
-        pass
+        # Debounce: evita aperture multiple rapide
+        if hasattr(self, '_opening_supplier_edit') and self._opening_supplier_edit:
+            return
+
+        selected_rows = self._get_selected_row_indices(sheet)
+        if not selected_rows:
+            return  # Silent return — nessuna riga selezionata
+
+        row_idx = selected_rows[0]
+
+        if not hasattr(sheet, '_supplier_metadata') or row_idx >= len(sheet._supplier_metadata):
+            return  # Metadata non disponibile o indice fuori range
+
+        metadata = sheet._supplier_metadata[row_idx]
+        supplier_id = metadata.get('supplier_id')
+        is_mine = metadata.get('is_mine', False)
+
+        if not supplier_id:
+            return
+
+        self._opening_supplier_edit = True
+        try:
+            from ui.dialogs.potential_supplier_dialog import PotentialSupplierDialog
+            dlg = PotentialSupplierDialog(
+                self.root,
+                self.current_username,
+                supplier_id=supplier_id,
+                read_only=not is_mine,
+            )
+            self.root.wait_window(dlg)
+            if dlg.result:
+                self._load_potential_suppliers(sheet)
+        except Exception as e:
+            logger.error("Errore apertura dialog fornitore: %s", e, exc_info=True)
+            SimpleMessageDialog(self.root, _("Errore"), _("Impossibile aprire il form: {}").format(e), "error")
+        finally:
+            self.root.after(300, lambda: setattr(self, '_opening_supplier_edit', False))
 
     def _load_vsm_events(self, event_type, sheet):
         """
@@ -2334,15 +2370,21 @@ class MainWindow:
             SimpleMessageDialog(self.root, _("Errore"), _("Impossibile aprire il form: {}").format(e), "error")
     
     def _delete_vsm_events(self):
-        """Handler per eliminazione eventi VSM.
-        
+        """Handler per eliminazione eventi VSM o fornitori potenziali.
+
         Step 4D.3: Implementazione completa con delete_event_and_impacts.
         Pattern estratto da VSMManagementWindow.on_delete_event().
+        Derisking usa il backend fornitori separato (_delete_supplier).
         """
         sheet, status = self.get_current_tree_and_status()
         if not status.startswith('vsm_'):
             return
-        
+
+        # Derisking: routing al backend fornitori potenziali
+        if status == 'vsm_derisking':
+            self._delete_supplier()
+            return
+
         # Ottieni selezione
         selected_rows = self._get_selected_row_indices(sheet)
         
@@ -2400,6 +2442,72 @@ class MainWindow:
         except (DatabaseError, VSMError) as e:
             logger.error(f"Errore eliminazione eventi VSM: {e}")
             SimpleMessageDialog(self.root, _("Errore Eliminazione"), _("Impossibile eliminare gli eventi:\n{}").format(e), "error")
+
+    def _delete_supplier(self):
+        """Handler per eliminazione fornitori potenziali dal tab Derisking.
+
+        Separato da _delete_vsm_events: usa supplier_persistence, non vsm_persistence.
+        Pattern coerente con _delete_vsm_events (confirm dialog, refresh, error handling).
+        """
+        sheet, _ = self.get_current_tree_and_status()
+
+        selected_rows = self._get_selected_row_indices(sheet)
+        if not selected_rows:
+            SimpleMessageDialog(self.root, _("Nessuna Selezione"), _("Seleziona uno o più fornitori da eliminare."), "warning")
+            return
+
+        # Raccolta supplier_id e validazione ownership
+        suppliers_to_delete = []
+        for row_idx in selected_rows:
+            if not hasattr(sheet, '_supplier_metadata') or row_idx >= len(sheet._supplier_metadata):
+                continue
+            metadata = sheet._supplier_metadata[row_idx]
+            if not metadata.get('is_mine', False):
+                SimpleMessageDialog(
+                    self.root,
+                    _("Operazione Non Consentita"),
+                    _("Puoi eliminare solo i tuoi fornitori.\nAlcuni fornitori selezionati appartengono ad altri utenti."),
+                    "error",
+                )
+                return
+            sid = metadata.get('supplier_id')
+            if sid:
+                suppliers_to_delete.append(sid)
+
+        if not suppliers_to_delete:
+            return
+
+        count = len(suppliers_to_delete)
+        if not SimpleYesNoDialog(
+            self.root,
+            _("Conferma Eliminazione"),
+            _("Sei sicuro di voler eliminare {} fornitore(i)?\nQuesta operazione non può essere annullata.").format(count),
+        ).result:
+            return
+
+        from services.supplier_persistence import delete_supplier, SupplierError
+        try:
+            with DatabaseManager(get_db_path()) as db_manager:
+                for sid in suppliers_to_delete:
+                    delete_supplier(db_manager, sid)
+
+            SimpleMessageDialog(
+                self.root,
+                _("Successo"),
+                _("{} fornitore(i) eliminato(i) con successo.").format(count),
+                "info",
+            )
+            self._load_potential_suppliers(self.sheet_derisking)
+            logger.info("Eliminati %d fornitori potenziali", count)
+
+        except (DatabaseError, SupplierError) as e:
+            logger.error("Errore eliminazione fornitori: %s", e)
+            SimpleMessageDialog(
+                self.root,
+                _("Errore Eliminazione"),
+                _("Impossibile eliminare i fornitori:\n{}").format(e),
+                "error",
+            )
 
     def _on_vsm_sheet_double_click(self, sheet, event=None):
         """Gestisce doppio click su riga VSM per aprire edit evento.
@@ -2653,7 +2761,35 @@ class MainWindow:
                 return False  # Almeno un evento non è mio
         
         return True  # Tutti gli eventi selezionati sono miei
-    
+
+    def _check_if_all_suppliers_are_mine(self, sheet, selected_indices):
+        """Verifica se tutti i fornitori potenziali selezionati appartengono all'utente corrente.
+
+        Analogo a _check_if_all_vsm_events_are_mine ma per _supplier_metadata.
+
+        Args:
+            sheet:            Widget tksheet del tab Derisking
+            selected_indices: Lista di indici riga selezionati
+
+        Returns:
+            bool: True se tutti i fornitori selezionati sono dell'utente corrente
+        """
+        if not selected_indices:
+            return False
+
+        if not hasattr(sheet, '_supplier_metadata'):
+            logger.warning("Metadati fornitori non disponibili - blocco operazioni per sicurezza")
+            return False
+
+        for idx in selected_indices:
+            if idx >= len(sheet._supplier_metadata):
+                logger.warning("Indice fornitore %d fuori range metadati (len=%d)", idx, len(sheet._supplier_metadata))
+                continue
+            if not sheet._supplier_metadata[idx].get('is_mine', False):
+                return False  # Almeno un fornitore non è mio
+
+        return True  # Tutti i fornitori selezionati sono miei
+
     def archive_selected_request(self): self._change_request_status('archiviata')
     def reactivate_selected_request(self): self._change_request_status('attiva')
     def _change_request_status(self, new_status):
@@ -2716,8 +2852,11 @@ class MainWindow:
             has_selection = bool(selected_rows_indices)
             num_selected = len(selected_rows_indices) if selected_rows_indices else 0
             
-            # Step 4D.2: Verifica ownership per calcolare capacità
-            all_mine = self._check_if_all_vsm_events_are_mine(sheet, selected_rows_indices) if has_selection else False
+            # Verifica ownership: Derisking usa _supplier_metadata, altri VSM usano _event_metadata
+            if status == 'vsm_derisking':
+                all_mine = self._check_if_all_suppliers_are_mine(sheet, selected_rows_indices) if has_selection else False
+            else:
+                all_mine = self._check_if_all_vsm_events_are_mine(sheet, selected_rows_indices) if has_selection else False
             
             # Calcola capacità per ogni tipo di azione VSM
             can_delete = has_selection and all_mine  # Delete su uno o più eventi propri
@@ -2769,19 +2908,19 @@ class MainWindow:
         
         # Step 4D.2/4D.4/4D.5: Branch VSM
         if status.startswith('vsm_'):
-            # Menu VSM: Delete + Duplicate (Edit tramite double-click)
-            # Ordine identico a RFQ per coerenza UX
+            # Elimina: disponibile per tutti i tab VSM (incluso Derisking)
             self.actions_menu.add_command(
                 label=_("🗑 Elimina"),
                 command=self._delete_vsm_events,
                 state="normal" if can_delete else "disabled"
             )
-            
-            self.actions_menu.add_command(
-                label=_("🔁 Duplica"),
-                command=self._duplicate_vsm_event,
-                state="normal" if can_duplicate else "disabled"
-            )
+            # Duplica: non applicabile per Derisking (fornitori, non eventi economici)
+            if status != 'vsm_derisking':
+                self.actions_menu.add_command(
+                    label=_("🔁 Duplica"),
+                    command=self._duplicate_vsm_event,
+                    state="normal" if can_duplicate else "disabled"
+                )
             return  # Early return per VSM
         
         # RFQ logic (invariata)
@@ -3426,6 +3565,19 @@ class MainWindow:
         
         # Branch 2: VSM - apri dialog CREATE
         elif status.startswith('vsm_'):
+            # Derisking: usa PotentialSupplierDialog (non VSMEventDialog)
+            if status == 'vsm_derisking':
+                from ui.dialogs.potential_supplier_dialog import PotentialSupplierDialog
+                try:
+                    dlg = PotentialSupplierDialog(self.root, self.current_username)
+                    self.root.wait_window(dlg)
+                    if dlg.result:
+                        self._load_potential_suppliers(self.sheet_derisking)
+                except Exception as e:
+                    logger.error("Errore creazione fornitore: %s", e, exc_info=True)
+                    SimpleMessageDialog(self.root, _("Errore"), _("Impossibile aprire il form: {}").format(e), "error")
+                return
+
             # Mappa status → event_type (pattern già usato in _edit_vsm_event)
             event_type_map = {
                 'vsm_saving': 'Saving',
