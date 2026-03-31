@@ -2901,9 +2901,26 @@ class MainWindow:
         self.update_button_visibility()
         self.clear_selection()
         self._update_filter_panel_for_current_tab()
+        self._update_advanced_filters_toggle()
 
     def _update_filter_panel_for_current_tab(self):
         self.dashboard_controller._update_filter_panel_for_current_tab()
+
+    def _update_advanced_filters_toggle(self):
+        """Disabilita visivamente Advanced Filters sul tab Derisking.
+
+        Derisking è supplier-based: i filtri avanzati VSM/RFQ non sono applicabili.
+        Chiude il pannello se era aperto prima dell'arrivo su Derisking.
+        """
+        _, status = self.get_current_tree_and_status()
+        toolbar = getattr(self, 'main_dashboard_toolbar', None)
+        if toolbar is None:
+            return
+        is_derisking = (status == 'vsm_derisking')
+        toolbar.set_advanced_filters_enabled(not is_derisking)
+        if is_derisking and hasattr(self, 'collapsible_filters') and self.collapsible_filters.is_expanded():
+            self.collapsible_filters.toggle()
+            toolbar.filters_toggle_label.config(text=f"⌄ {_('Advanced Filters')}")
     def update_button_visibility(self):
         """Aggiorna lo stato del pulsante Actions in base alla selezione e proprietà delle RfQ"""
         sheet, status = self.get_current_tree_and_status()
@@ -3262,9 +3279,47 @@ class MainWindow:
     _VSM_STATUS_TO_TYPE = {
         'vsm_saving': 'Saving',
         'vsm_cost_avoidance': 'Cost Avoidance',
-        # 'vsm_derisking' escluso: tab supplier-based, non VSM-event-based.
-        # La ricerca globale su fornitori potenziali è gestita separatamente (prossimo step).
+        # 'vsm_derisking' escluso: tab supplier-based, gestito da _search_derisking_suppliers.
     }
+
+    # ================================
+    # Global Search — Derisking handler
+    # ================================
+
+    def _search_derisking_suppliers(self, sheet):
+        """Handler ricerca globale per il tab Derisking (supplier-based).
+
+        Filtra i fornitori potenziali per sottostringa in tutti i campi visibili.
+        Query vuota = ripristina dataset completo (stesso comportamento degli altri tab).
+        """
+        from services.supplier_persistence import get_all_suppliers
+
+        query = self.search_vars['global'].get().strip().lower()
+        username_filter = self._get_active_username_filter(self.vsm_username_filter_var)
+
+        try:
+            with DatabaseManager(get_db_path()) as db_manager:
+                suppliers = get_all_suppliers(db_manager, username=username_filter)
+        except Exception as e:
+            logger.error(f"[DerisSearch] Errore caricamento fornitori: {e}", exc_info=True)
+            return
+
+        if not query:
+            # Query vuota: ripristina dataset completo
+            self._populate_potential_suppliers_sheet(sheet, suppliers)
+            return
+
+        _FIELDS = (
+            'supplier_name', 'category', 'supplier_status',
+            'contact_name', 'email', 'phone', 'website', 'notes', 'username',
+        )
+        results = [
+            s for s in suppliers
+            if any(query in (getattr(s, f) or "").lower() for f in _FIELDS)
+        ]
+
+        logger.info(f"[DerisSearch] query='{query}' risultati={len(results)}")
+        self._populate_potential_suppliers_sheet(sheet, results)
 
     def _search_vsm_events(self, sheet, status):
         """Handler di ricerca globale per il modulo VSM.

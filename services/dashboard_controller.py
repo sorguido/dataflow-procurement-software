@@ -142,11 +142,8 @@ class DashboardController:
         # Dispatch al handler del modulo corrente.
         # Per aggiungere un nuovo modulo: aggiungere un elif e creare _search_<modulo>().
         if status.startswith('vsm_'):
-            # Il tab Derisking è supplier-based, non VSM-event-based.
-            # La ricerca globale su fornitori potenziali non è ancora implementata.
-            # Non delegare a _search_vsm_events per evitare di corrompere lo sheet fornitore
-            # con righe VSM a struttura incompatibile. Comportamento intenzionale.
             if status == 'vsm_derisking':
+                self.app._search_derisking_suppliers(tree)
                 return
             self.app._search_vsm_events(tree, status)
             return

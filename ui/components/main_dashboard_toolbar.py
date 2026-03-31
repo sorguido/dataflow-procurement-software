@@ -240,3 +240,19 @@ class MainDashboardToolbar(ttk.Frame):
                     self.filters_toggle_label.config(text=f"⌃ {_('Advanced Filters')}")
                 else:
                     self.filters_toggle_label.config(text=f"⌄ {_('Advanced Filters')}")
+
+    def set_advanced_filters_enabled(self, enabled: bool):
+        """Abilita o disabilita visivamente il toggle Advanced Filters.
+
+        Chiamato da MainWindow._update_advanced_filters_toggle() al cambio tab.
+        Sul tab Derisking (supplier-based) i filtri avanzati non sono pertinenti.
+
+        Args:
+            enabled: True = normale (cliccabile, blu); False = disabilitato (grigio)
+        """
+        if enabled:
+            self.filters_toggle_label.config(foreground="#0066cc", cursor="hand2")
+            self.filters_toggle_label.bind("<Button-1>", self._on_toggle_filters)
+        else:
+            self.filters_toggle_label.config(foreground="#aaaaaa", cursor="")
+            self.filters_toggle_label.unbind("<Button-1>")
