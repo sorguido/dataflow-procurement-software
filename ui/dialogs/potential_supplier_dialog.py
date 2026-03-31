@@ -15,8 +15,12 @@ from services.supplier_persistence import (
     create_supplier,
     update_supplier,
     get_supplier_by_id,
-    get_distinct_macrocategories,
     SupplierError,
+)
+from services.supplier_category_persistence import (
+    get_all_supplier_categories,
+    ensure_supplier_category_exists,
+    CategoryError,
 )
 from models.potential_supplier import PotentialSupplier, SUPPLIER_STATUS_CHOICES
 
@@ -241,6 +245,13 @@ class PotentialSupplierDialog(tk.Toplevel):
                 command=self._on_save,
                 width=12,
             ).pack(side="right")
+            self._btn_manage_categories = ttk.Button(
+                btn_frame,
+                text=_("Gestisci Categorie"),
+                command=self._on_manage_categories,
+                width=18,
+            )
+            self._btn_manage_categories.pack(side="left")
 
         # Chiusura con X
         self.protocol("WM_DELETE_WINDOW", self.destroy)
@@ -321,10 +332,12 @@ class PotentialSupplierDialog(tk.Toplevel):
         saved_username = self._entry_username.get().strip() or self.current_username
         self._entry_username.configure(state="disabled")
 
+        category = self.var_new_category.get().strip() or self.var_category.get().strip()
+
         supplier = PotentialSupplier(
             id=self.supplier_id,  # None per NEW, int per EDIT
             supplier_name=supplier_name,
-            category=self.var_new_category.get().strip() or self.var_category.get().strip(),
+            category=category,
             supplier_status=self.var_status.get(),
             contact_name=self.var_contact.get().strip(),
             email=self.var_email.get().strip(),
@@ -336,6 +349,8 @@ class PotentialSupplierDialog(tk.Toplevel):
 
         try:
             with DatabaseManager(get_db_path()) as db:
+                if category:
+                    ensure_supplier_category_exists(db, category)
                 if self.is_edit_mode:
                     update_supplier(db, supplier)
                     logger.info("Fornitore ID %s aggiornato.", self.supplier_id)
@@ -380,9 +395,46 @@ class PotentialSupplierDialog(tk.Toplevel):
     # -----------------------------------------------------------------------
 
     def _load_known_categories(self) -> list:
-        """Carica la lista di categorie distinte dal DB per la Combobox."""
+        """Carica la lista di categorie distinte dal catalogo ufficiale."""
         try:
             with DatabaseManager(get_db_path()) as db:
-                return get_distinct_macrocategories(db)
+                return get_all_supplier_categories(db)
         except Exception:
             return []
+
+    def _refresh_categories(self, prefer: str = None):
+        """
+        Ricarica i valori della combo categorie dal DB.
+
+        Preserva la selezione corrente se ancora valida.
+        Se il valore corrente non è più nel catalogo:
+          - se `prefer` è fornito (es. nuovo nome dopo rinomina/unione): usarlo
+          - altrimenti svuota la selezione come fallback sicuro
+
+        Args:
+            prefer: valore da pre-selezionare dopo un'operazione che cambia il nome
+        """
+        current = self.var_category.get()
+        try:
+            with DatabaseManager(get_db_path()) as db:
+                new_categories = get_all_supplier_categories(db)
+        except Exception:
+            new_categories = []
+
+        self._known_categories = new_categories
+        self._combo_category.configure(values=new_categories)
+
+        if prefer and prefer in new_categories:
+            self.var_category.set(prefer)
+        elif current in new_categories:
+            self.var_category.set(current)   # mantieni selezione valida
+        else:
+            self.var_category.set("")         # fallback: svuota
+
+    def _on_manage_categories(self):
+        """Apre il dialog Gestisci Categorie e refresha la combo al ritorno."""
+        from ui.dialogs.manage_supplier_categories_dialog import ManageSupplierCategoriesDialog
+        dlg = ManageSupplierCategoriesDialog(self)
+        self.wait_window(dlg)
+        if dlg.changes_made:
+            self._refresh_categories()

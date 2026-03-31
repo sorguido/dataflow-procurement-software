@@ -307,6 +307,25 @@ class DatabaseManager:
                 'CREATE INDEX IF NOT EXISTS idx_ps_category ON potential_suppliers(category)'
             )
 
+            # ========== TABELLA CATEGORIE FORNITORI POTENZIALI ==========
+            # Anagrafica centrale delle categorie. supplier_categories.name è il catalogo
+            # ufficiale. potential_suppliers.category resta TEXT (nessun FK).
+            self.cursor.execute('''
+                CREATE TABLE IF NOT EXISTS supplier_categories (
+                    id   INTEGER PRIMARY KEY AUTOINCREMENT,
+                    name TEXT    NOT NULL UNIQUE
+                )
+            ''')
+            # Migrazione idempotente: importa categorie già presenti nei supplier
+            self.cursor.execute(
+                """
+                INSERT OR IGNORE INTO supplier_categories (name)
+                SELECT DISTINCT TRIM(category)
+                FROM potential_suppliers
+                WHERE category IS NOT NULL AND TRIM(category) != ''
+                """
+            )
+
             # Commit finale
             self.conn.commit()
             
@@ -2687,4 +2706,188 @@ class DatabaseManager:
             return [row[0] for row in self.cursor.fetchall()]
         except Exception as e:
             print(f"[DB Manager] Errore get_distinct_macrocategories: {e}")
+            raise DatabaseError(str(e)) from e
+
+    # -----------------------------------------------------------------------
+    # METODI SUPPLIER_CATEGORIES
+    # -----------------------------------------------------------------------
+
+    def get_all_supplier_categories(self) -> list:
+        """Restituisce la lista ordinata di categorie dal catalogo ufficiale."""
+        try:
+            self.cursor.execute(
+                "SELECT name FROM supplier_categories ORDER BY name ASC"
+            )
+            return [row[0] for row in self.cursor.fetchall()]
+        except Exception as e:
+            print(f"[DB Manager] Errore get_all_supplier_categories: {e}")
+            raise DatabaseError(str(e)) from e
+
+    def ensure_supplier_category_exists(self, name: str) -> None:
+        """Crea la categoria se non esiste già (trim, idempotente)."""
+        name = name.strip()
+        if not name:
+            return
+        try:
+            self.cursor.execute(
+                "INSERT OR IGNORE INTO supplier_categories (name) VALUES (?)", (name,)
+            )
+            self.conn.commit()
+        except Exception as e:
+            print(f"[DB Manager] Errore ensure_supplier_category_exists: {e}")
+            raise DatabaseError(str(e)) from e
+
+    def rename_supplier_category(self, old_name: str, new_name: str) -> None:
+        """
+        Rinomina una categoria in modo transazionale.
+
+        Ordine sicuro:
+        1. validazioni + controlli esistenza
+        2. garantisce new_name in supplier_categories
+        3. UPDATE potential_suppliers old → new
+        4. DELETE old da supplier_categories
+
+        Raises:
+            DatabaseError: se old_name non esiste; se new_name esiste già
+                           (segnale di usare merge); se errore DB.
+        """
+        old_name = old_name.strip()
+        new_name = new_name.strip()
+        if not old_name:
+            raise DatabaseError("old_name non può essere vuoto.")
+        if not new_name:
+            raise DatabaseError("new_name non può essere vuoto.")
+        if old_name == new_name:
+            return  # no-op
+
+        try:
+            # Verifica esistenza old_name
+            self.cursor.execute(
+                "SELECT 1 FROM supplier_categories WHERE name = ?", (old_name,)
+            )
+            if not self.cursor.fetchone():
+                raise DatabaseError(f"Categoria '{old_name}' non trovata.")
+
+            # Blocca se new_name esiste già
+            self.cursor.execute(
+                "SELECT 1 FROM supplier_categories WHERE name = ?", (new_name,)
+            )
+            if self.cursor.fetchone():
+                raise DatabaseError(
+                    f"La categoria '{new_name}' esiste già. Usa la funzione Unisci."
+                )
+
+            # Transazione atomica
+            self.cursor.execute("BEGIN")
+            self.cursor.execute(
+                "INSERT OR IGNORE INTO supplier_categories (name) VALUES (?)", (new_name,)
+            )
+            self.cursor.execute(
+                "UPDATE potential_suppliers SET category = ? WHERE category = ?",
+                (new_name, old_name),
+            )
+            self.cursor.execute(
+                "DELETE FROM supplier_categories WHERE name = ?", (old_name,)
+            )
+            self.conn.commit()
+        except DatabaseError:
+            raise
+        except Exception as e:
+            try:
+                self.conn.rollback()
+            except Exception:
+                pass
+            print(f"[DB Manager] Errore rename_supplier_category: {e}")
+            raise DatabaseError(str(e)) from e
+
+    def merge_supplier_categories(self, source: str, target: str) -> None:
+        """
+        Unisce source → target in modo transazionale.
+
+        1. trim + validazioni
+        2. ensure target exists
+        3. UPDATE potential_suppliers source → target
+        4. DELETE source da supplier_categories
+
+        Raises:
+            DatabaseError: se source o target vuoti; se coincidono;
+                           se source non esiste; se errore DB.
+        """
+        source = source.strip()
+        target = target.strip()
+        if not source:
+            raise DatabaseError("source non può essere vuoto.")
+        if not target:
+            raise DatabaseError("target non può essere vuoto.")
+        if source == target:
+            raise DatabaseError("source e target devono essere diversi.")
+
+        try:
+            # Verifica source esiste
+            self.cursor.execute(
+                "SELECT 1 FROM supplier_categories WHERE name = ?", (source,)
+            )
+            if not self.cursor.fetchone():
+                raise DatabaseError(f"Categoria sorgente '{source}' non trovata.")
+
+            # Transazione atomica
+            self.cursor.execute("BEGIN")
+            # Garantisce presenza del target (robustezza)
+            self.cursor.execute(
+                "INSERT OR IGNORE INTO supplier_categories (name) VALUES (?)", (target,)
+            )
+            self.cursor.execute(
+                "UPDATE potential_suppliers SET category = ? WHERE category = ?",
+                (target, source),
+            )
+            self.cursor.execute(
+                "DELETE FROM supplier_categories WHERE name = ?", (source,)
+            )
+            self.conn.commit()
+        except DatabaseError:
+            raise
+        except Exception as e:
+            try:
+                self.conn.rollback()
+            except Exception:
+                pass
+            print(f"[DB Manager] Errore merge_supplier_categories: {e}")
+            raise DatabaseError(str(e)) from e
+
+    def delete_supplier_category_if_unused(self, name: str) -> int:
+        """
+        Elimina la categoria solo se non è usata da alcun supplier.
+
+        Returns:
+            int: numero di supplier che usano la categoria.
+                 0 = eliminazione avvenuta; >0 = non eliminata.
+        """
+        name = name.strip()
+        if not name:
+            raise DatabaseError("name non può essere vuoto.")
+        try:
+            count = self.count_suppliers_by_category(name)
+            if count == 0:
+                self.cursor.execute(
+                    "DELETE FROM supplier_categories WHERE name = ?", (name,)
+                )
+                self.conn.commit()
+            return count
+        except DatabaseError:
+            raise
+        except Exception as e:
+            print(f"[DB Manager] Errore delete_supplier_category_if_unused: {e}")
+            raise DatabaseError(str(e)) from e
+
+    def count_suppliers_by_category(self, name: str) -> int:
+        """Restituisce il numero di supplier che usano questa categoria."""
+        name = name.strip()
+        try:
+            self.cursor.execute(
+                "SELECT COUNT(*) FROM potential_suppliers WHERE category = ?", (name,)
+            )
+            row = self.cursor.fetchone()
+            return row[0] if row else 0
+        except Exception as e:
+            print(f"[DB Manager] Errore count_suppliers_by_category: {e}")
             raise DatabaseError(str(e)) from e
