@@ -1688,6 +1688,11 @@ class MainWindow:
             align_cols = [0, 1, 2, 4, 5, 6, 7, 8, 9]
             n_cols = 10
         else:
+            # LEGACY DEAD CODE — Derisking VSM (precedente modello event-based).
+            # Questo branch (event_type=None) non viene più chiamato:
+            # il tab Derisking ora usa _create_supplier_sheet() con struttura PotentialSupplier.
+            # NON rimuovere finché non si completa la verifica dell'intero step cleanup.
+            # Da rimuovere nello step successivo (created_at + KPI temporali).
             headers = [
                 _("Data"), _("Nuovo Fornitore"), _("Descrizione"),
                 _("Ripetitivo"), _("Utente")
@@ -2277,6 +2282,11 @@ class MainWindow:
                     event.username
                 ]
             else:
+                # LEGACY DEAD CODE — Derisking VSM (precedente modello event-based).
+                # Questo branch (non use_dual_value) non viene più raggiunto per il tab Derisking
+                # grazie al guard in dashboard_controller.search_requests() (B2 fix).
+                # Il tab Derisking ora usa _populate_supplier_sheet() con struttura PotentialSupplier.
+                # Da rimuovere nello step successivo insieme al branch C7 di _create_vsm_event_sheet.
                 row = [
                     event.event_date.strftime("%d/%m/%Y") if event.event_date else "",
                     event.new_supplier or "",
@@ -2383,7 +2393,6 @@ class MainWindow:
             event_type_map = {
                 'vsm_saving': 'Saving',
                 'vsm_cost_avoidance': 'Cost Avoidance',
-                'vsm_derisking': 'Derisking'
             }
             event_type = event_type_map.get(status)
             if not event_type:
@@ -2402,7 +2411,6 @@ class MainWindow:
         event_type_map = {
             'vsm_saving': 'Saving',
             'vsm_cost_avoidance': 'Cost Avoidance',
-            'vsm_derisking': 'Derisking'
         }
         event_type = event_type_map.get(status)
         if not event_type:
@@ -2479,7 +2487,6 @@ class MainWindow:
         event_type_map = {
             'vsm_saving': 'Saving',
             'vsm_cost_avoidance': 'Cost Avoidance',
-            'vsm_derisking': 'Derisking'
         }
         event_type = event_type_map.get(status)
         if not event_type:
@@ -3255,7 +3262,8 @@ class MainWindow:
     _VSM_STATUS_TO_TYPE = {
         'vsm_saving': 'Saving',
         'vsm_cost_avoidance': 'Cost Avoidance',
-        'vsm_derisking': 'Derisking',
+        # 'vsm_derisking' escluso: tab supplier-based, non VSM-event-based.
+        # La ricerca globale su fornitori potenziali è gestita separatamente (prossimo step).
     }
 
     def _search_vsm_events(self, sheet, status):
@@ -3615,7 +3623,8 @@ class MainWindow:
         
         Step 4D.6: Routing intelligente basato sul tab attivo:
         - RFQ (attiva/archiviata): crea nuova RdO
-        - VSM (Saving/Cost Avoidance/Derisking): crea nuovo evento VSM
+        - VSM Saving/Cost Avoidance: crea nuovo evento VSM
+        - Derisking: apre PotentialSupplierDialog (non VSMEventDialog)
         """
         _, status = self.get_current_tree_and_status()
         
@@ -3642,11 +3651,10 @@ class MainWindow:
                     SimpleMessageDialog(self.root, _("Errore"), _("Impossibile aprire il form: {}").format(e), "error")
                 return
 
-            # Mappa status → event_type (pattern già usato in _edit_vsm_event)
+            # Mappa status → event_type
             event_type_map = {
                 'vsm_saving': 'Saving',
                 'vsm_cost_avoidance': 'Cost Avoidance',
-                'vsm_derisking': 'Derisking'
             }
             event_type = event_type_map.get(status)
             
@@ -4033,10 +4041,20 @@ class MainWindow:
         3. Intestazioni basate sulla lingua scelta
         4. Scrittura Excel con numeri float, non stringhe formattate
         """
+        # Il tab Derisking è supplier-based: l'export dei fornitori potenziali
+        # non è ancora disponibile (prossimo step con created_at + KPI temporali).
+        if status == 'vsm_derisking':
+            SimpleMessageDialog(
+                self.root,
+                _("Export non disponibile"),
+                _("L'export Excel per i fornitori potenziali non è ancora disponibile."),
+                "info"
+            )
+            return
+
         status_to_event_type = {
             'vsm_saving': 'Saving',
             'vsm_cost_avoidance': 'Cost Avoidance',
-            'vsm_derisking': 'Derisking',
         }
         event_type = status_to_event_type.get(status, status)
 

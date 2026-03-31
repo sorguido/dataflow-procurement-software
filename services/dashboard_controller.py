@@ -142,6 +142,12 @@ class DashboardController:
         # Dispatch al handler del modulo corrente.
         # Per aggiungere un nuovo modulo: aggiungere un elif e creare _search_<modulo>().
         if status.startswith('vsm_'):
+            # Il tab Derisking è supplier-based, non VSM-event-based.
+            # La ricerca globale su fornitori potenziali non è ancora implementata.
+            # Non delegare a _search_vsm_events per evitare di corrompere lo sheet fornitore
+            # con righe VSM a struttura incompatibile. Comportamento intenzionale.
+            if status == 'vsm_derisking':
+                return
             self.app._search_vsm_events(tree, status)
             return
 
@@ -469,12 +475,15 @@ class DashboardController:
         if getattr(self.app, 'vsm_date_to_entry', None):
             self.app.vsm_date_to_entry.delete(0, 'end')
         self.refresh_data()
-        # refresh_data() ricarica solo i tab RFQ; ricarica esplicitamente anche i tab VSM
-        # (tutti e tre, perché i filtri VSM sono condivisi tra i tab)
+        # refresh_data() ricarica solo i tab RFQ; ricarica esplicitamente anche i tab VSM.
+        # Saving e Cost Avoidance usano _load_vsm_events (event-based).
+        # Derisking usa _load_potential_suppliers (supplier-based, backend separato).
         for _et, _sh in [
             ("Saving", getattr(self.app, 'sheet_saving', None)),
             ("Cost Avoidance", getattr(self.app, 'sheet_cost_avoidance', None)),
-            ("Derisking", getattr(self.app, 'sheet_derisking', None)),
         ]:
             if _sh is not None:
                 self.app._load_vsm_events(_et, _sh)
+        _sh_dr = getattr(self.app, 'sheet_derisking', None)
+        if _sh_dr is not None:
+            self.app._load_potential_suppliers(_sh_dr)
