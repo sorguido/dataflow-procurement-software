@@ -469,46 +469,65 @@ def get_derisking_kpi(
     year:      Optional[int] = None,
 ) -> dict:
     """
-    Calcola i KPI della sezione Derisking.
+    KPI Derisking basati sull'anagrafica fornitori potenziali.
 
-    Conta i fornitori unici introdotti come nuovi, ignorando valori vuoti/null.
+    date_from / date_to / year: accettati per compatibilità firma, ignorati.
 
-    Returns::
-
+    Returns:
         {
-            "unique_new_suppliers_introduced": int,
+            "total_suppliers":   int,
+            "unique_categories": int,
+            "status_counts":     dict[str, int],  # TRIM(stato) → count, desc
+            "category_counts":   dict[str, int],  # TRIM(categoria) → count, desc
         }
     """
     result = {
-        "unique_new_suppliers_introduced": 0,
+        "total_suppliers":   0,
+        "unique_categories": 0,
+        "status_counts":     {},
+        "category_counts":   {},
     }
-
     try:
         path = db_path or get_db_path()
         with DatabaseManager(path, read_only=True) as db:
             c = db.cursor
 
-            d_clauses, d_params = _build_date_filter(
-                "event_date", date_from, date_to, year
+            # A) Totale fornitori potenziali (tutti, nessun filtro)
+            result["total_suppliers"] = _scalar(
+                c, "SELECT COUNT(*) FROM potential_suppliers"
             )
 
-            w = _where(
-                [
-                    "event_type = ?",
-                    "new_supplier IS NOT NULL",
-                    "TRIM(new_supplier) != ''",
-                ],
-                d_clauses,
-            )
-            result["unique_new_suppliers_introduced"] = _scalar(
+            # B) Categorie uniche — escludi NULL / vuoto / solo-spazi
+            result["unique_categories"] = _scalar(
                 c,
-                f"SELECT COUNT(DISTINCT TRIM(new_supplier)) FROM vsm_events {w}",
-                tuple(["Derisking"] + d_params),
+                "SELECT COUNT(DISTINCT TRIM(category))"
+                " FROM potential_suppliers"
+                " WHERE category IS NOT NULL AND TRIM(category) != ''"
             )
+
+            # C) Count per stato — TRIM + escludi NULL / vuoto / solo-spazi
+            c.execute(
+                "SELECT TRIM(supplier_status), COUNT(*)"
+                " FROM potential_suppliers"
+                " WHERE supplier_status IS NOT NULL"
+                "   AND TRIM(supplier_status) != ''"
+                " GROUP BY TRIM(supplier_status)"
+                " ORDER BY COUNT(*) DESC"
+            )
+            result["status_counts"] = {row[0]: row[1] for row in c.fetchall()}
+
+            # D) Count per categoria — TRIM + escludi NULL / vuoto / solo-spazi
+            c.execute(
+                "SELECT TRIM(category), COUNT(*)"
+                " FROM potential_suppliers"
+                " WHERE category IS NOT NULL AND TRIM(category) != ''"
+                " GROUP BY TRIM(category)"
+                " ORDER BY COUNT(*) DESC"
+            )
+            result["category_counts"] = {row[0]: row[1] for row in c.fetchall()}
 
     except Exception as e:
         logger.error("[KPIEngine] get_derisking_kpi: %s", e, exc_info=True)
-
     return result
 
 

@@ -304,35 +304,25 @@ def get_derisking_chart_data(
     year:      Optional[int] = None,
 ) -> list:
     """
-    Nuovi fornitori introdotti per bucket mensile determinato dal filtro.
+    Fornitori per categoria — per il bar chart del tab KPI Derisking.
+
+    date_from / date_to / year: accettati per compatibilità firma, ignorati.
 
     Returns:
-        list of {'label': str, 'count': int}
+        list of {'label': str, 'count': int}  — desc per count
     """
-    path    = db_path or get_db_path()
-    buckets = _build_month_buckets(date_from, date_to, year, path)
-    if not buckets:
-        return []
-
+    path = db_path or get_db_path()
     try:
-        clauses, params = _dclauses('event_date', date_from, date_to, year)
-        w = _where(
-            ["event_type = ?",
-             "new_supplier IS NOT NULL",
-             "TRIM(new_supplier) != ''"],
-            clauses,
-        )
         with DatabaseManager(path, read_only=True) as db:
             db.cursor.execute(
-                f"SELECT strftime('%Y-%m', event_date),"
-                f"       COUNT(DISTINCT TRIM(new_supplier))"
-                f" FROM vsm_events {w}"
-                f" GROUP BY 1",
-                ['Derisking'] + params,
+                "SELECT TRIM(category), COUNT(*)"
+                " FROM potential_suppliers"
+                " WHERE category IS NOT NULL AND TRIM(category) != ''"
+                " GROUP BY TRIM(category)"
+                " ORDER BY COUNT(*) DESC"
             )
-            lookup = {b: int(c or 0) for b, c in db.cursor.fetchall()}
+            return [{'label': row[0], 'count': int(row[1] or 0)}
+                    for row in db.cursor.fetchall()]
     except Exception as exc:
         logger.error('[KpiChartData] get_derisking_chart_data: %s', exc)
-        lookup = {}
-
-    return [{'label': _label(b), 'count': lookup.get(b, 0)} for b in buckets]
+        return []

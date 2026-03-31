@@ -257,12 +257,19 @@ def _rows_ca(data, is_ita):
 def _rows_derisking(data, is_ita):
     if not data:
         return []
-    return [
+    rows = [
         ('Derisking',
-         _t(is_ita, "Nuovi Fornitori Introdotti", "New Suppliers Introduced"),
-         _i(data.get('unique_new_suppliers_introduced')),
+         _t(is_ita, "Totale Fornitori Potenziali", "Total Potential Suppliers"),
+         _i(data.get('total_suppliers')),
+         None),
+        ('Derisking',
+         _t(is_ita, "Categorie Uniche", "Unique Categories"),
+         _i(data.get('unique_categories')),
          None),
     ]
+    for stato, count in data.get('status_counts', {}).items():
+        rows.append(('Derisking', stato, _i(count), None))
+    return rows
 
 
 # ---------------------------------------------------------------------------

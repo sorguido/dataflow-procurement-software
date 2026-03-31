@@ -168,6 +168,8 @@ class KpiWindow(tk.Toplevel):
         self._saving_labels: dict = {}
         self._ca_labels: dict = {}
         self._derisking_labels: dict = {}
+        self._derisking_status_frame = None   # frame per card dinamiche per stato
+        self._derisking_cards_parent  = None  # LabelFrame KPI del tab Derisking
 
         # Dati correnti: popolati da _load_kpi_data, riusati da _on_export_excel
         self._current_kpi_data: dict = {}
@@ -344,10 +346,50 @@ class KpiWindow(tk.Toplevel):
     # ------------------------------------------------------------------
 
     def _build_tab_derisking(self, parent):
-        items = [
-            (_("Unique New Suppliers Introduced"), "unique_new_suppliers_introduced"),
-        ]
-        self._derisking_labels = self._build_section(parent, items, section_key='derisking')
+        is_ita = _("All") != "All"
+        outer = ttk.Frame(parent, padding=(8, 8, 8, 8))
+        outer.pack(fill="both", expand=True)
+
+        # --- KPI cards ---
+        cards_lf = ttk.LabelFrame(outer, text=_("KPI"), padding=(10, 6))
+        cards_lf.pack(side="top", fill="x", pady=(0, 8))
+        self._derisking_cards_parent = cards_lf
+
+        # Card fisse (riga 0)
+        lbl_total = self._build_kpi_card(
+            cards_lf,
+            _t_ui(is_ita, "Totale Fornitori Potenziali", "Total Potential Suppliers"),
+            row=0, col=0,
+        )
+        lbl_cats = self._build_kpi_card(
+            cards_lf,
+            _t_ui(is_ita, "Categorie Uniche", "Unique Categories"),
+            row=0, col=1,
+        )
+        self._derisking_labels = {
+            "total_suppliers":   lbl_total,
+            "unique_categories": lbl_cats,
+        }
+        cards_lf.columnconfigure(0, weight=1)
+        cards_lf.columnconfigure(1, weight=1)
+
+        # Frame per card dinamiche per stato (riga 1, occupa tutte le colonne)
+        status_wrapper = ttk.Frame(cards_lf)
+        status_wrapper.grid(row=1, column=0, columnspan=4, sticky="ew", pady=(4, 0))
+        self._derisking_status_frame = status_wrapper
+
+        # --- Chart ---
+        chart_lf = ttk.LabelFrame(outer, text=_("Chart"), padding=(4, 4))
+        chart_lf.pack(side="top", fill="both", expand=True, pady=(0, 8))
+        canvas = tk.Canvas(chart_lf, height=190, bg='#F8F8F8', highlightthickness=0)
+        canvas.pack(fill="both", expand=True)
+        self._chart_canvases['derisking'] = canvas
+        canvas.bind('<Configure>', lambda e: self._on_chart_resize('derisking'))
+
+        # --- Details table ---
+        table_lf = ttk.LabelFrame(outer, text=_("Details"), padding=(4, 4))
+        table_lf.pack(side="top", fill="x")
+        self._build_detail_table(table_lf, 'derisking')
 
     # ------------------------------------------------------------------
     # COSTRUZIONE SEZIONE GENERICA
@@ -488,8 +530,8 @@ class KpiWindow(tk.Toplevel):
             ]
         elif section_key == 'derisking':
             col_specs = [
-                ('period', _t_ui(is_ita, 'Periodo',        'Period'),                     70, 'center'),
-                ('count',  _t_ui(is_ita, 'Nuovi Fornitori','New Suppliers Introduced'),  160, 'center'),
+                ('category', _t_ui(is_ita, 'Categoria', 'Category'), 160, 'w'),
+                ('count',    _t_ui(is_ita, 'Fornitori',  'Suppliers'), 100, 'center'),
             ]
         else:
             return
@@ -894,10 +936,9 @@ class KpiWindow(tk.Toplevel):
             canvas,
             [{'label': d['label'], 'value': d['count']} for d in data],
             y_fmt='int',
-            title=_t_ui(is_ita, "Nuovi fornitori introdotti per periodo",
-                        "New suppliers introduced per period"),
-            y_label=_t_ui(is_ita, "Nuovi fornitori", "New suppliers"),
-            x_label=_t_ui(is_ita, "Periodo", "Period"),
+            title=_t_ui(is_ita, "Fornitori per categoria", "Suppliers per category"),
+            y_label=_t_ui(is_ita, "Fornitori", "Suppliers"),
+            x_label=_t_ui(is_ita, "Categoria", "Category"),
         )
 
     # ------------------------------------------------------------------
@@ -941,6 +982,28 @@ class KpiWindow(tk.Toplevel):
 
     def _update_derisking_cards(self, data: dict):
         """Aggiorna le card Derisking con i dati restituiti dall'engine."""
-        for key, lbl in self._derisking_labels.items():
-            v = data.get(key, 0)
-            lbl.config(text=_fmt_int(v), foreground="#222222")
+        is_ita = _("All") != "All"
+
+        # Card fisse
+        lbl = self._derisking_labels.get("total_suppliers")
+        if lbl:
+            lbl.config(text=_fmt_int(data.get("total_suppliers", 0)),
+                       foreground="#222222")
+        lbl = self._derisking_labels.get("unique_categories")
+        if lbl:
+            lbl.config(text=_fmt_int(data.get("unique_categories", 0)),
+                       foreground="#222222")
+
+        # Ricostruisci card dinamiche per stato
+        frame = self._derisking_status_frame
+        if frame is None:
+            return
+        for w in frame.winfo_children():
+            w.destroy()
+
+        status_counts = data.get("status_counts", {})
+        parent = self._derisking_cards_parent
+        for col_idx, (stato, count) in enumerate(status_counts.items()):
+            lbl_val = self._build_kpi_card(frame, stato, row=0, col=col_idx)
+            lbl_val.config(text=_fmt_int(count), foreground="#222222")
+            frame.columnconfigure(col_idx, weight=1)
