@@ -44,13 +44,14 @@ class PotentialSupplierDialog(tk.Toplevel):
             # salvataggio avvenuto con successo
     """
 
-    def __init__(self, parent, current_username, supplier_id=None, read_only=False):
+    def __init__(self, parent, current_username, supplier_id=None, read_only=False, refresh_derisking_cb=None):
         """
         Args:
-            parent:           Widget parent (root o altra finestra)
-            current_username: Username dell'utente corrente
-            supplier_id:      None → modalità NEW; int → modalità EDIT
-            read_only:        Se True, tutti i campi disabilitati (sola lettura)
+            parent:               Widget parent (root o altra finestra)
+            current_username:     Username dell'utente corrente
+            supplier_id:          None → modalità NEW; int → modalità EDIT
+            read_only:            Se True, tutti i campi disabilitati (sola lettura)
+            refresh_derisking_cb: Callback opzionale da passare a ManageSupplierCategoriesDialog
         """
         super().__init__(parent)
 
@@ -58,6 +59,7 @@ class PotentialSupplierDialog(tk.Toplevel):
         self.supplier_id = supplier_id
         self.is_edit_mode = supplier_id is not None
         self.read_only = read_only
+        self._refresh_derisking_cb = refresh_derisking_cb
         self.result = None  # True dopo salvataggio riuscito
 
         # Nascondi durante costruzione UI
@@ -447,7 +449,7 @@ class PotentialSupplierDialog(tk.Toplevel):
     def _on_manage_categories(self):
         """Apre il dialog Gestisci Categorie e refresha la combo al ritorno."""
         from ui.dialogs.manage_supplier_categories_dialog import ManageSupplierCategoriesDialog
-        dlg = ManageSupplierCategoriesDialog(self)
+        dlg = ManageSupplierCategoriesDialog(self, refresh_derisking_cb=self._refresh_derisking_cb)
         self.wait_window(dlg)
         if dlg.changes_made:
             self._refresh_categories()

@@ -2,13 +2,13 @@
 ManageSupplierCategoriesDialog — Dialog per la gestione centralizzata
 delle categorie dei fornitori potenziali.
 
-Operazioni supportate:
+Operazioni supportate (in-memory fino al click Salva):
   - Rinomina categoria
   - Unisci categoria sorgente → destinazione
-  - Elimina categoria se non usata da alcun supplier
+  - Elimina categoria se non usata
 
 Utilizzo:
-    dlg = ManageSupplierCategoriesDialog(parent)
+    dlg = ManageSupplierCategoriesDialog(parent, refresh_derisking_cb=cb)
     parent.wait_window(dlg)
     if dlg.changes_made:
         # aggiornare combo categorie nel dialog chiamante
@@ -22,10 +22,6 @@ from database_manager import DatabaseManager, DatabaseError
 from services.app_paths import get_db_path
 from services.supplier_category_persistence import (
     get_all_supplier_categories,
-    rename_supplier_category,
-    merge_supplier_categories,
-    delete_supplier_category_if_unused,
-    count_suppliers_by_category,
     CategoryError,
 )
 from utils.i18n_utils import _
@@ -40,13 +36,19 @@ class ManageSupplierCategoriesDialog(tk.Toplevel):
     """
     Dialog per rinominare, unire ed eliminare le categorie dei fornitori potenziali.
 
-    self.changes_made è impostato a True se almeno un'operazione di scrittura
-    è andata a buon fine — il parent può usarlo per refreshare la propria combo.
+    Tutte le operazioni avvengono in memoria finché l'utente non clicca Salva.
+    Annulla o chiusura finestra scartano ogni modifica.
+
+    self.changes_made è impostato a True se il salvataggio ha avuto successo.
     """
 
-    def __init__(self, parent):
+    def __init__(self, parent, refresh_derisking_cb=None):
         super().__init__(parent)
         self.changes_made = False
+        self._refresh_derisking_cb = refresh_derisking_cb
+        self._original_categories: list = []
+        self._working_categories: list = []
+        self._pending_ops: list = []
 
         self.withdraw()
         set_window_icon(self)
@@ -54,14 +56,30 @@ class ManageSupplierCategoriesDialog(tk.Toplevel):
         self.transient(parent)
         self.resizable(False, False)
 
+        self._load_initial_state()
         self._build_ui()
-        self._refresh_list()
+        self._refresh_list_from_memory()
 
         center_window(self)
         self.wait_visibility()
         self.grab_set()
         self.deiconify()
-        self.protocol("WM_DELETE_WINDOW", self.destroy)
+        self.protocol("WM_DELETE_WINDOW", self._on_cancel)
+
+    # -----------------------------------------------------------------------
+    # INITIALISATION
+    # -----------------------------------------------------------------------
+
+    def _load_initial_state(self):
+        """Carica le categorie dal DB nello stato iniziale in memoria."""
+        try:
+            with DatabaseManager(get_db_path()) as db:
+                categories = get_all_supplier_categories(db)
+        except (DatabaseError, CategoryError) as e:
+            logger.error("Errore caricamento categorie: %s", e)
+            categories = []
+        self._original_categories = list(categories)
+        self._working_categories = list(categories)
 
     # -----------------------------------------------------------------------
     # UI BUILDING
@@ -163,35 +181,38 @@ class ManageSupplierCategoriesDialog(tk.Toplevel):
         ).pack(anchor="e", pady=(4, 0))
 
         # ------------------------------------------------------------------ #
-        # Pulsante Chiudi (in basso a destra)
+        # Pulsanti Annulla / Salva (in basso a destra)
         # ------------------------------------------------------------------ #
         btn_frame = ttk.Frame(outer)
         btn_frame.pack(fill="x")
 
         ttk.Button(
             btn_frame,
-            text=_("Chiudi"),
-            command=self.destroy,
+            text=_("💾 Salva"),
+            command=self._on_save,
             width=12,
         ).pack(side="right")
 
+        ttk.Button(
+            btn_frame,
+            text=_("❌ Annulla"),
+            command=self._on_cancel,
+            width=12,
+        ).pack(side="right", padx=(5, 0))
+
     # -----------------------------------------------------------------------
-    # REFRESH
+    # REFRESH (in-memory, no DB)
     # -----------------------------------------------------------------------
 
-    def _refresh_list(self, keep_selection: str = None):
+    def _refresh_list_from_memory(self, keep_selection: str = None):
         """
-        Ricarica la lista dal DB e aggiorna Listbox e combo merge.
+        Ripopola Listbox e combo merge dalla lista in-memory _working_categories.
+        Nessuna query al DB.
 
         Args:
             keep_selection: se fornito, tenta di riselezionare questo valore.
         """
-        try:
-            with DatabaseManager(get_db_path()) as db:
-                categories = get_all_supplier_categories(db)
-        except (DatabaseError, CategoryError) as e:
-            logger.error("Errore refresh categorie: %s", e)
-            categories = []
+        categories = self._working_categories
 
         self._listbox.delete(0, tk.END)
         for cat in categories:
@@ -199,6 +220,7 @@ class ManageSupplierCategoriesDialog(tk.Toplevel):
 
         # Aggiorna combo merge
         self._combo_merge_target.configure(values=categories)
+
 
         # Ripristina selezione se possibile
         if keep_selection and keep_selection in categories:
@@ -229,9 +251,14 @@ class ManageSupplierCategoriesDialog(tk.Toplevel):
 
     def _update_count_label(self, name: str):
         """Aggiorna il label con il numero di supplier associati."""
+        if name not in self._original_categories:
+            self._lbl_supplier_count.configure(
+                text=_("Fornitori: — (verificato al salvataggio)")
+            )
+            return
         try:
             with DatabaseManager(get_db_path()) as db:
-                count = count_suppliers_by_category(db, name)
+                count = db.count_suppliers_by_category(name)
             self._lbl_supplier_count.configure(
                 text=_("Fornitori associati: {}").format(count)
             )
@@ -239,11 +266,67 @@ class ManageSupplierCategoriesDialog(tk.Toplevel):
             self._lbl_supplier_count.configure(text="")
 
     # -----------------------------------------------------------------------
-    # AZIONI
+    # PENDING OPS HELPERS
+    # -----------------------------------------------------------------------
+
+    def _apply_rename_in_ops(self, old_name: str, new_name: str):
+        """
+        Aggiunge/consolida un rename nelle pending ops e normalizza tutti
+        i riferimenti ad old_name nelle ops esistenti.
+        """
+        # 1. Consolida: se esiste già un rename che produce old_name → aggiorna new
+        found = False
+        for op in self._pending_ops:
+            if op["type"] == "rename" and op["new"] == old_name:
+                op["new"] = new_name
+                found = True
+                break
+        if not found:
+            self._pending_ops.append({"type": "rename", "old": old_name, "new": new_name})
+
+        # 2. Aggiorna tutti gli altri riferimenti a old_name nelle ops successive
+        for op in self._pending_ops:
+            if op["type"] == "merge":
+                if op["source"] == old_name:
+                    op["source"] = new_name
+                if op["target"] == old_name:
+                    op["target"] = new_name
+            elif op["type"] == "delete_unused":
+                if op["name"] == old_name:
+                    op["name"] = new_name
+
+        # 3. Rimuovi rename no-op (old == new, es. dopo catena circolare A→B→A)
+        self._pending_ops = [
+            op for op in self._pending_ops
+            if not (op["type"] == "rename" and op["old"] == op["new"])
+        ]
+
+        # 4. Pulizia ops stale
+        self._prune_stale_ops()
+
+    def _prune_stale_ops(self):
+        """
+        Rimuove delete_unused ops i cui nomi non sono più presenti in
+        _working_categories né come target di un rename pendente.
+        """
+        valid_names = set(self._working_categories)
+        for op in self._pending_ops:
+            if op["type"] == "rename":
+                valid_names.add(op["new"])
+        self._pending_ops = [
+            op for op in self._pending_ops
+            if not (
+                op["type"] == "delete_unused"
+                and op["name"] not in valid_names
+            )
+        ]
+
+    # -----------------------------------------------------------------------
+    # AZIONI (in-memory)
     # -----------------------------------------------------------------------
 
     def _on_rename(self):
-        """Rinomina la categoria selezionata."""
+        """Rinomina la categoria selezionata (in memoria)."""
         old_name = self._get_selected_category()
         new_name = self.var_new_name.get().strip()
 
@@ -262,25 +345,24 @@ class ManageSupplierCategoriesDialog(tk.Toplevel):
         if old_name == new_name:
             return  # no-op silenzioso
 
-        try:
-            with DatabaseManager(get_db_path()) as db:
-                rename_supplier_category(db, old_name, new_name)
-        except CategoryError as e:
-            SimpleMessageDialog(self, _("Operazione non consentita"), str(e), "error")
-            return
-        except DatabaseError as e:
-            SimpleMessageDialog(self, _("Errore Database"), str(e), "error")
+        # Blocco early: rename != merge
+        if new_name in self._working_categories:
+            SimpleMessageDialog(
+                self, _("Operazione non consentita"),
+                _("La categoria esiste già. Usa la funzione Unisci."), "error"
+            )
             return
 
-        self.changes_made = True
-        SimpleMessageDialog(
-            self, _("Successo"),
-            _("Categoria rinominata correttamente."), "info"
-        )
-        self._refresh_list(keep_selection=new_name)
+        # Aggiorna lista in memoria
+        idx = self._working_categories.index(old_name)
+        self._working_categories[idx] = new_name
+        self._working_categories = sorted(self._working_categories, key=lambda s: s.lower())
+
+        self._apply_rename_in_ops(old_name, new_name)
+        self._refresh_list_from_memory(keep_selection=new_name)
 
     def _on_merge(self):
-        """Unisce la categoria selezionata verso il target scelto nella combo."""
+        """Unisce la categoria selezionata verso il target scelto (in memoria)."""
         source = self._get_selected_category()
         target = self.var_merge_target.get().strip()
 
@@ -303,7 +385,6 @@ class ManageSupplierCategoriesDialog(tk.Toplevel):
             )
             return
 
-        # Conferma
         dlg = SimpleYesNoDialog(
             self,
             _("Conferma Unione"),
@@ -315,25 +396,13 @@ class ManageSupplierCategoriesDialog(tk.Toplevel):
         if not dlg.result:
             return
 
-        try:
-            with DatabaseManager(get_db_path()) as db:
-                merge_supplier_categories(db, source, target)
-        except CategoryError as e:
-            SimpleMessageDialog(self, _("Operazione non consentita"), str(e), "error")
-            return
-        except DatabaseError as e:
-            SimpleMessageDialog(self, _("Errore Database"), str(e), "error")
-            return
-
-        self.changes_made = True
-        SimpleMessageDialog(
-            self, _("Successo"),
-            _("Unione completata correttamente."), "info"
-        )
-        self._refresh_list(keep_selection=target)
+        self._working_categories.remove(source)
+        self._pending_ops.append({"type": "merge", "source": source, "target": target})
+        self._prune_stale_ops()
+        self._refresh_list_from_memory(keep_selection=target)
 
     def _on_delete(self):
-        """Elimina la categoria selezionata solo se non usata."""
+        """Elimina la categoria selezionata (in memoria, verificata al salvataggio)."""
         name = self._get_selected_category()
         if not name:
             SimpleMessageDialog(
@@ -342,28 +411,38 @@ class ManageSupplierCategoriesDialog(tk.Toplevel):
             )
             return
 
+        self._working_categories.remove(name)
+        self._pending_ops.append({"type": "delete_unused", "name": name})
+        self._refresh_list_from_memory()
+
+    # -----------------------------------------------------------------------
+    # SALVA / ANNULLA
+    # -----------------------------------------------------------------------
+
+    def _on_save(self):
+        """Applica tutte le operazioni pendenti al DB in un'unica transazione."""
+        if not self._pending_ops:
+            self.destroy()
+            return
+
         try:
             with DatabaseManager(get_db_path()) as db:
-                count = delete_supplier_category_if_unused(db, name)
-        except CategoryError as e:
-            SimpleMessageDialog(self, _("Operazione non consentita"), str(e), "error")
-            return
+                db.apply_category_ops_atomic(self._pending_ops)
         except DatabaseError as e:
             SimpleMessageDialog(self, _("Errore Database"), str(e), "error")
-            return
-
-        if count > 0:
-            SimpleMessageDialog(
-                self,
-                _("Operazione non consentita"),
-                _("Impossibile eliminare: la categoria è ancora assegnata a uno o più fornitori."),
-                "error",
-            )
-            return
+            return  # non chiudere: l'utente può correggere o annullare
 
         self.changes_made = True
-        SimpleMessageDialog(
-            self, _("Successo"),
-            _("Categoria eliminata correttamente."), "info"
-        )
-        self._refresh_list()
+
+        if self._refresh_derisking_cb:
+            try:
+                self._refresh_derisking_cb()
+            except Exception as e:
+                logger.warning("Errore refresh_derisking_cb: %s", e)
+
+        self.destroy()
+
+    def _on_cancel(self):
+        """Chiude il dialog senza scrivere nulla nel DB."""
+        self.destroy()
+

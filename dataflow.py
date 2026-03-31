@@ -1901,6 +1901,7 @@ class MainWindow:
                 self.current_username,
                 supplier_id=supplier_id,
                 read_only=not is_mine,
+                refresh_derisking_cb=lambda: self._load_potential_suppliers(self.sheet_derisking),
             )
             self.root.wait_window(dlg)
             if dlg.result:
@@ -3567,7 +3568,11 @@ class MainWindow:
             if status == 'vsm_derisking':
                 from ui.dialogs.potential_supplier_dialog import PotentialSupplierDialog
                 try:
-                    dlg = PotentialSupplierDialog(self.root, self.current_username)
+                    dlg = PotentialSupplierDialog(
+                        self.root,
+                        self.current_username,
+                        refresh_derisking_cb=lambda: self._load_potential_suppliers(self.sheet_derisking),
+                    )
                     self.root.wait_window(dlg)
                     if dlg.result:
                         self._load_potential_suppliers(self.sheet_derisking)

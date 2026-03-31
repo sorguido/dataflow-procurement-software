@@ -2891,3 +2891,78 @@ class DatabaseManager:
         except Exception as e:
             print(f"[DB Manager] Errore count_suppliers_by_category: {e}")
             raise DatabaseError(str(e)) from e
+
+    def apply_category_ops_atomic(self, ops: list) -> None:
+        """
+        Applica una lista di operazioni sulle categorie in un'unica transazione.
+        ops: list of dict, each with key 'type':
+          {"type": "rename",       "old": str, "new": str}
+          {"type": "merge",        "source": str, "target": str}
+          {"type": "delete_unused","name": str}
+        Per delete_unused, controlla il count al momento dell'applicazione.
+        Per rename, BLOCCA se il nome target esiste già (non degrada silenziosamente in merge).
+        """
+        if not ops:
+            return
+        try:
+            self.cursor.execute("BEGIN")
+            for op in ops:
+                t = op["type"]
+                if t == "rename":
+                    old, new = op["old"].strip(), op["new"].strip()
+                    if not old or not new or old == new:
+                        continue  # no-op
+                    # CORREZIONE 1: blocca se new esiste già — rename != merge
+                    self.cursor.execute(
+                        "SELECT 1 FROM supplier_categories WHERE name = ?", (new,)
+                    )
+                    if self.cursor.fetchone():
+                        self.cursor.execute("ROLLBACK")
+                        raise DatabaseError(
+                            f"La categoria '{new}' esiste già. Usa la funzione Unisci."
+                        )
+                    self.cursor.execute(
+                        "INSERT OR IGNORE INTO supplier_categories (name) VALUES (?)", (new,)
+                    )
+                    self.cursor.execute(
+                        "UPDATE potential_suppliers SET category = ? WHERE category = ?", (new, old)
+                    )
+                    self.cursor.execute(
+                        "DELETE FROM supplier_categories WHERE name = ?", (old,)
+                    )
+                elif t == "merge":
+                    src, tgt = op["source"].strip(), op["target"].strip()
+                    self.cursor.execute(
+                        "INSERT OR IGNORE INTO supplier_categories (name) VALUES (?)", (tgt,)
+                    )
+                    self.cursor.execute(
+                        "UPDATE potential_suppliers SET category = ? WHERE category = ?", (tgt, src)
+                    )
+                    self.cursor.execute(
+                        "DELETE FROM supplier_categories WHERE name = ?", (src,)
+                    )
+                elif t == "delete_unused":
+                    name = op["name"].strip()
+                    self.cursor.execute(
+                        "SELECT COUNT(*) FROM potential_suppliers WHERE category = ?", (name,)
+                    )
+                    row = self.cursor.fetchone()
+                    count = row[0] if row else 0
+                    if count > 0:
+                        self.cursor.execute("ROLLBACK")
+                        raise DatabaseError(
+                            f"Impossibile eliminare '{name}': ancora usata da {count} fornitore/i."
+                        )
+                    self.cursor.execute(
+                        "DELETE FROM supplier_categories WHERE name = ?", (name,)
+                    )
+            self.conn.commit()
+        except DatabaseError:
+            raise
+        except Exception as e:
+            try:
+                self.cursor.execute("ROLLBACK")
+            except Exception:
+                pass
+            print(f"[DB Manager] Errore apply_category_ops_atomic: {e}")
+            raise DatabaseError(str(e)) from e
