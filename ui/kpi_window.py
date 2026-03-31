@@ -24,6 +24,7 @@ from services.kpi_engine import (
     get_cost_avoidance_kpi,
     get_derisking_kpi,
     get_available_years,
+    get_available_years_derisking,
 )
 from services.kpi_excel_export import build_kpi_workbook
 from services.kpi_chart_data import (
@@ -188,6 +189,8 @@ class KpiWindow(tk.Toplevel):
         self._populate_year_filter()
         # Carica dati reali dall'engine
         self._load_kpi_data()
+        # Solo dopo il caricamento iniziale: aggiorna il combobox Year al cambio tab
+        self._notebook.bind("<<NotebookTabChanged>>", self._on_tab_changed)
 
         self.protocol("WM_DELETE_WINDOW", self.destroy)
         self.update_idletasks()
@@ -604,20 +607,28 @@ class KpiWindow(tk.Toplevel):
             return (today - timedelta(days=days)).isoformat(), today.isoformat()
         return None, None  # All o preset non riconosciuto
 
-    def _populate_year_filter(self):
+    def _populate_year_filter(self, derisking_only: bool = False):
         """
         Popola il combobox Year con gli anni realmente presenti nel DB.
+
+        Se derisking_only=True, usa solo gli anni da potential_suppliers.created_at
+        (usato quando il tab Derisking è attivo), così il dropdown non propone
+        anni che hanno solo dati RFQ/Saving/CA ma nessun fornitore potenziale.
 
         Default: anno corrente se disponibile, altrimenti il più recente.
         Stato iniziale: anno attivo, nessun preset periodo selezionato.
         """
-        years = get_available_years()
+        years = get_available_years_derisking() if derisking_only else get_available_years()
         year_values = [""] + [str(y) for y in years]
         if self._year_combo is not None:
             self._year_combo["values"] = year_values
 
         current_year = str(date.today().year)
-        if current_year in year_values:
+        selected = self._selected_year.get()
+        if selected and selected in year_values:
+            # Mantieni la selezione corrente se ancora valida nel nuovo elenco
+            pass
+        elif current_year in year_values:
             self._selected_year.set(current_year)
         elif years:
             self._selected_year.set(str(years[-1]))
@@ -641,6 +652,24 @@ class KpiWindow(tk.Toplevel):
         Mutua esclusione: azzera il preset periodo e ricarica i KPI.
         """
         self._selected_period.set("")
+        self._load_kpi_data()
+
+    def _on_tab_changed(self, event=None):
+        """
+        Callback: l'utente ha cambiato tab nel Notebook.
+        Aggiorna i valori disponibili nel combobox Year in base al tab attivo:
+        - tab Derisking (indice 3) → solo anni da potential_suppliers.created_at
+        - altri tab              → tutti gli anni disponibili nel DB
+        Mantiene la selezione corrente se ancora valida, altrimenti la resetta.
+        """
+        try:
+            tab_idx = self._notebook.index(self._notebook.select())
+        except Exception:
+            return
+        derisking_only = (tab_idx == 3)
+        # _populate_year_filter aggiorna i valori e preserva la selezione se valida
+        self._populate_year_filter(derisking_only=derisking_only)
+        # Se la selezione è cambiata (anno rimosso), ricarica i dati
         self._load_kpi_data()
 
     # ------------------------------------------------------------------

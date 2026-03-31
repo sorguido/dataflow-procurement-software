@@ -497,9 +497,12 @@ def get_derisking_kpi(
         with DatabaseManager(path, read_only=True) as db:
             c = db.cursor
 
-            # Filtro temporale su created_at — esclude sempre i record legacy NULL
+            # Filtro temporale su created_at — esclude sempre i record legacy NULL.
+            # Uso DATE(created_at) per normalizzare la data: i record storici possono
+            # avere created_at in formato 'YYYY-MM-DDTHH:MM:SS' e la comparazione
+            # stringa con date_to='YYYY-MM-DD' fallirebbe per lo stesso giorno.
             d_clauses, d_params = _build_date_filter(
-                "created_at", date_from, date_to, year
+                "DATE(created_at)", date_from, date_to, year
             )
             base = ["created_at IS NOT NULL"]
 
@@ -546,6 +549,35 @@ def get_derisking_kpi(
     except Exception as e:
         logger.error("[KPIEngine] get_derisking_kpi: %s", e, exc_info=True)
     return result
+
+
+def get_available_years_derisking(db_path: Optional[str] = None) -> list:
+    """
+    Restituisce la lista ordinata degli anni con almeno un fornitore potenziale
+    con created_at valorizzato.
+
+    Usata dalla KpiWindow per popolare il filtro Year nel tab Derisking:
+    mostra solo anni realmente presenti nell'anagrafica fornitori, senza
+    inquinare con anni da vsm_events o richieste_offerta.
+
+    Returns:
+        list[int]: anni in ordine crescente; lista vuota in caso di errore.
+    """
+    years: set = set()
+    try:
+        path = db_path or get_db_path()
+        with DatabaseManager(path, read_only=True) as db:
+            c = db.cursor
+            c.execute(
+                "SELECT DISTINCT strftime('%Y', created_at) "
+                "FROM potential_suppliers WHERE created_at IS NOT NULL"
+            )
+            for (y,) in c.fetchall():
+                if y:
+                    years.add(int(y))
+    except Exception as e:
+        logger.error("[KPIEngine] get_available_years_derisking: %s", e, exc_info=True)
+    return sorted(years)
 
 
 def get_available_years(db_path: Optional[str] = None) -> list:

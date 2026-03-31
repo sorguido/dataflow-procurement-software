@@ -314,7 +314,10 @@ def get_derisking_chart_data(
     """
     path = db_path or get_db_path()
     try:
-        clauses, params = _dclauses('created_at', date_from, date_to, year)
+        # Uso DATE(created_at) per normalizzare la data: i record storici possono
+        # avere created_at in formato 'YYYY-MM-DDTHH:MM:SS' e la comparazione
+        # stringa con date_to='YYYY-MM-DD' fallirebbe per lo stesso giorno.
+        clauses, params = _dclauses('DATE(created_at)', date_from, date_to, year)
         base_clauses = [
             "created_at IS NOT NULL",
             "category IS NOT NULL",
