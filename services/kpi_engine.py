@@ -469,9 +469,14 @@ def get_derisking_kpi(
     year:      Optional[int] = None,
 ) -> dict:
     """
-    KPI Derisking basati sull'anagrafica fornitori potenziali.
+    KPI Derisking: conta i fornitori potenziali creati nel periodo selezionato.
 
-    date_from / date_to / year: accettati per compatibilità firma, ignorati.
+    Vengono inclusi solo i record con created_at valorizzato (non NULL) e
+    dentro il range temporale. I record legacy con created_at=NULL sono sempre
+    esclusi — comportamento voluto per questa versione.
+
+    Se non è selezionato alcun filtro temporale (All), vengono inclusi tutti
+    i record con created_at non NULL.
 
     Returns:
         {
@@ -492,37 +497,49 @@ def get_derisking_kpi(
         with DatabaseManager(path, read_only=True) as db:
             c = db.cursor
 
-            # A) Totale fornitori potenziali (tutti, nessun filtro)
+            # Filtro temporale su created_at — esclude sempre i record legacy NULL
+            d_clauses, d_params = _build_date_filter(
+                "created_at", date_from, date_to, year
+            )
+            base = ["created_at IS NOT NULL"]
+
+            # A) Totale fornitori nel range
             result["total_suppliers"] = _scalar(
-                c, "SELECT COUNT(*) FROM potential_suppliers"
+                c,
+                f"SELECT COUNT(*) FROM potential_suppliers {_where(base, d_clauses)}",
+                tuple(d_params),
             )
 
-            # B) Categorie uniche — escludi NULL / vuoto / solo-spazi
+            # B) Categorie uniche nel range — escludi NULL / vuoto / solo-spazi
+            cat_extra = ["category IS NOT NULL", "TRIM(category) != ''"]
             result["unique_categories"] = _scalar(
                 c,
-                "SELECT COUNT(DISTINCT TRIM(category))"
-                " FROM potential_suppliers"
-                " WHERE category IS NOT NULL AND TRIM(category) != ''"
+                f"SELECT COUNT(DISTINCT TRIM(category))"
+                f" FROM potential_suppliers"
+                f" {_where(base + cat_extra, d_clauses)}",
+                tuple(d_params),
             )
 
-            # C) Count per stato — TRIM + escludi NULL / vuoto / solo-spazi
+            # C) Count per stato nel range — TRIM + escludi NULL / vuoto / solo-spazi
+            st_extra = ["supplier_status IS NOT NULL", "TRIM(supplier_status) != ''"]
             c.execute(
-                "SELECT TRIM(supplier_status), COUNT(*)"
-                " FROM potential_suppliers"
-                " WHERE supplier_status IS NOT NULL"
-                "   AND TRIM(supplier_status) != ''"
-                " GROUP BY TRIM(supplier_status)"
-                " ORDER BY COUNT(*) DESC"
+                f"SELECT TRIM(supplier_status), COUNT(*)"
+                f" FROM potential_suppliers"
+                f" {_where(base + st_extra, d_clauses)}"
+                f" GROUP BY TRIM(supplier_status)"
+                f" ORDER BY COUNT(*) DESC",
+                tuple(d_params),
             )
             result["status_counts"] = {row[0]: row[1] for row in c.fetchall()}
 
-            # D) Count per categoria — TRIM + escludi NULL / vuoto / solo-spazi
+            # D) Count per categoria nel range — TRIM + escludi NULL / vuoto / solo-spazi
             c.execute(
-                "SELECT TRIM(category), COUNT(*)"
-                " FROM potential_suppliers"
-                " WHERE category IS NOT NULL AND TRIM(category) != ''"
-                " GROUP BY TRIM(category)"
-                " ORDER BY COUNT(*) DESC"
+                f"SELECT TRIM(category), COUNT(*)"
+                f" FROM potential_suppliers"
+                f" {_where(base + cat_extra, d_clauses)}"
+                f" GROUP BY TRIM(category)"
+                f" ORDER BY COUNT(*) DESC",
+                tuple(d_params),
             )
             result["category_counts"] = {row[0]: row[1] for row in c.fetchall()}
 
@@ -556,6 +573,14 @@ def get_available_years(db_path: Optional[str] = None) -> list:
             c.execute(
                 "SELECT DISTINCT strftime('%Y', data_emissione) "
                 "FROM richieste_offerta WHERE data_emissione IS NOT NULL"
+            )
+            for (y,) in c.fetchall():
+                if y:
+                    years.add(int(y))
+            # Fornitori potenziali (Derisking) — anni da created_at
+            c.execute(
+                "SELECT DISTINCT strftime('%Y', created_at) "
+                "FROM potential_suppliers WHERE created_at IS NOT NULL"
             )
             for (y,) in c.fetchall():
                 if y:

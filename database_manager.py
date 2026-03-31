@@ -307,6 +307,18 @@ class DatabaseManager:
                 'CREATE INDEX IF NOT EXISTS idx_ps_category ON potential_suppliers(category)'
             )
 
+            # Migrazione conservativa: aggiunge colonna created_at se non esiste.
+            # I record preesistenti restano con created_at = NULL (comportamento voluto):
+            # non vengono falsificate date storiche. I nuovi record ricevono la data
+            # corrente esplicitamente in insert_potential_supplier.
+            if 'created_at' not in existing_cols:
+                self.cursor.execute(
+                    "ALTER TABLE potential_suppliers ADD COLUMN created_at TEXT DEFAULT NULL"
+                )
+            self.cursor.execute(
+                'CREATE INDEX IF NOT EXISTS idx_ps_created_at ON potential_suppliers(created_at)'
+            )
+
             # ========== TABELLA CATEGORIE FORNITORI POTENZIALI ==========
             # Anagrafica centrale delle categorie. supplier_categories.name è il catalogo
             # ufficiale. potential_suppliers.category resta TEXT (nessun FK).
@@ -2530,7 +2542,8 @@ class DatabaseManager:
             DatabaseError
         """
         try:
-            now = datetime.now().isoformat()
+            created_date = datetime.now().strftime('%Y-%m-%d')  # YYYY-MM-DD per filtri KPI
+            updated_ts   = datetime.now().isoformat()
             self.cursor.execute(
                 """
                 INSERT INTO potential_suppliers
@@ -2549,8 +2562,8 @@ class DatabaseManager:
                     supplier.website,
                     supplier.notes,
                     supplier.username,
-                    now,
-                    now,
+                    created_date,
+                    updated_ts,
                 ),
             )
             self.conn.commit()

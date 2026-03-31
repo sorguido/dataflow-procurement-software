@@ -64,7 +64,7 @@ class PotentialSupplier:
     # Note e metadata
     notes: str = ""
     username: str = ""
-    created_at: datetime = field(default_factory=datetime.now)
+    created_at: Optional[datetime] = None
     updated_at: datetime = field(default_factory=datetime.now)
 
     def __post_init__(self):
@@ -140,6 +140,6 @@ class PotentialSupplier:
             website=data.get('website') or '',
             notes=data.get('notes') or '',
             username=data.get('username') or '',
-            created_at=data.get('created_at') or datetime.now(),
+            created_at=data.get('created_at'),
             updated_at=data.get('updated_at') or datetime.now(),
         )

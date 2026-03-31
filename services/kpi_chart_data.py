@@ -304,22 +304,31 @@ def get_derisking_chart_data(
     year:      Optional[int] = None,
 ) -> list:
     """
-    Fornitori per categoria — per il bar chart del tab KPI Derisking.
+    Fornitori per categoria — filtrati per data di creazione nel range selezionato.
 
-    date_from / date_to / year: accettati per compatibilità firma, ignorati.
+    Vengono inclusi solo i record con created_at valorizzato e dentro il range.
+    I record legacy con created_at=NULL sono esclusi (coerente con get_derisking_kpi).
 
     Returns:
         list of {'label': str, 'count': int}  — desc per count
     """
     path = db_path or get_db_path()
     try:
+        clauses, params = _dclauses('created_at', date_from, date_to, year)
+        base_clauses = [
+            "created_at IS NOT NULL",
+            "category IS NOT NULL",
+            "TRIM(category) != ''",
+        ]
+        w = _where(base_clauses, clauses)
         with DatabaseManager(path, read_only=True) as db:
             db.cursor.execute(
-                "SELECT TRIM(category), COUNT(*)"
-                " FROM potential_suppliers"
-                " WHERE category IS NOT NULL AND TRIM(category) != ''"
-                " GROUP BY TRIM(category)"
-                " ORDER BY COUNT(*) DESC"
+                f"SELECT TRIM(category), COUNT(*)"
+                f" FROM potential_suppliers"
+                f" {w}"
+                f" GROUP BY TRIM(category)"
+                f" ORDER BY COUNT(*) DESC",
+                params,
             )
             return [{'label': row[0], 'count': int(row[1] or 0)}
                     for row in db.cursor.fetchall()]
