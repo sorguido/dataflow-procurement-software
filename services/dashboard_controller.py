@@ -34,7 +34,7 @@ class DashboardController:
     def __init__(self, app):
         self.app = app
 
-    def populate_username_filter(self):
+    def populate_username_filter(self, all_requests=None):
         """Aggiorna la lista degli username disponibili nel filtro usando aggregazione multi-database."""
         if not self.app.user_filter_combo or not self.app.username_filter_var:
             return
@@ -42,9 +42,10 @@ class DashboardController:
         usernames = []
 
         try:
-            # Carica TUTTI gli username da TUTTI i database aggregati
-            with DatabaseManager(get_db_path()) as db_manager:
-                all_requests = db_manager.get_all_richieste_aggregated(get_db_path())
+            if all_requests is None:
+                # Carica TUTTI gli username da TUTTI i database aggregati
+                with DatabaseManager(get_db_path()) as db_manager:
+                    all_requests = db_manager.get_all_richieste_aggregated(get_db_path())
 
             # BUG #2 FIX: Validazione robusta per gestire tuple di lunghezza variabile
             # Estrai username unici dalle richieste aggregate (indice 5)
@@ -117,20 +118,17 @@ class DashboardController:
             self.search_requests()
             return
 
-        # Ottieni il percorso completo del mio DB
-        my_path = get_db_path()
-        # Chiama get_all_richieste_aggregated per ottenere tutte le richieste aggregate
+        # Singola chiamata all'aggregazione; i dati vengono riusati per entrambi i tab e il filtro username
+        all_rows = None
         try:
-            all_requests = self.app.db_manager.get_all_richieste_aggregated(my_path)
-            # Salva i dati aggregati per uso successivo
-            self.app._all_aggregated_requests = all_requests
+            with DatabaseManager(get_db_path()) as db_manager:
+                all_rows = db_manager.get_all_richieste_aggregated(get_db_path())
         except DatabaseError as e:
             logger.error(f"Errore nel caricamento richieste aggregate: {e}", exc_info=True)
-            # Fallback: usa il metodo normale se l'aggregazione fallisce
-            self.app._all_aggregated_requests = None
 
-        self.app._load_requests_by_status(self.app.tree_attive, 'attiva'); self.app._load_requests_by_status(self.app.tree_archiviate, 'archiviata')
-        self.populate_username_filter()
+        self.app._load_requests_by_status(self.app.tree_attive, 'attiva', pre_fetched_rows=all_rows)
+        self.app._load_requests_by_status(self.app.tree_archiviate, 'archiviata', pre_fetched_rows=all_rows)
+        self.populate_username_filter(all_requests=all_rows)
         self.app.update_button_visibility()
 
     def search_requests(self):

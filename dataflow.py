@@ -3097,18 +3097,22 @@ class MainWindow:
     def refresh_data(self):
         self.dashboard_controller.refresh_data()
 
-    def _load_requests_by_status(self, tree, status):
+    def _load_requests_by_status(self, tree, status, *, pre_fetched_rows=None):
         """Carica richieste per stato specifico con supporto multi-database."""
         try:
             username_filter = self._get_active_username_filter()
-            
-            # SEMPRE usa aggregazione multi-database per avere accesso a tutti gli utenti
-            logger.info(f"[MULTI-DB] Caricamento da tutti i database (filtro utente: {username_filter})...")
-            
-            # BUG #47 FIX: Usa context manager per garantire chiusura DB
-            with DatabaseManager(get_db_path()) as db_manager:
-                # Chiama il metodo aggregato che legge TUTTI i database
-                all_rows = db_manager.get_all_richieste_aggregated(get_db_path())
+
+            if pre_fetched_rows is not None:
+                all_rows = pre_fetched_rows
+                logger.info(f"[MULTI-DB] Caricamento da dati pre-caricati (filtro utente: {username_filter})...")
+            else:
+                # SEMPRE usa aggregazione multi-database per avere accesso a tutti gli utenti
+                logger.info(f"[MULTI-DB] Caricamento da tutti i database (filtro utente: {username_filter})...")
+
+                # BUG #47 FIX: Usa context manager per garantire chiusura DB
+                with DatabaseManager(get_db_path()) as db_manager:
+                    # Chiama il metodo aggregato che legge TUTTI i database
+                    all_rows = db_manager.get_all_richieste_aggregated(get_db_path())
             
             # Filtra per stato richiesto
             # Struttura: [0] id_richiesta, [1] tipo_rdo, [2] data_emissione,
