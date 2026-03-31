@@ -252,18 +252,10 @@ def build_main_dashboard(app):
     ttk.Label(_vsm_sc_spec, text=_("A:")).grid(row=2, column=2, sticky="w", padx=(10, 5), pady=3)
     ttk.Entry(_vsm_sc_spec, textvariable=app.vsm_actual_to_var, width=12).grid(row=2, column=3, sticky="w", pady=3)
 
-    # --- Spec frame Derisking (riga 1, solo Ripetitivo) ---
+    # --- Spec frame Derisking (riga 1, vuoto — i fornitori potenziali non hanno Ripetitivo) ---
     _vsm_dr_spec = ttk.Frame(_vsf)
     _vsm_dr_spec.grid(row=1, column=0, columnspan=6, sticky="ew")
     _vsm_dr_spec.grid_remove()  # nascosto di default; mostrato solo nel tab Derisking
-    ttk.Label(_vsm_dr_spec, text=_("Ripetitivo:")).grid(row=0, column=0, sticky="w", padx=(0, 5), pady=3)
-    ttk.Combobox(
-        _vsm_dr_spec,
-        textvariable=app.vsm_repetitive_var,
-        state="readonly",
-        values=["", _("Sì"), _("No")],
-        width=8,
-    ).grid(row=0, column=1, sticky="w", pady=3)
 
     # Mappa tab status → spec frame (per _update_filter_panel_for_current_tab)
     app._vsm_spec_frames = {
@@ -302,7 +294,7 @@ def build_main_dashboard(app):
     # Step 4B: Crea sheet VSM per ogni tab.
     app.sheet_saving = app._create_vsm_event_sheet(app.tab_saving, event_type="Saving")
     app.sheet_cost_avoidance = app._create_vsm_event_sheet(app.tab_cost_avoidance, event_type="Cost Avoidance")
-    app.sheet_derisking = app._create_vsm_event_sheet(app.tab_derisking)
+    app.sheet_derisking = app._create_supplier_sheet(app.tab_derisking)
 
     # -----------------------------------------------------------------------
     # Row 4: Footer

@@ -1063,9 +1063,10 @@ class MainWindow:
         for event_type, sheet in [
             ("Saving", self.sheet_saving),
             ("Cost Avoidance", self.sheet_cost_avoidance),
-            ("Derisking", self.sheet_derisking),
         ]:
             self._load_vsm_events(event_type, sheet)
+        # Derisking: usa il nuovo backend PotentialSupplier (separato da VSMEvent)
+        self._load_potential_suppliers(self.sheet_derisking)
         self.populate_vsm_username_filter()
 
         self.refresh_data(); self.update_button_visibility(); self.check_for_autobackup()
@@ -1242,9 +1243,10 @@ class MainWindow:
         for event_type, sheet in [
             ("Saving", self.sheet_saving),
             ("Cost Avoidance", self.sheet_cost_avoidance),
-            ("Derisking", self.sheet_derisking),
         ]:
             self._load_vsm_events(event_type, sheet)
+        # Derisking ha un backend separato (PotentialSupplier)
+        self._load_potential_suppliers(self.sheet_derisking)
 
     def _has_active_search_filters(self):
         """Verifica se ci sono filtri di ricerca attivi (escludendo username e stato)"""
@@ -1785,6 +1787,95 @@ class MainWindow:
     # perché tksheet ha funzionalità di ordinamento integrate che si abilitano automaticamente
     # con enable_bindings(). L'utente può cliccare sugli header delle colonne per ordinare.
 
+    def _create_supplier_sheet(self, parent):
+        """
+        Crea un tksheet per visualizzare i fornitori potenziali (tab Derisking).
+
+        Separato da _create_vsm_event_sheet perché la struttura dati è completamente
+        diversa (PotentialSupplier vs VSMEvent). Non ha event_type né Ripetitivo.
+
+        Args:
+            parent: Widget parent (tab frame)
+
+        Returns:
+            Sheet: Widget tksheet configurato con colonne fornitore
+        """
+        frame = ttk.Frame(parent)
+        frame.pack(fill="both", expand=True)
+
+        headers = [
+            _("Fornitore"), _("Macrocategoria"), _("Classe merceologica"),
+            _("Stato"), _("Contatto"), _("E-mail"),
+            _("Telefono"), _("Web"), _("Note"), _("Utente"),
+        ]
+        # Colonne da centrare: Stato, Telefono, Utente
+        align_cols = [3, 6, 9]
+        n_cols = len(headers)
+
+        # Larghezze fisse: Note è la colonna "lunga", le altre proporzionali
+        try:
+            import tkinter.font as tkfont
+            _hfont = tkfont.Font(family="Calibri", size=11, weight="bold")
+            _HEADER_PADDING = 30
+            _NOTE_WIDTH = 300
+            _NOTE_IDX = 8
+            col_widths = [
+                _NOTE_WIDTH if i == _NOTE_IDX
+                else max(80, _hfont.measure(h) + _HEADER_PADDING)
+                for i, h in enumerate(headers)
+            ]
+        except Exception:
+            col_widths = [300 if i == 8 else 140 for i in range(n_cols)]
+
+        sheet = Sheet(
+            frame,
+            theme="light blue",
+            header_font=("Calibri", 11, "bold"),
+            font=("Calibri", 11, "normal"),
+            headers=headers,
+            show_header=True,
+            show_row_index=False,
+        )
+
+        # Attributi di identificazione tab — NON impostare _vsm_event_type (non è un tab VSM-event)
+        sheet._vsm_headers = headers
+        sheet._vsm_col_widths = col_widths
+        sheet._vsm_align_cols = align_cols
+
+        sheet.set_column_widths(col_widths)
+        sheet.align_columns(columns=align_cols, align="center")
+
+        sheet.enable_bindings()
+
+        # Step 4D.1: binding per aggiornamento pulsante Actions
+        sheet.extra_bindings("cell_select", self.create_cell_select_handler(sheet))
+        sheet.extra_bindings("row_select", self.create_row_select_handler(sheet))
+
+        # Doppio click: silenzioso per ora (dialog fornitore non ancora implementato)
+        sheet.bind("<Double-Button-1>", lambda event: self._on_supplier_sheet_double_click(sheet, event))
+
+        for col_idx in range(n_cols):
+            sheet.readonly_columns(columns=[col_idx], readonly=True)
+
+        sheet.pack(fill="both", expand=True)
+
+        # Metadata separato dai VSMEvent — _event_metadata vuoto per compatibilità
+        # con _check_if_all_vsm_events_are_mine (restituisce False → Actions disabilitato)
+        sheet._event_metadata = []
+        sheet._supplier_metadata = []  # Lista di dict con supplier_id, username, is_mine
+
+        return sheet
+
+    def _on_supplier_sheet_double_click(self, sheet, event=None):
+        """
+        Handler doppio click sul tab Derisking (fornitori potenziali).
+
+        Il dialog di modifica fornitore non è ancora implementato in questo step.
+        Il metodo è preparato per l'integrazione futura.
+        """
+        # Nessuna azione per ora — dialog fornitore in step successivo
+        pass
+
     def _load_vsm_events(self, event_type, sheet):
         """
         Carica eventi VSM per un tipo specifico.
@@ -1821,6 +1912,74 @@ class MainWindow:
         except DatabaseError as e:
             logger.error(f"Errore caricamento eventi VSM {event_type}: {e}")
             SimpleMessageDialog(self.root, _("Errore Database"), _("Impossibile caricare gli eventi VSM: {}\n").format(e), "error")
+
+    def _load_potential_suppliers(self, sheet):
+        """
+        Carica i fornitori potenziali dal DB e popola il tab Derisking.
+
+        Separato da _load_vsm_events perché usa PotentialSupplier, non VSMEvent.
+        Rispetta il filtro utente condiviso vsm_username_filter_var.
+        """
+        try:
+            from services.supplier_persistence import get_all_suppliers
+            username_filter = self._get_active_username_filter(self.vsm_username_filter_var)
+            with DatabaseManager(get_db_path()) as db_manager:
+                suppliers = get_all_suppliers(db_manager, username=username_filter)
+            self._populate_potential_suppliers_sheet(sheet, suppliers)
+            logger.debug(f"Caricati {len(suppliers)} fornitori potenziali")
+        except Exception as e:
+            logger.error(f"Errore caricamento fornitori potenziali: {e}")
+            SimpleMessageDialog(
+                self.root,
+                _("Errore Database"),
+                _("Impossibile caricare i fornitori potenziali: {}\n").format(e),
+                "error",
+            )
+
+    def _populate_potential_suppliers_sheet(self, sheet, suppliers):
+        """
+        Popola il tksheet Derisking con una lista di PotentialSupplier.
+
+        Imposta sheet._supplier_metadata (lista di dict con supplier_id, username, is_mine)
+        e azzera sheet._event_metadata per compatibilità con action-button logic.
+
+        Args:
+            sheet: Widget tksheet del tab Derisking
+            suppliers: list[PotentialSupplier]
+        """
+        data_rows = []
+        metadata = []
+        for s in suppliers:
+            data_rows.append([
+                s.supplier_name or "",
+                s.macrocategory or "",
+                s.merchandise_class or "",
+                s.supplier_status or "",
+                s.contact_name or "",
+                s.email or "",
+                s.phone or "",
+                s.website or "",
+                s.notes or "",
+                s.username or "",
+            ])
+            is_mine = (s.username or "").lower() == (self.current_username or "").lower()
+            metadata.append({
+                "supplier_id": s.id,
+                "username": s.username or "",
+                "is_mine": is_mine,
+            })
+
+        sheet.set_sheet_data(data_rows, reset_col_positions=False)
+        # Riapplica larghezze e allineamento dopo set_sheet_data
+        if hasattr(sheet, '_vsm_col_widths'):
+            sheet.set_column_widths(sheet._vsm_col_widths)
+        if hasattr(sheet, '_vsm_align_cols'):
+            sheet.align_columns(columns=sheet._vsm_align_cols, align="center")
+        sheet.redraw()
+
+        sheet._supplier_metadata = metadata
+        # Azzera _event_metadata: evita che codice VSM operi su righe fornitore
+        sheet._event_metadata = []
 
     def _get_vsm_dataset(self, vsm_username_filter):
         """Carica il dataset VSM grezzo in base allo scope utente del filtro UI.
