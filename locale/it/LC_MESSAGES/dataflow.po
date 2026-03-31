@@ -3241,3 +3241,136 @@ msgstr "RFQ Non Scadute"
 
 msgid "RFQ Expired"
 msgstr "RFQ Scadute"
+
+# ---------------------------------------------------------------------------
+# Derisking — modulo Fornitori Potenziali (aggiunto v2.1.0)
+# ---------------------------------------------------------------------------
+
+msgid "Visualizza Fornitore"
+msgstr "Visualizza Fornitore"
+
+msgid "Modifica Fornitore"
+msgstr "Modifica Fornitore"
+
+msgid "Fornitore: *"
+msgstr "Fornitore: *"
+
+msgid "Categoria:"
+msgstr "Categoria:"
+
+msgid "Nuova categoria:"
+msgstr "Nuova categoria:"
+
+msgid "Stato:"
+msgstr "Stato:"
+
+msgid "Contatti"
+msgstr "Contatti"
+
+msgid "Contatto:"
+msgstr "Contatto:"
+
+msgid "Telefono:"
+msgstr "Telefono:"
+
+msgid "Web:"
+msgstr "Web:"
+
+msgid "Note"
+msgstr "Note"
+
+msgid "Gestisci Categorie"
+msgstr "Gestisci Categorie"
+
+msgid "Fornitore non trovato"
+msgstr "Fornitore non trovato"
+
+msgid "Il fornitore con ID {} non esiste nel database."
+msgstr "Il fornitore con ID {} non esiste nel database."
+
+msgid "Impossibile caricare i dati del fornitore: {}"
+msgstr "Impossibile caricare i dati del fornitore: {}"
+
+msgid "Il campo 'Fornitore' è obbligatorio."
+msgstr "Il campo 'Fornitore' è obbligatorio."
+
+msgid "Impossibile salvare il fornitore:\n{}"
+msgstr "Impossibile salvare il fornitore:\n{}"
+
+msgid "Mail copied"
+msgstr "E-mail copiata"
+
+msgid "Categorie"
+msgstr "Categorie"
+
+msgid "Rinomina"
+msgstr "Rinomina"
+
+msgid "Nuovo nome:"
+msgstr "Nuovo nome:"
+
+msgid "Unisci"
+msgstr "Unisci"
+
+msgid "Unisci con:"
+msgstr "Unisci con:"
+
+msgid "Elimina se non usata"
+msgstr "Elimina se non usata"
+
+msgid "Fornitori: — (verificato al salvataggio)"
+msgstr "Fornitori: — (verificato al salvataggio)"
+
+msgid "Fornitori associati: {}"
+msgstr "Fornitori associati: {}"
+
+msgid "Seleziona una categoria dalla lista."
+msgstr "Seleziona una categoria dalla lista."
+
+msgid "Il nuovo nome non può essere vuoto."
+msgstr "Il nuovo nome non può essere vuoto."
+
+msgid "Operazione non consentita"
+msgstr "Operazione non consentita"
+
+msgid "La categoria esiste già. Usa la funzione Unisci."
+msgstr "La categoria esiste già. Usa la funzione Unisci."
+
+msgid "Seleziona una categoria sorgente dalla lista."
+msgstr "Seleziona una categoria sorgente dalla lista."
+
+msgid "Seleziona la categoria destinazione dal menu."
+msgstr "Seleziona la categoria destinazione dal menu."
+
+msgid "Sorgente e destinazione devono essere diverse."
+msgstr "Sorgente e destinazione devono essere diverse."
+
+msgid "Conferma Unione"
+msgstr "Conferma Unione"
+
+msgid "Tutti i fornitori con categoria '{src}' verranno spostati a '{tgt}'.\nLa categoria '{src}' verrà eliminata.\n\nProcedere?"
+msgstr "Tutti i fornitori con categoria '{src}' verranno spostati a '{tgt}'.\nLa categoria '{src}' verrà eliminata.\n\nProcedere?"
+
+msgid "Categoria"
+msgstr "Categoria"
+
+msgid "Contatto"
+msgstr "Contatto"
+
+msgid "Stato"
+msgstr "Stato"
+
+msgid "Telefono"
+msgstr "Telefono"
+
+msgid "Impossibile caricare i fornitori potenziali: {}\n"
+msgstr "Impossibile caricare i fornitori potenziali: {}\n"
+
+msgid "Nessuna Selezione"
+msgstr "Nessuna Selezione"
+
+msgid "Sei sicuro di voler eliminare {} fornitore(i)?\nQuesta operazione non può essere annullata."
+msgstr "Sei sicuro di voler eliminare {} fornitore(i)?\nQuesta operazione non può essere annullata."
+
+msgid "{} fornitore(i) eliminato(i) con successo."
+msgstr "{} fornitore(i) eliminato(i) con successo."

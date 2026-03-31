@@ -3237,3 +3237,136 @@ msgstr "RFQ Not Expired"
 
 msgid "RFQ Expired"
 msgstr "RFQ Expired"
+
+# ---------------------------------------------------------------------------
+# Derisking — Potential Supplier module (added 2.1.0)
+# ---------------------------------------------------------------------------
+
+msgid "Visualizza Fornitore"
+msgstr "View Supplier"
+
+msgid "Modifica Fornitore"
+msgstr "Edit Supplier"
+
+msgid "Fornitore: *"
+msgstr "Supplier: *"
+
+msgid "Categoria:"
+msgstr "Category:"
+
+msgid "Nuova categoria:"
+msgstr "New category:"
+
+msgid "Stato:"
+msgstr "Status:"
+
+msgid "Contatti"
+msgstr "Contacts"
+
+msgid "Contatto:"
+msgstr "Contact:"
+
+msgid "Telefono:"
+msgstr "Phone:"
+
+msgid "Web:"
+msgstr "Web:"
+
+msgid "Note"
+msgstr "Notes"
+
+msgid "Gestisci Categorie"
+msgstr "Manage Categories"
+
+msgid "Fornitore non trovato"
+msgstr "Supplier not found"
+
+msgid "Il fornitore con ID {} non esiste nel database."
+msgstr "The supplier with ID {} does not exist in the database."
+
+msgid "Impossibile caricare i dati del fornitore: {}"
+msgstr "Unable to load supplier data: {}"
+
+msgid "Il campo 'Fornitore' è obbligatorio."
+msgstr "The 'Supplier' field is required."
+
+msgid "Impossibile salvare il fornitore:\n{}"
+msgstr "Unable to save the supplier:\n{}"
+
+msgid "Mail copied"
+msgstr "Mail copied"
+
+msgid "Categorie"
+msgstr "Categories"
+
+msgid "Rinomina"
+msgstr "Rename"
+
+msgid "Nuovo nome:"
+msgstr "New name:"
+
+msgid "Unisci"
+msgstr "Merge"
+
+msgid "Unisci con:"
+msgstr "Merge with:"
+
+msgid "Elimina se non usata"
+msgstr "Delete if unused"
+
+msgid "Fornitori: — (verificato al salvataggio)"
+msgstr "Suppliers: — (verified on save)"
+
+msgid "Fornitori associati: {}"
+msgstr "Associated suppliers: {}"
+
+msgid "Seleziona una categoria dalla lista."
+msgstr "Select a category from the list."
+
+msgid "Il nuovo nome non può essere vuoto."
+msgstr "The new name cannot be empty."
+
+msgid "Operazione non consentita"
+msgstr "Operation not allowed"
+
+msgid "La categoria esiste già. Usa la funzione Unisci."
+msgstr "The category already exists. Use the Merge function."
+
+msgid "Seleziona una categoria sorgente dalla lista."
+msgstr "Select a source category from the list."
+
+msgid "Seleziona la categoria destinazione dal menu."
+msgstr "Select the destination category from the menu."
+
+msgid "Sorgente e destinazione devono essere diverse."
+msgstr "Source and destination must be different."
+
+msgid "Conferma Unione"
+msgstr "Confirm Merge"
+
+msgid "Tutti i fornitori con categoria '{src}' verranno spostati a '{tgt}'.\nLa categoria '{src}' verrà eliminata.\n\nProcedere?"
+msgstr "All suppliers with category '{src}' will be moved to '{tgt}'.\nThe category '{src}' will be deleted.\n\nProceed?"
+
+msgid "Categoria"
+msgstr "Category"
+
+msgid "Contatto"
+msgstr "Contact"
+
+msgid "Stato"
+msgstr "Status"
+
+msgid "Telefono"
+msgstr "Phone"
+
+msgid "Impossibile caricare i fornitori potenziali: {}\n"
+msgstr "Unable to load potential suppliers: {}\n"
+
+msgid "Nessuna Selezione"
+msgstr "No Selection"
+
+msgid "Sei sicuro di voler eliminare {} fornitore(i)?\nQuesta operazione non può essere annullata."
+msgstr "Are you sure you want to delete {} supplier(s)?\nThis operation cannot be undone."
+
+msgid "{} fornitore(i) eliminato(i) con successo."
+msgstr "{} supplier(s) deleted successfully."
