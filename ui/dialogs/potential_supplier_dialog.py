@@ -8,6 +8,7 @@ Nessuna dipendenza da VSMEvent o da logica economica.
 import tkinter as tk
 from tkinter import ttk
 import logging
+import webbrowser
 
 from database_manager import DatabaseManager, DatabaseError
 from services.app_paths import get_db_path
@@ -191,9 +192,8 @@ class PotentialSupplierDialog(tk.Toplevel):
         self._entry_contact.grid(row=row, column=1, sticky="ew", pady=5)
         row += 1
 
-        ttk.Label(contacts, text=_("E-mail:"), font=(None, 10)).grid(
-            row=row, column=0, sticky="w", padx=(0, 10), pady=5
-        )
+        self._lbl_email = ttk.Label(contacts, text=_("E-mail:"), font=(None, 10))
+        self._lbl_email.grid(row=row, column=0, sticky="w", padx=(0, 10), pady=5)
         self._entry_email = ttk.Entry(
             contacts, textvariable=self.var_email, width=38
         )
@@ -209,9 +209,8 @@ class PotentialSupplierDialog(tk.Toplevel):
         self._entry_phone.grid(row=row, column=1, sticky="w", pady=5)
         row += 1
 
-        ttk.Label(contacts, text=_("Web:"), font=(None, 10)).grid(
-            row=row, column=0, sticky="w", padx=(0, 10), pady=5
-        )
+        self._lbl_web = ttk.Label(contacts, text=_("Web:"), font=(None, 10))
+        self._lbl_web.grid(row=row, column=0, sticky="w", padx=(0, 10), pady=5)
         self._entry_website = ttk.Entry(
             contacts, textvariable=self.var_website, width=38
         )
@@ -229,7 +228,7 @@ class PotentialSupplierDialog(tk.Toplevel):
 
         # --- Pulsanti ---
         btn_frame = ttk.Frame(main)
-        btn_frame.grid(row=3, column=0, sticky="e")
+        btn_frame.grid(row=3, column=0, sticky="ew")
 
         if self.read_only:
             ttk.Button(
@@ -252,6 +251,17 @@ class PotentialSupplierDialog(tk.Toplevel):
                 width=18,
             )
             self._btn_manage_categories.pack(side="left")
+
+        # --- Stile label cliccabili (definito una volta, globale all'app) ---
+        _s = ttk.Style()
+        if "ClickLink.TLabel" not in _s.theme_names():
+            pass  # avoid theme check issues; just configure
+        _s.configure("ClickLink.TLabel", foreground="#0055aa")
+
+        # Aggiorna stato cliccabile e registra trace sui campi contatto
+        self._update_clickable_contact_labels()
+        self.var_email.trace_add("write", lambda *_: self._update_clickable_contact_labels())
+        self.var_website.trace_add("write", lambda *_: self._update_clickable_contact_labels())
 
         # Chiusura con X
         self.protocol("WM_DELETE_WINDOW", self.destroy)
@@ -309,6 +319,9 @@ class PotentialSupplierDialog(tk.Toplevel):
         self._entry_username.delete(0, tk.END)
         self._entry_username.insert(0, supplier.username or self.current_username)
         self._entry_username.configure(state="disabled")
+
+        # Rifletti stato cliccabile label dopo caricamento dati
+        self._update_clickable_contact_labels()
 
     # -----------------------------------------------------------------------
     # SALVATAGGIO
@@ -438,3 +451,39 @@ class PotentialSupplierDialog(tk.Toplevel):
         self.wait_window(dlg)
         if dlg.changes_made:
             self._refresh_categories()
+
+    def _update_clickable_contact_labels(self):
+        """Aggiorna stile e binding delle label E-mail e Web in base al contenuto."""
+        email = self.var_email.get().strip()
+        if email:
+            self._lbl_email.configure(style="ClickLink.TLabel", cursor="hand2")
+            self._lbl_email.bind("<Button-1>", self._on_email_click)
+        else:
+            self._lbl_email.configure(style="TLabel", cursor="")
+            self._lbl_email.unbind("<Button-1>")
+
+        website = self.var_website.get().strip()
+        if website:
+            self._lbl_web.configure(style="ClickLink.TLabel", cursor="hand2")
+            self._lbl_web.bind("<Button-1>", self._on_web_click)
+        else:
+            self._lbl_web.configure(style="TLabel", cursor="")
+            self._lbl_web.unbind("<Button-1>")
+
+    def _on_email_click(self, event=None):
+        """Copia l'e-mail negli appunti e mostra conferma."""
+        email = self.var_email.get().strip()
+        if not email:
+            return
+        self.clipboard_clear()
+        self.clipboard_append(email)
+        SimpleMessageDialog(self, _("Info"), _("E-mail copiata"), "info")
+
+    def _on_web_click(self, event=None):
+        """Apre il sito web nel browser predefinito."""
+        url = self.var_website.get().strip()
+        if not url:
+            return
+        if not url.startswith(("http://", "https://")):
+            url = f"https://{url}"
+        webbrowser.open(url)

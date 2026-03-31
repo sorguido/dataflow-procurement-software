@@ -50,7 +50,6 @@ from logging.handlers import RotatingFileHandler
 import builtins
 if not hasattr(builtins, '_'):
     builtins._ = lambda x: x
-import webbrowser
 import atexit
 import gettext
 import subprocess
@@ -1653,62 +1652,6 @@ class MainWindow:
             self.update_button_visibility()
         return handler
 
-    def _create_supplier_cell_select_handler(self, sheet):
-        """
-        Handler di selezione cella per il tab Derisking (fornitori potenziali).
-
-        Aggiorna i pulsanti Actions.
-        Su click singolo su E-mail (col 4): copia negli appunti.
-        Su click singolo su Web (col 6): apre nel browser predefinito.
-        Un timer di 280 ms separa il singolo click dal doppio click.
-        """
-        _EMAIL_COL = 4
-        _WEB_COL = 6
-
-        def handler(event_data):
-            self.update_button_visibility()
-
-            try:
-                col = event_data.column
-            except AttributeError:
-                return
-
-            if col not in (_EMAIL_COL, _WEB_COL):
-                return
-
-            try:
-                row = event_data.row
-                cell_value = (sheet.get_cell_data(row, col) or "").strip()
-            except Exception:
-                return
-
-            if not cell_value:
-                return
-
-            # Cancella azione precedente ancora in attesa
-            if sheet._cell_action_job:
-                self.root.after_cancel(sheet._cell_action_job)
-                sheet._cell_action_job = None
-
-            def do_action(v=cell_value, c=col):
-                sheet._cell_action_job = None
-                # Se il dialog fornitore sta aprendo (double-click), non agire
-                if getattr(self, '_opening_supplier_edit', False):
-                    return
-                if c == _EMAIL_COL:
-                    self.root.clipboard_clear()
-                    self.root.clipboard_append(v)
-                    SimpleMessageDialog(
-                        self.root, _("Info"), _("E-mail copiata negli appunti."), "info"
-                    )
-                elif c == _WEB_COL:
-                    url = v if v.startswith(("http://", "https://")) else f"https://{v}"
-                    webbrowser.open(url)
-
-            sheet._cell_action_job = self.root.after(280, do_action)
-
-        return handler
-
     def _create_vsm_event_sheet(self, parent, event_type=None):
         """
         Crea un tksheet per visualizzare eventi VSM.
@@ -1903,8 +1846,8 @@ class MainWindow:
 
         sheet.enable_bindings()
 
-        # Step 4D.1: binding per aggiornamento pulsante Actions + click E-mail/Web
-        sheet.extra_bindings("cell_select", self._create_supplier_cell_select_handler(sheet))
+        # binding per aggiornamento pulsante Actions
+        sheet.extra_bindings("cell_select", self.create_cell_select_handler(sheet))
         sheet.extra_bindings("row_select", self.create_row_select_handler(sheet))
 
         # Doppio click: silenzioso per ora (dialog fornitore non ancora implementato)
@@ -1919,7 +1862,6 @@ class MainWindow:
         # con _check_if_all_vsm_events_are_mine (restituisce False → Actions disabilitato)
         sheet._event_metadata = []
         sheet._supplier_metadata = []  # Lista di dict con supplier_id, username, is_mine
-        sheet._cell_action_job = None  # job after() per click E-mail/Web
 
         return sheet
 
@@ -1934,11 +1876,6 @@ class MainWindow:
         # Debounce: evita aperture multiple rapide
         if hasattr(self, '_opening_supplier_edit') and self._opening_supplier_edit:
             return
-
-        # Annulla eventuale azione single-click su E-mail/Web in attesa
-        if hasattr(sheet, '_cell_action_job') and sheet._cell_action_job:
-            self.root.after_cancel(sheet._cell_action_job)
-            sheet._cell_action_job = None
 
         selected_rows = self._get_selected_row_indices(sheet)
         if not selected_rows:
