@@ -149,23 +149,41 @@ msgstr "3. WARRANTY DISCLAIMER\n"
 msgid "3. Gestire una RdO Esistente"
 msgstr "3. Managing an Existing RfQ"
 
-msgid "4. Impostazioni e Manutenzione"
-msgstr "4. Settings and Maintenance"
+msgid "4. Value Stream Mapping: Saving, Cost Avoidance e Derisking"
+msgstr "4. Value Stream Mapping: Saving, Cost Avoidance and Derisking"
+
+msgid "   - Panoramica dei Tab VSM"
+msgstr "   - Overview of the VSM Tabs"
+
+msgid "   - Creare o Modificare un Evento Saving"
+msgstr "   - Creating or Editing a Saving Event"
+
+msgid "   - Creare o Modificare un Evento Cost Avoidance"
+msgstr "   - Creating or Editing a Cost Avoidance Event"
+
+msgid "   - Anagrafica Fornitori Potenziali (Tab Derisking)"
+msgstr "   - Potential Supplier Registry (Derisking Tab)"
+
+msgid "   - Gestire le Categorie dei Fornitori"
+msgstr "   - Managing Supplier Categories"
+
+msgid "5. Impostazioni e Manutenzione"
+msgstr "5. Settings and Maintenance"
 
 msgid "4. LIMITAZIONE DI RESPONSABILITÀ\n"
 msgstr "4. LIMITATION OF LIABILITY\n"
 
-msgid "5. Problemi Comuni e Soluzioni"
-msgstr "5. Common Problems and Solutions"
+msgid "6. Problemi Comuni e Soluzioni"
+msgstr "6. Common Problems and Solutions"
 
-msgid "6. Requisiti di Sistema e Limiti"
-msgstr "6. System Requirements and Limits"
+msgid "7. Requisiti di Sistema e Limiti"
+msgstr "7. System Requirements and Limits"
 
-msgid "7. Glossario"
-msgstr "7. Glossary"
+msgid "8. Glossario"
+msgstr "8. Glossary"
 
-msgid "8. Contatti e Supporto"
-msgstr "8. Contacts and Support"
+msgid "10. Contatti e Supporto"
+msgstr "10. Contacts and Support"
 
 msgid "A-D come sopra, E: Codice Grezzo, F: Disegno Grezzo, G: Materiale C/L"
 msgstr "A-D as above, E: Raw Code, F: Raw Attachment, G: Work Order Material"
