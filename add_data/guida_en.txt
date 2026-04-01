@@ -1,5 +1,5 @@
 [H1]DataFlow Procurement Software User Guide
-[INFO]Documentation version: November 2025
+[INFO]Documentation version: April 2026
 
 This guide will help you use DataFlow, the software for managing Requests for Offer.
 
@@ -33,7 +33,7 @@ You don't need to do anything, everything is configured automatically. All docum
 [H2]First Test RFQ
 To familiarize yourself with DataFlow, follow these steps to create your first RFQ:
 
-[BOLD]1. [NORMAL]Click the '[CODE]➕ New RFQ' button on the main screen
+[BOLD]1. [NORMAL]Click the '[CODE]➕ New Event' button on the main screen (in RFQ tabs it opens new RFQ creation)
 [BOLD]2. [NORMAL]Select the RFQ type (e.g. 'Full Supply')
 [BOLD]3. [NORMAL]Fill in the required fields:
 [LIST]   • Reference: use an identifier code (e.g. TEST-001)
@@ -51,7 +51,7 @@ To familiarize yourself with DataFlow, follow these steps to create your first R
 Congratulations! You have created your first RFQ. You can double-click on it to open it and explore all the features.
 
 [H1]1. Main Screen
-This is the window that gives you an overview of all Requests for Offer (RFQ). The requests are divided into two main tabs: 'Active RFQs' and 'Archived RFQs'.
+This is the window that gives you an overview of all Requests for Offer (RFQ). Requests and analyses are organized into five tabs: 'Active RFQs', 'Archived RFQs', 'Saving', 'Cost Avoidance', and 'Derisking'.
 
 RFQs in the 'Active' tab whose expiry date has passed are highlighted in [WARNING]red[/WARNING] for easy identification.
 
@@ -61,7 +61,7 @@ The DataFlow main table displays the complete list of your Requests for Offer.
 
 [BOLD]Main features:
 [LIST] • [BOLD]Double click [NORMAL]on a row to open the RFQ
-[LIST] • [BOLD]Single click [NORMAL]to select (enables Delete/Duplicate/Archive buttons)
+[LIST] • [BOLD]Single click [NORMAL]to select (enables the [CODE]⚡ Actions[CODE] menu with available operations)
 [LIST] • [BOLD]Click on column header [NORMAL]to sort ascending/descending
 [LIST] • [BOLD]Multiple selection[NORMAL]: hold Ctrl and click on multiple rows to delete/archive them together
 [LIST] • [BOLD]Colored rows[NORMAL]: RFQs with past expiry dates appear in red
@@ -92,19 +92,18 @@ By clicking with the [BOLD]right mouse button [NORMAL]on any DataFlow table (mai
 
 [INFO]Tip: To restore the original table view, reload the data with "Search", reopen the window, or use "Clear Filters".
 
-To [BOLD]permanently delete an RFQ from the database[NORMAL], always use the [CODE]🗑 Delete RFQ [NORMAL]button in the top bar.
+To [BOLD]permanently delete an RFQ from the database[NORMAL], always use the [CODE]⚡ Actions[CODE] menu in the top bar.
 
 [H2]Interface and Main Buttons
-[LIST] • [BOLD]New RFQ: [NORMAL]Opens the window to create a new request.
-[LIST] • [BOLD]Delete RFQ: [NORMAL]Permanently deletes the selected RFQ. For safety, only one RFQ can be deleted at a time.
+[LIST] • [BOLD]➕ New Event: [NORMAL]Dynamic button: in RFQ tabs it opens a new request; in Value Stream Mapping tabs it opens creation of a new event (or a new potential supplier in Derisking).
+[LIST] • [BOLD]⚡ Actions: [NORMAL]Dynamic contextual menu that groups actions for the current selection. Depending on the tab it includes [CODE]🗑 Delete[CODE], [CODE]🔁 Duplicate[CODE], [CODE]📦 Archive[CODE], or [CODE]↩️ Reactivate[CODE].
+[LIST] • [BOLD]Multi-delete RFQs: [NORMAL]If you select multiple rows, you can delete them in a single operation from the Actions menu.
 [LIST] • [BOLD]Duplicate RFQ: [NORMAL]Creates a copy of the selected RFQ with a new progressive identification number. This function is useful for quickly creating new requests similar to existing ones, maintaining the item structure.
 
 [BOLD]What gets copied in duplication:[BOLD]
 [LIST]   • [BOLD]✅ RFQ Header:[BOLD] Type (Full/Processing), Reference, Supplier
 [LIST]   • [BOLD]✅ Complete Item List:[BOLD] Code, Attachment (Drawing), Description, Quantity
 [LIST]   • [BOLD]✅ Processing Fields:[BOLD] Raw Code, Raw Drawing, Material for Processing (if present)
-[LIST]   • [BOLD]✅ Supplier List:[BOLD] All suppliers associated with the original RFQ
-
 [BOLD]What does NOT get copied:[BOLD]
 [LIST]   • [BOLD]❌ Prices:[BOLD] All price cells in the new RFQ will be empty
 [LIST]   • [BOLD]❌ Attachments:[BOLD] Supplier quotes and internal documents are not transferred
@@ -112,6 +111,7 @@ To [BOLD]permanently delete an RFQ from the database[NORMAL], always use the [CO
 [LIST]   • [BOLD]❌ SQDC Analysis:[BOLD] Any saved SQDC analyses are not duplicated
 [LIST]   • [BOLD]❌ Order Numbers (PO):[BOLD] Purchase order numbers are not copied
 [LIST]   • [BOLD]❌ Dates:[BOLD] Issue and expiry dates are reset
+[LIST]   • [BOLD]❌ Supplier List:[BOLD] All suppliers associated with the original RFQ
 
 [WARNING_RED]WARNING: The new RFQ will have a [BOLD]new progressive identification number[BOLD] and will be automatically set as [BOLD]'Active'[BOLD]. After duplication, you will need to:
 [LIST]1. Modify dates (issue, expiry) as needed
@@ -123,6 +123,33 @@ To [BOLD]permanently delete an RFQ from the database[NORMAL], always use the [CO
 [LIST] • [BOLD]📊 Export Excel:[NORMAL] Exports all RFQs currently displayed in the table (respecting applied filters) into a single Excel file. This function is useful for creating global reports, analyzing multiple RFQs simultaneously, or sharing a complete summary with the team. The generated Excel file includes for each RFQ: number, type, reference, supplier, items with prices, dates, and status.
 [INFO]The global Export Excel button exports only the RFQs [BOLD]visible[BOLD] on the current screen. If you have applied filters (by supplier, date, user, etc.), only RFQs matching the criteria will be exported. To export all RFQs, remove filters by clicking "Clear Filters" before exporting.
 [LIST] • [BOLD]Settings: [NORMAL]Opens the panel for advanced configuration and maintenance.
+
+[H2]Saving, Cost Avoidance, and Derisking Tabs
+DataFlow also includes three tabs dedicated to Value Stream Mapping monitoring:
+[LIST] • [BOLD]Saving:[NORMAL] events with theoretical/actual savings and realization/variance indicators.
+[LIST] • [BOLD]Cost Avoidance:[NORMAL] cost-avoidance events with theoretical/actual view, realization, and variance.
+[LIST] • [BOLD]Derisking:[NORMAL] potential supplier management (master data, category, status, contacts, notes).
+
+[BOLD]How to work in Value Stream Mapping tabs:[BOLD]
+[LIST] • The [CODE]➕ New Event[CODE] button opens the form consistent with the active tab (Value Stream Mapping event or new supplier in Derisking)
+[LIST] • The [CODE]⚡ Actions[CODE] menu enables [CODE]🗑 Delete[CODE] on selection; [CODE]🔁 Duplicate[CODE] is available only for Saving/Cost Avoidance
+[LIST] • Double-clicking a row opens edit for the selected record
+
+[BOLD]Value Stream Mapping filters:[BOLD]
+[LIST] • In Saving/Cost Avoidance tabs, filters are available for User, date range, Action, Repetitive flag, and theoretical/actual amount ranges
+[LIST] • In the Derisking tab, advanced filters are disabled because the view is supplier-based
+
+[H2]KPI Dashboard
+From the [CODE]≋ KPI[CODE] button you can open the KPI analysis window with tab navigation:
+[LIST] • [BOLD]RFQ[NORMAL] (request volume and status)
+[LIST] • [BOLD]Saving[NORMAL]
+[LIST] • [BOLD]Cost Avoidance[NORMAL]
+[LIST] • [BOLD]Derisking[NORMAL]
+
+In the KPI window you can:
+[LIST] • Filter by quick period (1M, 3M, 12M, 3Y, 5Y, 10Y, All)
+[LIST] • Filter by year
+[LIST] • Export KPIs to Excel (current section or all sections)
 
 [H2]Keyboard Shortcuts
 For faster navigation, you can use these shortcuts:
@@ -202,7 +229,7 @@ The Global Search Bar searches across multiple fields simultaneously, including:
 [WARNING]NOTE: The Global Search Bar does not handle date ranges directly. Use advanced filters for time-based searches.
 
 [H1]2. Creating a New RFQ
-Clicking 'New RFQ' opens the input form. The first fundamental choice is the 'RFQ Type':
+Clicking 'New Event' in RFQ tabs opens the input form. The first fundamental choice is the 'RFQ Type':
 [LIST] • [BOLD]Full Supply: [NORMAL]For standard material purchases.
 [LIST] • [BOLD]Processing: [NORMAL]Activates additional specific fields (Raw Code, Raw Attachment, Material for Processing) for managing external processing on supplied materials.
 
@@ -796,7 +823,7 @@ Have an idea for a new feature? Contact me at the email address above. Feedback 
 
 [H2]License
 DataFlow is released as open source software under the GNU General Public License version 3 (GPLv3)
-See the complete license by clicking the [CODE]📄 License[CODE] button on the main screen.
+See the complete license by clicking the [CODE]≡ License[CODE] button on the main screen.
 
 [H2]Acknowledgments
 Thank you for choosing DataFlow. I hope this software can simplify the management of your Requests for Offer.

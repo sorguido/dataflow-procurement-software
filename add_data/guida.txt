@@ -1,5 +1,5 @@
 [H1]Guida Utente DataFlow Procurement Software
-[INFO]Documentazione versione: Novembre 2025
+[INFO]Documentazione versione: Aprile 2026
 
 Questa guida ti accompagnerà nell'utilizzo di DataFlow, il software per la gestione delle Richieste di Offerta.
 
@@ -33,7 +33,7 @@ Non devi fare nulla, tutto è configurato automaticamente. Tutti i documenti (da
 [H2]Prima RdO di Prova
 Per familiarizzare con DataFlow, segui questi passi per creare la tua prima RdO:
 
-[BOLD]1. [NORMAL]Clicca sul pulsante '[CODE]➕ Nuova RdO' nella schermata principale
+[BOLD]1. [NORMAL]Clicca sul pulsante '[CODE]➕ Nuovo Evento' nella schermata principale (nei tab RdO apre la creazione di una nuova RdO)
 [BOLD]2. [NORMAL]Seleziona il tipo di RdO (es. 'Fornitura piena')
 [BOLD]3. [NORMAL]Compila i campi obbligatori:
 [LIST]   • Riferimento: usa un codice identificativo (es. TEST-001)
@@ -51,7 +51,7 @@ Per familiarizzare con DataFlow, segui questi passi per creare la tua prima RdO:
 Congratulazioni! Hai creato la tua prima RdO. Puoi fare doppio click su di essa per aprirla e esplorare tutte le funzionalità.
 
 [H1]1. Schermata Principale
-È la finestra da cui hai una visione d'insieme di tutte le Richieste di Offerta (RdO). Le richieste sono divise in due schede principali: 'RdO Attive' e 'RdO Archiviate'.
+È la finestra da cui hai una visione d'insieme di tutte le Richieste di Offerta (RdO). Le richieste e le analisi sono organizzate in cinque schede: 'RdO Attive', 'RdO Archiviate', 'Saving', 'Cost Avoidance' e 'Derisking'.
 
 Le RdO nella scheda 'Attive' la cui data di scadenza è passata vengono evidenziate in [WARNING]rosso[WARNING] per una facile identificazione.
 
@@ -61,7 +61,7 @@ La tabella principale di DataFlow visualizza l'elenco completo delle tue Richies
 
 [BOLD]Funzionalità principali:
 [LIST] • [BOLD]Doppio click [NORMAL]su una riga per aprire la RdO
-[LIST] • [BOLD]Click semplice [NORMAL]per selezionare (abilita pulsanti Elimina/Duplica/Archivia)
+[LIST] • [BOLD]Click semplice [NORMAL]per selezionare (abilita il menu [CODE]⚡ Actions[CODE] con le azioni disponibili)
 [LIST] • [BOLD]Click sull'intestazione colonna [NORMAL]per ordinare crescente/decrescente
 [LIST] • [BOLD]Selezione multipla[NORMAL]: tieni premuto Ctrl e clicca su più righe per eliminarle/archiviarle insieme
 [LIST] • [BOLD]Righe colorate[NORMAL]: le RdO con data scadenza passata appaiono in rosso
@@ -92,11 +92,12 @@ Cliccando con il [BOLD]tasto destro del mouse [NORMAL]su qualsiasi tabella di Da
 
 [INFO]Suggerimento: Per ripristinare la visualizzazione originale della tabella, ricarica i dati con "Cerca", riapri la finestra, oppure usa "Pulisci Filtri".
 
-Per [BOLD]eliminare definitivamente una RdO dal database[NORMAL], usa sempre il pulsante [CODE]🗑 Elimina RdO [NORMAL]nella barra superiore.
+Per [BOLD]eliminare definitivamente una RdO dal database[NORMAL], usa sempre il menu [CODE]⚡ Actions[CODE] nella barra superiore.
 
 [H2]Interfaccia e Pulsanti Principali
-[LIST] • [BOLD]Nuova RdO:[NORMAL] Apre la finestra per creare una nuova richiesta.
-[LIST] • [BOLD]Elimina RdO:[NORMAL] Elimina permanentemente la RdO selezionata. Per sicurezza, è possibile eliminare solo una RdO alla volta.
+[LIST] • [BOLD]➕ Nuovo Evento:[NORMAL] Pulsante dinamico: nei tab RdO apre una nuova richiesta; nei tab Value Stream Mapping apre la creazione di un nuovo evento (o nuovo fornitore potenziale in Derisking).
+[LIST] • [BOLD]⚡ Actions:[NORMAL] Menu contestuale dinamico che raccoglie le azioni sulla selezione corrente. In base al tab include [CODE]🗑 Elimina[CODE], [CODE]🔁 Duplica[CODE], [CODE]📦 Archivia[CODE] o [CODE]↩️ Riattiva[CODE].
+[LIST] • [BOLD]Eliminazione multipla RdO:[NORMAL] Se selezioni più righe, puoi eliminarle in un'unica operazione dal menu Actions.
 [LIST] • [BOLD]Duplica RdO:[NORMAL] Crea una copia della RdO selezionata con un nuovo numero di identificazione progressivo. Questa funzione è utile per creare rapidamente nuove richieste simili a quelle esistenti, mantenendo la struttura degli articoli.
 
 [BOLD]Cosa viene copiato nella duplicazione:[BOLD]
@@ -123,6 +124,33 @@ Per [BOLD]eliminare definitivamente una RdO dal database[NORMAL], usa sempre il 
 [LIST] • [BOLD]📊 Export Excel:[NORMAL] Esporta in un unico file Excel tutte le RdO attualmente visualizzate nella tabella (rispettando i filtri applicati). Questa funzione è utile per creare report globali, analizzare più RdO contemporaneamente o condividere un riepilogo completo con il team. Il file Excel generato include per ogni RdO: numero, tipo, riferimento, fornitore, articoli con prezzi, date e stato.
 [INFO]Il pulsante Export Excel globale esporta solo le RdO [BOLD]visibili[BOLD] nella schermata corrente. Se hai applicato filtri (per fornitore, data, utente, ecc.), verranno esportate solo le RdO che corrispondono ai criteri. Per esportare tutte le RdO, rimuovi i filtri cliccando "Pulisci Filtri" prima di esportare.
 [LIST] • [BOLD]Impostazioni:[NORMAL] Apre il pannello per la configurazione avanzata e la manutenzione.
+
+[H2]Tab Saving, Cost Avoidance e Derisking
+DataFlow include anche tre tab dedicati al monitoraggio Value Stream Mapping:
+[LIST] • [BOLD]Saving:[NORMAL] eventi con risparmio teorico/effettivo e indicatori di realizzo/varianza.
+[LIST] • [BOLD]Cost Avoidance:[NORMAL] eventi di evitamento costo con vista teorico/effettivo, realizzo e varianza.
+[LIST] • [BOLD]Derisking:[NORMAL] gestione fornitori potenziali (anagrafica, categoria, stato, contatti, note).
+
+[BOLD]Operatività nei tab Value Stream Mapping:[BOLD]
+[LIST] • Il pulsante [CODE]➕ Nuovo Evento[CODE] apre il form coerente col tab attivo (evento Value Stream Mapping o nuovo fornitore in Derisking)
+[LIST] • Il menu [CODE]⚡ Actions[CODE] abilita [CODE]🗑 Elimina[CODE] su selezione; [CODE]🔁 Duplica[CODE] è disponibile solo per Saving/Cost Avoidance
+[LIST] • Il doppio click su una riga apre la modifica del record selezionato
+
+[BOLD]Filtri Value Stream Mapping:[BOLD]
+[LIST] • Nei tab Saving/Cost Avoidance sono disponibili filtri per Utente, date, Azione, flag Ripetitivo e range importi teorici/effettivi
+[LIST] • Nel tab Derisking i filtri avanzati vengono disattivati perché la vista è orientata ai fornitori potenziali
+
+[H2]KPI Dashboard
+Dal pulsante [CODE]≋ KPI[CODE] puoi aprire la finestra di analisi KPI con navigazione a tab:
+[LIST] • [BOLD]RFQ[NORMAL] (volumi e stato richieste)
+[LIST] • [BOLD]Saving[NORMAL]
+[LIST] • [BOLD]Cost Avoidance[NORMAL]
+[LIST] • [BOLD]Derisking[NORMAL]
+
+Nella finestra KPI puoi:
+[LIST] • Filtrare per periodo rapido (1M, 3M, 12M, 3Y, 5Y, 10Y, All)
+[LIST] • Filtrare per anno
+[LIST] • Esportare i KPI in Excel (sezione corrente o tutte le sezioni)
 
 [H2]Scorciatoie da Tastiera
 Per una navigazione più rapida, puoi utilizzare queste scorciatoie:
@@ -202,7 +230,7 @@ La Global Search Bar ricerca contemporaneamente su più campi, tra cui:
 [WARNING]NOTA: La Global Search Bar non gestisce direttamente gli intervalli di date. Per filtrare per periodo, utilizza i Filtri avanzati.
 
 [H1]2. Creare una Nuova RdO
-Cliccando 'Nuova RdO' si apre la maschera di inserimento. La prima scelta fondamentale è il 'Tipo di RdO':
+Cliccando 'Nuovo Evento' nei tab RdO si apre la maschera di inserimento. La prima scelta fondamentale è il 'Tipo di RdO':
 [LIST] • [BOLD]Fornitura Piena: [NORMAL]Per l'acquisto standard di materiali.
 [LIST] • [BOLD]Conto Lavoro: [NORMAL]Attiva campi aggiuntivi specifici (Codice Grezzo, Disegno Grezzo, Materiale c/lavoro) per la gestione di lavorazioni esterne su materiali forniti.
 
@@ -788,7 +816,7 @@ Hai un'idea per una nuova funzionalità? Contattami all'indirizzo email sopra. F
 
 [H2]Licenza
 DataFlow è rilasciato come software open source sotto la licenza GNU General Public License versione 3 (GPLv3)
-Consulta la licenza completa cliccando sul pulsante [CODE]📄 Licenza[CODE] nella schermata principale.
+Consulta la licenza completa cliccando sul pulsante [CODE]≡ License[CODE] nella schermata principale.
 
 [H2]Ringraziamenti
 Grazie per aver scelto DataFlow. Spero che questo software possa semplificare la gestione delle tue Richieste di Offerta.
