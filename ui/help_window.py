@@ -47,8 +47,7 @@ class HelpWindow(tk.Toplevel):
         file_paths_text = "   - File Paths and Environment" if current_language == "en" else _("   - File Paths e Ambiente")
 
         self.title(_("Guida Utente - DataFlow Procurement Software"))
-        self.transient(parent)
-        self.grab_set()
+        self.resizable(True, True)
         
         main_frame = ttk.Frame(self)
         main_frame.pack(fill="both", expand=True)
