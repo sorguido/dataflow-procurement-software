@@ -229,6 +229,12 @@ La Global Search Bar ricerca contemporaneamente su più campi, tra cui:
 
 [WARNING]NOTA: La Global Search Bar non gestisce direttamente gli intervalli di date. Per filtrare per periodo, utilizza i Filtri avanzati.
 
+[H2]Search vs Filters
+DataFlow offre due strumenti di ricerca complementari per accedere rapidamente alle informazioni.
+[LIST] • [BOLD]Global Search Bar:[NORMAL] ricerca testuale immediata su più campi contemporaneamente; ideale per trovare velocemente una RdO.
+[LIST] • [BOLD]Filtri Avanzati:[NORMAL] permettono di combinare più criteri (date, tipo, utente, intervalli) per analisi strutturate e precise.
+[LIST] • [BOLD]Utilizzo combinato:[NORMAL] applica prima i filtri avanzati, poi usa la Global Search per restringere ulteriormente i risultati.
+
 [H1]2. Creare una Nuova RdO
 Cliccando 'Nuovo Evento' nei tab RdO si apre la maschera di inserimento. La prima scelta fondamentale è il 'Tipo di RdO':
 [LIST] • [BOLD]Fornitura Piena: [NORMAL]Per l'acquisto standard di materiali.
@@ -323,8 +329,21 @@ Nella cartella [CODE]add_data[CODE] dell'applicazione trovi i file template pron
 
 E' consigliato usare questi template come riferimento per garantire la corretta struttura del file.
 
+[H2]Data Validation Rules
+DataFlow esegue controlli di validazione sui dati inseriti per garantire la coerenza del database.
+[LIST] • [BOLD]Riferimento:[NORMAL] Campo obbligatorio; non può essere vuoto.
+[LIST] • [BOLD]Date:[NORMAL] La data di scadenza deve essere uguale o successiva alla data di emissione.
+[LIST] • [BOLD]Prezzi:[NORMAL] Devono essere numeri con la virgola come separatore decimale (es. 12,50), oppure i valori speciali X, ND o cella vuota.
+[LIST] • [BOLD]Quantità:[NORMAL] Per l'analisi SQDC deve essere numerica; è ammesso anche testo libero (es. MOQ) per la sola visualizzazione.
+
 [H1]3. Gestire una RdO Esistente
 Fai doppio click su una RdO nella schermata principale per aprire il 'Pannello di Controllo', il centro operativo per quella specifica richiesta.
+
+[H2]Quick Actions (New / Delete / Duplicate)
+Dal menu [CODE]⚡ Actions[CODE] nella schermata principale puoi eseguire operazioni rapide sulle RdO selezionate prima di aprirle.
+[LIST] • [BOLD]➕ Nuovo:[NORMAL] Crea una nuova RdO (nei tab RdO) o un nuovo evento (nei tab Value Stream Mapping).
+[LIST] • [BOLD]🗑 Elimina:[NORMAL] Elimina definitivamente le RdO selezionate dal database (richiede conferma).
+[LIST] • [BOLD]🔁 Duplica:[NORMAL] Crea una copia della RdO selezionata mantenendo articoli e struttura, ma senza prezzi, allegati e note.
 
 [H2]La Griglia Prezzi
 
@@ -497,6 +516,12 @@ Garantisce che vengano valutati equamente solo i fornitori che hanno presentato 
 Il pulsante 'Esporta Excel' genera un file di riepilogo formattato. Dopo aver cliccato, ti verrà chiesto di scegliere la lingua:
 [LIST] • [BOLD]Italiano / Inglese:[NORMAL] La scelta della lingua determina quale modello di file Excel verrà utilizzato, traducendo intestazioni e campi per adattarsi al contesto internazionale.
 
+[H2]Value Stream Mapping
+I tab [BOLD]Saving[BOLD], [BOLD]Cost Avoidance[BOLD] e [BOLD]Derisking[BOLD] nella schermata principale costituiscono la sezione Value Stream Mapping di DataFlow.
+[LIST] • [BOLD]Saving / Cost Avoidance:[NORMAL] Registra eventi di risparmio e di evitamento costo con valori teorici ed effettivi, realizzo e varianza.
+[LIST] • [BOLD]Derisking:[NORMAL] Gestisce l'anagrafica dei fornitori potenziali con categoria, stato e contatti.
+Per i dettagli operativi, consulta la sezione "Tab Saving, Cost Avoidance e Derisking" nel capitolo 1.
+
 [H1]4. Impostazioni e Manutenzione
 Questa sezione, accessibile dalla schermata principale, è divisa in schede per una gestione chiara e ordinata del programma.
 
@@ -646,6 +671,14 @@ La lingua selezionata influisce su:
 [LIST] • I messaggi di errore e le notifiche del sistema
 
 [BOLD]NOTA: [NORMAL]La lingua viene salvata nel file di configurazione e viene mantenuta tra le diverse sessioni dell'applicazione.
+
+[H2]File Paths e Ambiente
+DataFlow utilizza cartelle e file specifici per il suo funzionamento. Percorsi principali:
+[LIST] • [BOLD]Database:[NORMAL] [CODE]Documents\DataFlow_[username]\Database\dataflow_db_[username].db[CODE]
+[LIST] • [BOLD]Allegati:[NORMAL] [CODE]Documents\DataFlow_[username]\Attachments\[CODE]
+[LIST] • [BOLD]Configurazione:[NORMAL] [CODE]%LOCALAPPDATA%\DataFlow\config.ini[CODE]
+[LIST] • [BOLD]Log:[NORMAL] [CODE]%LOCALAPPDATA%\DataFlow\dataflow.log[CODE]
+[INFO]Puoi personalizzare la posizione della cartella DataFlow tramite Impostazioni → Database → Cartella DataFlow Personalizzata.
 
 [H1]5. Problemi Comuni e Soluzioni
 Questa sezione ti aiuterà a risolvere i problemi più comuni che potresti incontrare durante l'utilizzo di DataFlow.

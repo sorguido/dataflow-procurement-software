@@ -43,7 +43,9 @@ class HelpWindow(tk.Toplevel):
         
         # Determina la traduzione corretta per "Analisi SQDC"
         sqdc_text = "   - Analysis SQDC" if current_language == "en" else _("   - Analisi SQDC")
-        
+        # Determina la traduzione corretta per "File Paths"
+        file_paths_text = "   - File Paths and Environment" if current_language == "en" else _("   - File Paths e Ambiente")
+
         self.title(_("Guida Utente - DataFlow Procurement Software"))
         self.transient(parent)
         self.grab_set()
@@ -54,11 +56,44 @@ class HelpWindow(tk.Toplevel):
         paned = ttk.PanedWindow(main_frame, orient=tk.HORIZONTAL)
         paned.pack(fill="both", expand=True, padx=10, pady=10)
         
-        # Frame sommario (TOC)
-        toc_frame = ttk.Frame(paned, padding=10)
-        paned.add(toc_frame, weight=1)
-        
-        ttk.Label(toc_frame, text=_("Sommario"), font=("Helvetica", 12, "bold")).pack(anchor="w", pady=(0, 10))
+        # Frame sommario (TOC) con Canvas scrollabile
+        toc_outer_frame = ttk.Frame(paned, padding=10)
+        paned.add(toc_outer_frame, weight=1)
+
+        ttk.Label(toc_outer_frame, text=_("Sommario"), font=("Helvetica", 12, "bold")).pack(anchor="w", pady=(0, 5))
+
+        toc_canvas = tk.Canvas(toc_outer_frame, highlightthickness=0)
+        toc_vscrollbar = ttk.Scrollbar(toc_outer_frame, orient="vertical", command=toc_canvas.yview)
+        toc_canvas.configure(yscrollcommand=toc_vscrollbar.set)
+        toc_vscrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        toc_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        toc_frame = ttk.Frame(toc_canvas)
+        _toc_canvas_window = toc_canvas.create_window((0, 0), window=toc_frame, anchor="nw")
+
+        def _toc_frame_configure(event):
+            toc_canvas.configure(scrollregion=toc_canvas.bbox("all"))
+
+        def _toc_canvas_configure(event):
+            toc_canvas.itemconfig(_toc_canvas_window, width=event.width)
+
+        toc_frame.bind("<Configure>", _toc_frame_configure)
+        toc_canvas.bind("<Configure>", _toc_canvas_configure)
+
+        def _toc_mousewheel(event):
+            toc_canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+
+        def _toc_scroll_up(event):
+            toc_canvas.yview_scroll(-1, "units")
+
+        def _toc_scroll_down(event):
+            toc_canvas.yview_scroll(1, "units")
+
+        for _w in (toc_canvas, toc_frame):
+            _w.bind("<MouseWheel>", _toc_mousewheel)
+            _w.bind("<Button-4>", _toc_scroll_up)
+            _w.bind("<Button-5>", _toc_scroll_down)
+
         
         self.topics = [
             (_("0. Primi Passi"), "quick_start"),
@@ -70,20 +105,26 @@ class HelpWindow(tk.Toplevel):
             (_("   - Scorciatoie da Tastiera"), "keyboard_shortcuts"),
             (_("   - Ordinamento delle Colonne"), "column_sorting"),
             (_("   - Filtri di Ricerca"), "main_filters"),
+            (_("   - Global Search Bar"), "global_search_bar"),
+            (_("   - Search vs Filters"), "search_vs_filters"),
             (_("2. Creare una Nuova RdO"), "new_rdo"),
             (_("   - Inserimento Manuale degli Articoli"), "new_rdo_data"),
             (_("   - Importazione da Excel"), "new_rdo_excel"),
+            (_("   - Data Validation Rules"), "data_validation"),
             (_("3. Gestire una RdO Esistente"), "manage_rdo"),
+            (_("   - Quick Actions (New / Delete / Duplicate)"), "quick_actions"),
             (_("   - La Griglia Prezzi"), "manage_grid"),
             (_("   - Modifica Dati e Aggiunta Note"), "manage_edit"),
             (_("   - Gestione Numeri Ordine (PO)"), "manage_po"),
             (_("   - Gestione Allegati"), "manage_attachments"),
             (sqdc_text, "manage_sqdc"),
             (_("   - Esportazione Excel"), "manage_export"),
+            (_("   - Value Stream Mapping"), "vsm_overview"),
             (_("4. Impostazioni e Manutenzione"), "settings"),
             (_("   - Gestione Database"), "settings_db"),
             (_("   - Backup"), "settings_backup"),
             (_("   - Avanzate"), "settings_advanced"),
+            (file_paths_text, "file_paths"),
             (_("5. Problemi Comuni e Soluzioni"), "troubleshooting"),
             (_("   - Database Bloccato"), "ts_db_locked"),
             (_("   - Errori Importazione Excel"), "ts_import"),
@@ -123,6 +164,9 @@ class HelpWindow(tk.Toplevel):
             else:
                 link.pack(anchor="w", pady=1)
             link.bind("<Button-1>", lambda e, t=tag: self.text_content.see(f"{t}.first"))
+            link.bind("<MouseWheel>", _toc_mousewheel)
+            link.bind("<Button-4>", _toc_scroll_up)
+            link.bind("<Button-5>", _toc_scroll_down)
         
         # Frame contenuto
         content_frame = ttk.Frame(paned)

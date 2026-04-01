@@ -228,6 +228,12 @@ The Global Search Bar searches across multiple fields simultaneously, including:
 
 [WARNING]NOTE: The Global Search Bar does not handle date ranges directly. Use advanced filters for time-based searches.
 
+[H2]Search vs Filters
+DataFlow provides two complementary search tools to quickly access information.
+[LIST] • [BOLD]Global Search Bar:[NORMAL] immediate text search across multiple fields simultaneously; ideal for quickly finding an RFQ.
+[LIST] • [BOLD]Advanced Filters:[NORMAL] allow combining multiple criteria (dates, type, user, ranges) for structured and precise analysis.
+[LIST] • [BOLD]Combined use:[NORMAL] apply advanced filters first, then use the Global Search to further narrow down the results.
+
 [H1]2. Creating a New RFQ
 Clicking 'New Event' in RFQ tabs opens the input form. The first fundamental choice is the 'RFQ Type':
 [LIST] • [BOLD]Full Supply: [NORMAL]For standard material purchases.
@@ -326,8 +332,21 @@ In the [CODE]add_data[CODE] folder of the application you will find ready-to-use
 
 It is recommended to use these templates as a reference to ensure the correct file structure.
 
+[H2]Data Validation Rules
+DataFlow performs validation checks on entered data to ensure database consistency.
+[LIST] • [BOLD]Reference:[NORMAL] Required field; cannot be empty.
+[LIST] • [BOLD]Dates:[NORMAL] The expiry date must be equal to or later than the issue date.
+[LIST] • [BOLD]Prices:[NORMAL] Must be valid numbers with comma as decimal separator (e.g. 12,50), or the special values X, ND, or empty cell.
+[LIST] • [BOLD]Quantity:[NORMAL] For SQDC analysis must be numeric; free text is also accepted (e.g. MOQ) for display-only purposes.
+
 [H1]3. Managing an Existing RFQ
 Double-click on an RFQ in the main screen to open the 'Control Panel', the operational center for that specific request.
+
+[H2]Quick Actions (New / Delete / Duplicate)
+From the [CODE]⚡ Actions[CODE] menu on the main screen you can perform quick operations on selected RFQs before opening them.
+[LIST] • [BOLD]➕ New:[NORMAL] Creates a new RFQ (in RFQ tabs) or a new event (in Value Stream Mapping tabs).
+[LIST] • [BOLD]🗑 Delete:[NORMAL] Permanently deletes the selected RFQs from the database (requires confirmation).
+[LIST] • [BOLD]🔁 Duplicate:[NORMAL] Creates a copy of the selected RFQ keeping items and structure, but without prices, attachments and notes.
 
 [H2]The Price Grid
 
@@ -500,6 +519,12 @@ It ensures that only suppliers who have submitted a complete offer are evaluated
 The 'Export Excel' button generates a formatted summary file. After clicking, you will be asked to choose the language:
 [LIST] • [BOLD]Italian / English:[NORMAL] The language choice determines which Excel file template will be used, translating headers and fields to fit the international context.
 
+[H2]Value Stream Mapping
+The [BOLD]Saving[BOLD], [BOLD]Cost Avoidance[BOLD] and [BOLD]Derisking[BOLD] tabs in the main screen form the Value Stream Mapping section of DataFlow.
+[LIST] • [BOLD]Saving / Cost Avoidance:[NORMAL] Records saving and cost avoidance events with theoretical and actual values, realization and variance.
+[LIST] • [BOLD]Derisking:[NORMAL] Manages the registry of potential suppliers with category, status, and contacts.
+For operational details, see the "Saving, Cost Avoidance, and Derisking Tabs" section in Chapter 1.
+
 [H1]4. Settings and Maintenance
 This section, accessible from the main screen, is divided into tabs for clear and organized program management.
 
@@ -653,6 +678,14 @@ The selected language affects:
 [LIST] • Error messages and system notifications
 
 [BOLD]NOTE: [NORMAL]The language is saved in the configuration file and is maintained across different application sessions.
+
+[H2]File Paths and Environment
+DataFlow uses specific folders and files for its operation. Main paths:
+[LIST] • [BOLD]Database:[NORMAL] [CODE]Documents\DataFlow_[username]\Database\dataflow_db_[username].db[CODE]
+[LIST] • [BOLD]Attachments:[NORMAL] [CODE]Documents\DataFlow_[username]\Attachments\[CODE]
+[LIST] • [BOLD]Configuration:[NORMAL] [CODE]%LOCALAPPDATA%\DataFlow\config.ini[CODE]
+[LIST] • [BOLD]Log:[NORMAL] [CODE]%LOCALAPPDATA%\DataFlow\dataflow.log[CODE]
+[INFO]You can customize the DataFlow folder location via Settings → Database → Custom DataFlow Folder.
 
 [H1]5. Common Problems and Solutions
 This section will help you resolve the most common problems you might encounter while using DataFlow.
