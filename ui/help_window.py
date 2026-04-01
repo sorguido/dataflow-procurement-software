@@ -58,7 +58,7 @@ class HelpWindow(tk.Toplevel):
         
         # Frame sommario (TOC) con Canvas scrollabile
         toc_outer_frame = ttk.Frame(paned, padding=10)
-        paned.add(toc_outer_frame, weight=1)
+        paned.add(toc_outer_frame, weight=0)
 
         ttk.Label(toc_outer_frame, text=_("Sommario"), font=("Helvetica", 12, "bold")).pack(anchor="w", pady=(0, 5))
 
@@ -187,14 +187,21 @@ class HelpWindow(tk.Toplevel):
             link.bind("<Button-4>", _toc_scroll_up)
             link.bind("<Button-5>", _toc_scroll_down)
 
-        # Larghezza dinamica pannello TOC basata sul testo più lungo
+        # Larghezza dinamica pannello TOC basata sul testo più lungo,
+        # applicata al primo <Configure> del PanedWindow (geometria definitiva nota)
         _toc_font = tkfont.nametofont("TkDefaultFont")
         _toc_width = max(_toc_font.measure(t) for t, _ in self.topics) + 45
-        self.after_idle(lambda: paned.sashpos(0, _toc_width))
+
+        def _set_sash_once(event, _done=[False]):
+            if not _done[0]:
+                _done[0] = True
+                paned.sashpos(0, _toc_width)
+
+        paned.bind("<Configure>", _set_sash_once)
 
         # Frame contenuto
         content_frame = ttk.Frame(paned)
-        paned.add(content_frame, weight=4)
+        paned.add(content_frame, weight=1)
         
         # --- SEARCH BAR ---
         # Inizializza variabili per la ricerca
