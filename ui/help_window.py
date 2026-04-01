@@ -7,7 +7,7 @@ ESTRATTO DAL MONOLITE: Versione originale funzionante prima del refactoring.
 """
 
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, font as tkfont
 import webbrowser
 import configparser
 import os
@@ -186,7 +186,12 @@ class HelpWindow(tk.Toplevel):
             link.bind("<MouseWheel>", _toc_mousewheel)
             link.bind("<Button-4>", _toc_scroll_up)
             link.bind("<Button-5>", _toc_scroll_down)
-        
+
+        # Larghezza dinamica pannello TOC basata sul testo più lungo
+        _toc_font = tkfont.nametofont("TkDefaultFont")
+        _toc_width = max(_toc_font.measure(t) for t, _ in self.topics) + 45
+        self.after_idle(lambda: paned.sashpos(0, _toc_width))
+
         # Frame contenuto
         content_frame = ttk.Frame(paned)
         paned.add(content_frame, weight=4)
@@ -223,8 +228,17 @@ class HelpWindow(tk.Toplevel):
         
         self.text_content.insert(tk.END, _("Caricamento della guida in corso...\n\n"), "normal")
         self.text_content.config(state="disabled")
-        
-        center_window(self)
+
+        # Apre massimizzata — stesso pattern della KpiWindow (Linux/Windows)
+        try:
+            self.attributes("-zoomed", True)   # Linux / X11
+        except Exception:
+            try:
+                self.state("zoomed")            # Windows
+            except Exception:
+                center_window(self)             # Fallback generico
+        self.deiconify()
+
         # Carica il contenuto in modo asincrono
         self.after(100, self.populate_content)
 
