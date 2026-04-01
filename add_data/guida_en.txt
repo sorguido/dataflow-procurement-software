@@ -138,6 +138,7 @@ DataFlow also includes three tabs dedicated to Value Stream Mapping monitoring:
 [BOLD]Value Stream Mapping filters:[BOLD]
 [LIST] • In Saving/Cost Avoidance tabs, filters are available for User, date range, Action, Repetitive flag, and theoretical/actual amount ranges
 [LIST] • In the Derisking tab, advanced filters are disabled because the view is supplier-based
+[INFO]For a detailed explanation of form fields, formulas, and category management, see Chapter 4.
 
 [H2]KPI Dashboard
 From the [CODE]≋ KPI[CODE] button you can open the KPI analysis window with tab navigation:
@@ -523,9 +524,171 @@ The 'Export Excel' button generates a formatted summary file. After clicking, yo
 The [BOLD]Saving[BOLD], [BOLD]Cost Avoidance[BOLD] and [BOLD]Derisking[BOLD] tabs in the main screen form the Value Stream Mapping section of DataFlow.
 [LIST] • [BOLD]Saving / Cost Avoidance:[NORMAL] Records saving and cost avoidance events with theoretical and actual values, realization and variance.
 [LIST] • [BOLD]Derisking:[NORMAL] Manages the registry of potential suppliers with category, status, and contacts.
-For operational details, see the "Saving, Cost Avoidance, and Derisking Tabs" section in Chapter 1.
+For complete operational details, see Chapter 4.
 
-[H1]4. Settings and Maintenance
+[H1]4. Value Stream Mapping: Saving, Cost Avoidance and Derisking
+This chapter describes in detail the Value Stream Mapping monitoring features available in the [BOLD]Saving[BOLD], [BOLD]Cost Avoidance[BOLD] and [BOLD]Derisking[BOLD] tabs.
+
+[H2]Overview of the VSM Tabs
+The three tabs in the main screen serve distinct purposes:
+[LIST] • [BOLD]Saving:[NORMAL] records savings against an already-defined budget. The buyer knows the budgeted amount before negotiating.
+[LIST] • [BOLD]Cost Avoidance:[NORMAL] records the avoidance of costs not yet in budget. The buyer starts from an initial request and negotiates it downward.
+[LIST] • [BOLD]Derisking:[NORMAL] manages the qualitative registry of potential suppliers (qualification pipeline), independent of negotiated amounts.
+
+[BOLD]Key columns in the Saving and Cost Avoidance tables:[BOLD]
+[LIST] • [BOLD]Theoretical:[NORMAL] value calculated from the formula on the promised saving.
+[LIST] • [BOLD]Actual:[NORMAL] value after applying the realization percentage.
+[LIST] • [BOLD]% Realization:[NORMAL] percentage of goal achievement (0–100 %). Not applicable for the Payment Driver: the value always equals the theoretical amount.
+[LIST] • [BOLD]Variance:[NORMAL] difference between Actual and Theoretical.
+
+[H2]Creating or Editing a Saving Event
+A [BOLD]Saving[BOLD] event documents a saving achieved against an approved budget.
+
+[BOLD]How to open the form:[BOLD]
+[LIST]1. Select the [CODE]Saving[CODE] tab in the main screen
+[LIST]2. Click [CODE]➕ New Event[CODE] to create, or double-click an existing row to edit
+
+[BOLD]General event fields:[BOLD]
+[LIST] • [BOLD]Event Date:[NORMAL] date on which the saving was negotiated or realized
+[LIST] • [BOLD]Action:[NORMAL] type of intervention (e.g. Negotiation, Derisking, Other)
+[LIST] • [BOLD]User:[NORMAL] automatically filled with your username; not editable
+[LIST] • [BOLD]Description:[NORMAL] free text to describe the event
+[LIST] • [BOLD]Reference:[NORMAL] RFQ code or related document (optional)
+[LIST] • [BOLD]Repetitive:[NORMAL] flag indicating whether the saving will be realized every year (24 months) or is one-off (1 month)
+
+[H3]Price Driver
+Select [BOLD]Price Driver[BOLD] when the saving comes from a reduction in unit price.
+
+[BOLD]Fields:[BOLD]
+[LIST] • [BOLD]Budget Amount:[NORMAL] reference unit price from the approved budget (€)
+[LIST] • [BOLD]Negotiated Amount:[NORMAL] unit price obtained in negotiation (€)
+[LIST] • [BOLD]Annual Qty:[NORMAL] annual quantity purchased (pieces/units)
+[LIST] • [BOLD]% Realization:[NORMAL] percentage of goal achievement (0–100 %)
+
+[BOLD]Formulas:[BOLD]
+[CODE]Theoretical Saving = Annual Qty × (Budget Amount − Negotiated Amount)[CODE]
+[CODE]Actual Saving = Theoretical Saving × (% Realization ÷ 100)[CODE]
+
+[BOLD]Example:[BOLD]
+[LIST] • Budget Amount: €10.00/pc · Negotiated Amount: €8.50/pc · Annual Qty: 5,000 · % Realization: 80 %
+[CODE]Theoretical Saving = 5,000 × (10.00 − 8.50) = €7,500[CODE]
+[CODE]Actual Saving = 7,500 × (80 ÷ 100) = €6,000[CODE]
+
+[H3]Payment Driver
+Select [BOLD]Payment Driver[BOLD] when the benefit comes from an improvement in payment terms.
+
+[BOLD]Fields:[BOLD]
+[LIST] • [BOLD]Annual Spending:[NORMAL] total annual purchase value from the supplier (€)
+[LIST] • [BOLD]Current Terms:[NORMAL] current payment days (e.g. 30 days)
+[LIST] • [BOLD]Negotiated Terms:[NORMAL] new negotiated payment days (e.g. 60 days)
+[LIST] • [BOLD]Financial Impact rate:[NORMAL] reference annual interest rate (e.g. 0.05 for 5 %)
+
+[BOLD]Formula:[BOLD]
+[CODE]Value = Annual Spending × ((Negotiated Terms − Current Terms) ÷ 30) × Financial Impact rate[CODE]
+
+[INFO]For the Payment Driver, % Realization is not applicable: the economic value always equals the theoretical value.
+
+[BOLD]Example:[BOLD]
+[LIST] • Annual Spending: €120,000 · Current Terms: 30 days · Negotiated Terms: 60 days · Financial Impact rate: 5 %
+[CODE]Value = 120,000 × ((60 − 30) ÷ 30) × 0.05 = €6,000[CODE]
+
+[H3]Value Distribution (Repetitive OPEX)
+For events flagged as [BOLD]Repetitive[BOLD], the system automatically spreads the value over 24 future months starting from the event month. For [BOLD]one-off[BOLD] events the value is concentrated in the single month of competence.
+
+[BOLD]First-month pro-rata:[BOLD]
+[INFO]The value for the first month is reduced proportionally to the remaining days in the month:
+[CODE]First month coefficient = (30 − event_day + 1) ÷ 30[CODE]
+Example: event on the 16th → coefficient = (30 − 16 + 1) ÷ 30 = 15 ÷ 30 = 0.50
+
+[H2]Creating or Editing a Cost Avoidance Event
+A [BOLD]Cost Avoidance[BOLD] event documents the avoidance of a cost not yet in budget: the buyer receives a price request and negotiates it downward before it becomes a spending commitment.
+
+[BOLD]Difference from Saving:[BOLD]
+[LIST] • Instead of [BOLD]Budget Amount[BOLD], the field is [BOLD]Initial Requested Amount[BOLD]: the figure initially requested by the supplier or estimated internally
+[LIST] • There is no approved budget reference: it measures how much was saved compared to the original request
+
+[H3]Price Driver
+[BOLD]Fields:[BOLD]
+[LIST] • [BOLD]Initial Requested Amount:[NORMAL] unit price initially requested (€)
+[LIST] • [BOLD]Negotiated Amount:[NORMAL] unit price obtained (€)
+[LIST] • [BOLD]Annual Qty:[NORMAL] annual quantity (pieces/units)
+[LIST] • [BOLD]% Realization:[NORMAL] percentage of goal achievement (0–100 %)
+
+[BOLD]Formulas:[BOLD]
+[CODE]Theoretical CA = Annual Qty × (Initial Requested Amount − Negotiated Amount)[CODE]
+[CODE]Actual CA = Theoretical CA × (% Realization ÷ 100)[CODE]
+
+[BOLD]Example:[BOLD]
+[LIST] • Initial Requested Amount: €25.00/pc · Negotiated Amount: €21.00/pc · Annual Qty: 2,000 · % Realization: 100 %
+[CODE]Theoretical CA = 2,000 × (25.00 − 21.00) = €8,000[CODE]
+[CODE]Actual CA = 8,000 × (100 ÷ 100) = €8,000[CODE]
+
+[H3]Payment Driver
+The Payment Driver is also available for Cost Avoidance events with the same logic described above for Saving.
+
+[H2]Potential Supplier Registry (Derisking Tab)
+The [BOLD]Derisking[BOLD] tab contains the qualitative registry of alternative suppliers under evaluation: a qualification pipeline to reduce the risk of dependency on a single supplier.
+
+[BOLD]How to open the form:[BOLD]
+[LIST]1. Select the [CODE]Derisking[CODE] tab in the main screen
+[LIST]2. Click [CODE]➕ New Event[CODE] to add a new supplier, or double-click a row to edit
+
+[BOLD]Supplier fields:[BOLD]
+[LIST] • [BOLD]Supplier:[NORMAL] company name or supplier name (required)
+[LIST] • [BOLD]Category:[NORMAL] procurement category; select from dropdown among existing categories
+[LIST] • [BOLD]New Category:[NORMAL] if the category does not yet exist, type the name here; it will be created automatically on save
+[LIST] • [BOLD]Status:[NORMAL] progress in the qualification pipeline:
+[LIST]   ◦ [BOLD]New:[NORMAL] supplier just registered, not yet evaluated
+[LIST]   ◦ [BOLD]Under evaluation:[NORMAL] audit or sampling process in progress
+[LIST]   ◦ [BOLD]Qualified:[NORMAL] approved supplier, ready to receive RFQs
+[LIST]   ◦ [BOLD]Rejected:[NORMAL] supplier negatively evaluated or not suitable
+[LIST] • [BOLD]User:[NORMAL] automatically filled; not editable after entry
+
+[BOLD]Contacts section:[BOLD]
+[LIST] • [BOLD]Contact:[NORMAL] name of the commercial contact
+[LIST] • [BOLD]E-mail:[NORMAL] email address (clickable to open the default mail client)
+[LIST] • [BOLD]Phone:[NORMAL] phone number
+[LIST] • [BOLD]Web:[NORMAL] website URL (clickable to open in the default browser)
+
+[BOLD]Notes:[BOLD] free-text field for observations, memos, or activity history with the supplier.
+
+[H2]Managing Supplier Categories
+Procurement categories allow grouping potential suppliers by purchasing segment.
+
+[BOLD]How to open:[BOLD]
+[LIST]1. Open the potential supplier form (Derisking tab → [CODE]➕ New Event[CODE] or double-click a row)
+[LIST]2. Click the [CODE]Manage Categories[CODE] button
+
+[BOLD]Available operations:[BOLD]
+The window shows the list of categories with the number of associated suppliers for each.
+
+[BOLD]Rename:[BOLD]
+[LIST]1. Select the category from the list
+[LIST]2. Edit the name in the text field
+[LIST]3. Click [CODE]Rename[CODE] to apply
+
+[BOLD]Merge:[BOLD]
+[LIST]1. Select the source category from the list
+[LIST]2. Choose the destination category from the dropdown
+[LIST]3. Click [CODE]Merge[CODE]
+[INFO]All suppliers in the source category are reassigned to the destination; the source category is deleted.
+
+[BOLD]Delete (only if unused):[BOLD]
+[LIST]1. Select the category from the list
+[LIST]2. Verify the counter "Associated suppliers: 0" is zero
+[LIST]3. Click [CODE]Delete[CODE]
+[WARNING]A category cannot be deleted if it has associated suppliers. Use [BOLD]Merge[BOLD] first to reassign them.
+
+[BOLD]Cancel / Close:[BOLD]
+[INFO]Changes are held in memory until you click [CODE]💾 Save[CODE]. Closing the window with [CODE]Cancel[CODE] or the X discards all pending changes.
+
+[H2]Note: VSM Event with Derisking Action vs Potential Supplier
+DataFlow distinguishes two related but different concepts:
+[LIST] • [BOLD]Saving/CA Event with Action = "Derisking":[NORMAL] documents the [BOLD]economic value[BOLD] generated by introducing a new alternative supplier. The [BOLD]New Supplier Introduced[BOLD] field records which supplier contributed.
+[LIST] • [BOLD]Entry in the Derisking tab:[NORMAL] is the [BOLD]qualitative registry[BOLD] of the supplier — the progress status in the qualification process, contacts, and category.
+[INFO]The two tools are complementary: use Saving/CA events with Action "Derisking" to track economic benefits, and the Derisking tab to manage the qualification pipeline of new suppliers.
+
+[H1]5. Settings and Maintenance
 This section, accessible from the main screen, is divided into tabs for clear and organized program management.
 
 [H2]Multi-User Team Work
@@ -687,7 +850,7 @@ DataFlow uses specific folders and files for its operation. Main paths:
 [LIST] • [BOLD]Log:[NORMAL] [CODE]%LOCALAPPDATA%\DataFlow\dataflow.log[CODE]
 [INFO]You can customize the DataFlow folder location via Settings → Database → Custom DataFlow Folder.
 
-[H1]5. Common Problems and Solutions
+[H1]6. Common Problems and Solutions
 This section will help you resolve the most common problems you might encounter while using DataFlow.
 
 [H2]Grid Changes Not Saving
@@ -755,7 +918,7 @@ Procedure:
 
 [BOLD]IMPORTANT: [WARNING]This procedure replaces the current database with the backup. Data created after the backup will be lost.
 
-[H1]6. System Requirements and Limits
+[H1]7. System Requirements and Limits
 This section describes the system requirements and technical limits of DataFlow.
 
 [H2]Minimum Requirements
@@ -775,7 +938,7 @@ This section describes the system requirements and technical limits of DataFlow.
 Performance
 DataFlow is optimized for managing a very large number of RFQs. With very large databases, search and filter operations may be slower.
 
-[H1]7. Glossary
+[H1]8. Glossary
 This section defines the technical terms used in DataFlow.
 
 [LIST] • [BOLD]RFQ:[NORMAL] Request for Offer. Document requesting a quote from one or more suppliers for materials or services.
@@ -787,7 +950,7 @@ This section defines the technical terms used in DataFlow.
 [LIST] • [BOLD]DB:[NORMAL] High-performance analytical database system used by DataFlow 2.0.0 to manage RFQ data.
 [LIST] • [BOLD]Username:[NORMAL] Unique identifier automatically generated at DataFlow's first launch by concatenating the first letter of the first name with the full last name, all in lowercase without spaces and accents. Example: John Smith → [CODE]jsmith[CODE], Mary Brown → [CODE]mbrown[CODE]. The username is used to name the user folder ([CODE]DataFlow_[username][CODE]), the personal database ([CODE]dataflow_db_[username].db[CODE]), and to filter RFQs in multi-user environments. The username is automatically saved in the [CODE]config.ini[CODE] file and cannot be modified by the user after first launch.
 
-[H1]8. Log Files and Diagnostics
+[H1]9. Log Files and Diagnostics
 
 DataFlow automatically generates a log file to record important events and diagnose any issues.
 
@@ -834,7 +997,7 @@ You can manually delete log files without problems. DataFlow will create a new f
 
 [INFO]When reporting a bug to the developer, always attach the most recent [CODE]dataflow.log[CODE] file. It contains valuable information for diagnosing the problem.
 
-[H1]8. Contacts and Support
+[H1]10. Contacts and Support
 Contact information for technical support and bug reporting.
 
 [H2]Developer

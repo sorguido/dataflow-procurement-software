@@ -120,19 +120,25 @@ class HelpWindow(tk.Toplevel):
             (sqdc_text, "manage_sqdc"),
             (_("   - Esportazione Excel"), "manage_export"),
             (_("   - Value Stream Mapping"), "vsm_overview"),
-            (_("4. Impostazioni e Manutenzione"), "settings"),
+            (_("4. Value Stream Mapping: Saving, Cost Avoidance e Derisking"), "vsm_chapter"),
+            (_("   - Panoramica dei Tab VSM"), "vsm_panoramica"),
+            (_("   - Creare o Modificare un Evento Saving"), "vsm_saving"),
+            (_("   - Creare o Modificare un Evento Cost Avoidance"), "vsm_cost_avoidance"),
+            (_("   - Anagrafica Fornitori Potenziali (Tab Derisking)"), "vsm_derisking_registry"),
+            (_("   - Gestire le Categorie dei Fornitori"), "vsm_categories"),
+            (_("5. Impostazioni e Manutenzione"), "settings"),
             (_("   - Gestione Database"), "settings_db"),
             (_("   - Backup"), "settings_backup"),
             (_("   - Avanzate"), "settings_advanced"),
             (file_paths_text, "file_paths"),
-            (_("5. Problemi Comuni e Soluzioni"), "troubleshooting"),
+            (_("6. Problemi Comuni e Soluzioni"), "troubleshooting"),
             (_("   - Database Bloccato"), "ts_db_locked"),
             (_("   - Errori Importazione Excel"), "ts_import"),
             (_("   - Allegati Non Trovati"), "ts_attachments"),
             (_("   - Recupero da Backup"), "ts_backup"),
-            (_("6. Requisiti di Sistema e Limiti"), "requirements"),
-            (_("7. Glossario"), "glossary"),
-            (_("8. Contatti e Supporto"), "support")
+            (_("7. Requisiti di Sistema e Limiti"), "requirements"),
+            (_("8. Glossario"), "glossary"),
+            (_("10. Contatti e Supporto"), "support")
         ]
         
         # Creiamo una mappa di ricerca veloce (Testo del titolo -> tag_ancoraggio)
@@ -152,6 +158,19 @@ class HelpWindow(tk.Toplevel):
             self.topic_anchor_map["3. Managing an Existing RFQ"] = "manage_rdo"
             self.topic_anchor_map["First Test RFQ"] = "first_rdo"
             self.topic_anchor_map["2. Creating a New RFQ"] = "new_rdo"
+            # New chapter 4
+            self.topic_anchor_map["4. Value Stream Mapping: Saving, Cost Avoidance and Derisking"] = "vsm_chapter"
+            self.topic_anchor_map["Overview of the VSM Tabs"] = "vsm_panoramica"
+            self.topic_anchor_map["Creating or Editing a Saving Event"] = "vsm_saving"
+            self.topic_anchor_map["Creating or Editing a Cost Avoidance Event"] = "vsm_cost_avoidance"
+            self.topic_anchor_map["Potential Supplier Registry (Derisking Tab)"] = "vsm_derisking_registry"
+            self.topic_anchor_map["Managing Supplier Categories"] = "vsm_categories"
+            # Renumbered chapters
+            self.topic_anchor_map["5. Settings and Maintenance"] = "settings"
+            self.topic_anchor_map["6. Common Problems and Solutions"] = "troubleshooting"
+            self.topic_anchor_map["7. System Requirements and Limits"] = "requirements"
+            self.topic_anchor_map["8. Glossary"] = "glossary"
+            self.topic_anchor_map["10. Contacts and Support"] = "support"
         
         # Aggiungi mappatura per titolo completo della sezione PO (italiano)
         self.topic_anchor_map["Gestione Numeri Ordine di Acquisto (PO)"] = "manage_po"
@@ -159,7 +178,7 @@ class HelpWindow(tk.Toplevel):
         # Crea i link del sommario
         for text, tag in self.topics:
             link = ttk.Label(toc_frame, text=text, foreground="blue", cursor="hand2")
-            if text.strip().startswith(('0','1','2','3','4','5','6','7','8')):
+            if text.strip().startswith(('0','1','2','3','4','5','6','7','8','9','10')):
                 link.pack(anchor="w", pady=2)
             else:
                 link.pack(anchor="w", pady=1)

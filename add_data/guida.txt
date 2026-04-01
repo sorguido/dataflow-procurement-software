@@ -139,6 +139,7 @@ DataFlow include anche tre tab dedicati al monitoraggio Value Stream Mapping:
 [BOLD]Filtri Value Stream Mapping:[BOLD]
 [LIST] • Nei tab Saving/Cost Avoidance sono disponibili filtri per Utente, date, Azione, flag Ripetitivo e range importi teorici/effettivi
 [LIST] • Nel tab Derisking i filtri avanzati vengono disattivati perché la vista è orientata ai fornitori potenziali
+[INFO]Per una spiegazione dettagliata dei campi, delle formule e della gestione categorie, consulta il capitolo 4.
 
 [H2]KPI Dashboard
 Dal pulsante [CODE]≋ KPI[CODE] puoi aprire la finestra di analisi KPI con navigazione a tab:
@@ -520,9 +521,171 @@ Il pulsante 'Esporta Excel' genera un file di riepilogo formattato. Dopo aver cl
 I tab [BOLD]Saving[BOLD], [BOLD]Cost Avoidance[BOLD] e [BOLD]Derisking[BOLD] nella schermata principale costituiscono la sezione Value Stream Mapping di DataFlow.
 [LIST] • [BOLD]Saving / Cost Avoidance:[NORMAL] Registra eventi di risparmio e di evitamento costo con valori teorici ed effettivi, realizzo e varianza.
 [LIST] • [BOLD]Derisking:[NORMAL] Gestisce l'anagrafica dei fornitori potenziali con categoria, stato e contatti.
-Per i dettagli operativi, consulta la sezione "Tab Saving, Cost Avoidance e Derisking" nel capitolo 1.
+Per i dettagli operativi completi, consulta il capitolo 4.
 
-[H1]4. Impostazioni e Manutenzione
+[H1]4. Value Stream Mapping: Saving, Cost Avoidance e Derisking
+Questo capitolo descrive in dettaglio le funzionalità di monitoraggio Value Stream Mapping disponibili nei tab [BOLD]Saving[BOLD], [BOLD]Cost Avoidance[BOLD] e [BOLD]Derisking[BOLD].
+
+[H2]Panoramica dei Tab VSM
+I tre tab nella schermata principale servono scopi distinti:
+[LIST] • [BOLD]Saving:[NORMAL] registra risparmi rispetto a un budget già definito. L'acquirente conosce l'importo a budget prima di negoziare.
+[LIST] • [BOLD]Cost Avoidance:[NORMAL] registra l'evitamento di costi non ancora a budget. L'acquirente parte da una richiesta iniziale e la negozia verso il basso.
+[LIST] • [BOLD]Derisking:[NORMAL] gestisce l'anagrafica qualitativa dei fornitori potenziali (pipeline di qualifica), indipendentemente da importi negoziati.
+
+[BOLD]Colonne chiave nelle tabelle Saving e Cost Avoidance:[BOLD]
+[LIST] • [BOLD]Teorico:[NORMAL] valore calcolato dalla formula sul risparmio promesso.
+[LIST] • [BOLD]Effettivo:[NORMAL] valore una volta applicata la percentuale di realizzo.
+[LIST] • [BOLD]% Realizzo:[NORMAL] percentuale di realizzazione dell'obiettivo (0–100 %). Per il Driver Pagamenti non è applicabile: il valore coincide sempre con il teorico.
+[LIST] • [BOLD]Varianza:[NORMAL] differenza tra Effettivo e Teorico.
+
+[H2]Creare o Modificare un Evento Saving
+Un evento [BOLD]Saving[BOLD] documenta un risparmio ottenuto rispetto al budget approvato.
+
+[BOLD]Come aprire il form:[BOLD]
+[LIST]1. Seleziona il tab [CODE]Saving[CODE] nella schermata principale
+[LIST]2. Clicca [CODE]➕ Nuovo Evento[CODE] per creare, oppure doppio click su una riga per modificare
+
+[BOLD]Campi generali dell'evento:[BOLD]
+[LIST] • [BOLD]Data Evento:[NORMAL] data in cui il risparmio è stato negoziato o realizzato
+[LIST] • [BOLD]Azione:[NORMAL] tipo di intervento (es. Negoziazione, Derisking, Altro)
+[LIST] • [BOLD]Utente:[NORMAL] valorizzato automaticamente con il tuo username; non modificabile
+[LIST] • [BOLD]Descrizione:[NORMAL] testo libero per descrivere l'evento
+[LIST] • [BOLD]Riferimento:[NORMAL] codice RdO o documento correlato (facoltativo)
+[LIST] • [BOLD]Ripetitivo:[NORMAL] flag che indica se il risparmio sarà realizzato ogni anno (24 mesi) o una tantum (1 mese)
+
+[H3]Driver Prezzo
+Seleziona [BOLD]Driver Prezzo[BOLD] quando il risparmio deriva da una riduzione di prezzo unitario.
+
+[BOLD]Campi:[BOLD]
+[LIST] • [BOLD]Importo a Budget:[NORMAL] prezzo unitario di riferimento dal budget approvato (€)
+[LIST] • [BOLD]Importo Negoziato:[NORMAL] prezzo unitario ottenuto in negoziazione (€)
+[LIST] • [BOLD]Q.tà Annua:[NORMAL] quantità annua acquistata (pezzi/unità)
+[LIST] • [BOLD]% Realizzo:[NORMAL] percentuale di realizzazione dell'obiettivo (0–100 %)
+
+[BOLD]Formule:[BOLD]
+[CODE]Saving Teorico = Q.tà Annua × (Importo a Budget − Importo Negoziato)[CODE]
+[CODE]Saving Effettivo = Saving Teorico × (% Realizzo ÷ 100)[CODE]
+
+[BOLD]Esempio:[BOLD]
+[LIST] • Importo a Budget: 10,00 €/pz · Importo Negoziato: 8,50 €/pz · Q.tà Annua: 5.000 · % Realizzo: 80 %
+[CODE]Saving Teorico = 5.000 × (10,00 − 8,50) = 7.500 €[CODE]
+[CODE]Saving Effettivo = 7.500 × (80 ÷ 100) = 6.000 €[CODE]
+
+[H3]Driver Pagamenti
+Seleziona [BOLD]Driver Pagamenti[BOLD] quando il vantaggio deriva da un miglioramento dei termini di pagamento.
+
+[BOLD]Campi:[BOLD]
+[LIST] • [BOLD]Spending Annuo:[NORMAL] valore totale annuo degli acquisti dal fornitore (€)
+[LIST] • [BOLD]Termini Attuali:[NORMAL] giorni di pagamento attuali (es. 30 gg)
+[LIST] • [BOLD]Termini Negoziati:[NORMAL] nuovi giorni di pagamento negoziati (es. 60 gg)
+[LIST] • [BOLD]Financial Impact rate:[NORMAL] tasso di interesse annuo di riferimento (es. 0,05 per 5 %)
+
+[BOLD]Formula:[BOLD]
+[CODE]Valore = Spending Annuo × ((Termini Negoziati − Termini Attuali) ÷ 30) × Financial Impact rate[CODE]
+
+[INFO]Per il Driver Pagamenti la % Realizzo non è applicabile: il valore economico coincide sempre con il valore teorico.
+
+[BOLD]Esempio:[BOLD]
+[LIST] • Spending Annuo: 120.000 € · Termini Attuali: 30 gg · Termini Negoziati: 60 gg · Financial Impact rate: 5 %
+[CODE]Valore = 120.000 × ((60 − 30) ÷ 30) × 0,05 = 6.000 €[CODE]
+
+[H3]Distribuzione del Valore (OPEX Ripetitivo)
+Per gli eventi contrassegnati come [BOLD]Ripetitivi[BOLD], il sistema distribuisce automaticamente il valore su 24 mesi futuri a partire dal mese dell'evento. Per gli eventi [BOLD]una tantum[BOLD] il valore è concentrato nel solo mese di competenza.
+
+[BOLD]Pro-rata del primo mese:[BOLD]
+[INFO]Il valore del primo mese viene ridotto proporzionalmente ai giorni residui del mese:
+[CODE]Coefficiente primo mese = (30 − giorno_evento + 1) ÷ 30[CODE]
+Esempio: evento del 16 del mese → coefficiente = (30 − 16 + 1) ÷ 30 = 15 ÷ 30 = 0,50
+
+[H2]Creare o Modificare un Evento Cost Avoidance
+Un evento [BOLD]Cost Avoidance[BOLD] documenta l'evitamento di un costo non ancora a budget: l'acquirente riceve una richiesta di prezzo e la negozia verso il basso prima che diventi un impegno di spesa.
+
+[BOLD]Differenza rispetto a Saving:[BOLD]
+[LIST] • Al posto di [BOLD]Importo a Budget[BOLD], si usa [BOLD]Importo Richiesto Iniziale[BOLD]: la cifra inizialmente richiesta dal fornitore o stimata internamente
+[LIST] • Non esiste un budget approvato di riferimento: si misura quanto si è risparmiato rispetto alla richiesta originale
+
+[H3]Driver Prezzo
+[BOLD]Campi:[BOLD]
+[LIST] • [BOLD]Importo Richiesto Iniziale:[NORMAL] prezzo unitario richiesto inizialmente (€)
+[LIST] • [BOLD]Importo Negoziato:[NORMAL] prezzo unitario ottenuto (€)
+[LIST] • [BOLD]Q.tà Annua:[NORMAL] quantità annua (pezzi/unità)
+[LIST] • [BOLD]% Realizzo:[NORMAL] percentuale di realizzazione (0–100 %)
+
+[BOLD]Formule:[BOLD]
+[CODE]CA Teorico = Q.tà Annua × (Importo Richiesto Iniziale − Importo Negoziato)[CODE]
+[CODE]CA Effettivo = CA Teorico × (% Realizzo ÷ 100)[CODE]
+
+[BOLD]Esempio:[BOLD]
+[LIST] • Importo Richiesto Iniziale: 25,00 €/pz · Importo Negoziato: 21,00 €/pz · Q.tà Annua: 2.000 · % Realizzo: 100 %
+[CODE]CA Teorico = 2.000 × (25,00 − 21,00) = 8.000 €[CODE]
+[CODE]CA Effettivo = 8.000 × (100 ÷ 100) = 8.000 €[CODE]
+
+[H3]Driver Pagamenti
+Il Driver Pagamenti è disponibile anche per gli eventi Cost Avoidance con la stessa logica descritta sopra per il Saving.
+
+[H2]Anagrafica Fornitori Potenziali (Tab Derisking)
+Il tab [BOLD]Derisking[BOLD] contiene l'anagrafica qualitativa dei fornitori alternativi in fase di valutazione: una pipeline di qualifica per ridurre il rischio di dipendenza da un singolo fornitore.
+
+[BOLD]Come aprire il form:[BOLD]
+[LIST]1. Seleziona il tab [CODE]Derisking[CODE] nella schermata principale
+[LIST]2. Clicca [CODE]➕ Nuovo Evento[CODE] per aggiungere un nuovo fornitore, oppure doppio click su una riga per modificare
+
+[BOLD]Campi fornitore:[BOLD]
+[LIST] • [BOLD]Fornitore:[NORMAL] ragione sociale o nome del fornitore (obbligatorio)
+[LIST] • [BOLD]Categoria:[NORMAL] categoria merceologica; seleziona da dropdown tra le categorie esistenti
+[LIST] • [BOLD]Nuova Categoria:[NORMAL] se la categoria non esiste ancora, digita qui il nome; verrà creata automaticamente al salvataggio
+[LIST] • [BOLD]Stato:[NORMAL] avanzamento nella pipeline di qualifica:
+[LIST]   ◦ [BOLD]Nuovo:[NORMAL] fornitore appena censito, non ancora valutato
+[LIST]   ◦ [BOLD]In valutazione:[NORMAL] processo di audit o campionatura in corso
+[LIST]   ◦ [BOLD]Qualificato:[NORMAL] fornitore approvato, pronto per ricevere RdO
+[LIST]   ◦ [BOLD]Scartato:[NORMAL] fornitore valutato negativamente o non idoneo
+[LIST] • [BOLD]Utente:[NORMAL] valorizzato automaticamente; non modificabile dopo l'inserimento
+
+[BOLD]Sezione Contatti:[BOLD]
+[LIST] • [BOLD]Contatto:[NORMAL] nome del referente commerciale
+[LIST] • [BOLD]E-mail:[NORMAL] indirizzo email (cliccabile per aprire il client di posta predefinito)
+[LIST] • [BOLD]Telefono:[NORMAL] numero di telefono
+[LIST] • [BOLD]Web:[NORMAL] URL sito web (cliccabile per aprire nel browser predefinito)
+
+[BOLD]Note:[BOLD] campo testo libero per osservazioni, memo o storico attività con il fornitore.
+
+[H2]Gestire le Categorie dei Fornitori
+Le categorie merceologiche permettono di raggruppare i fornitori potenziali per segmento di acquisto.
+
+[BOLD]Come aprire:[BOLD]
+[LIST]1. Apri il form di un fornitore potenziale (tab Derisking → [CODE]➕ Nuovo Evento[CODE] o doppio click su una riga)
+[LIST]2. Clicca il pulsante [CODE]Gestisci Categorie[CODE]
+
+[BOLD]Operazioni disponibili:[BOLD]
+La finestra mostra l'elenco delle categorie con il numero di fornitori associati per ciascuna.
+
+[BOLD]Rinomina:[BOLD]
+[LIST]1. Seleziona la categoria dall'elenco
+[LIST]2. Modifica il nome nel campo testo
+[LIST]3. Clicca [CODE]Rinomina[CODE] per applicare
+
+[BOLD]Unisci:[BOLD]
+[LIST]1. Seleziona la categoria sorgente dall'elenco
+[LIST]2. Scegli la categoria di destinazione dal dropdown
+[LIST]3. Clicca [CODE]Unisci[CODE]
+[INFO]Tutti i fornitori della categoria sorgente vengono riassegnati alla destinazione; la categoria sorgente viene eliminata.
+
+[BOLD]Elimina (solo se non in uso):[BOLD]
+[LIST]1. Seleziona la categoria dall'elenco
+[LIST]2. Verifica che il contatore "Fornitori associati: 0" sia zero
+[LIST]3. Clicca [CODE]Elimina[CODE]
+[WARNING]Non è possibile eliminare una categoria se ha fornitori associati. Prima usa [BOLD]Unisci[BOLD] per riassegnarli.
+
+[BOLD]Annulla / Chiudi:[BOLD]
+[INFO]Le modifiche sono tenute in memoria fino al click di [CODE]💾 Salva[CODE]. Chiudere la finestra con [CODE]Annulla[CODE] o con la X scarta tutte le modifiche in corso.
+
+[H2]Nota: Evento VSM con Azione Derisking vs Fornitore Potenziale
+DataFlow distingue due concetti correlati ma diversi:
+[LIST] • [BOLD]Evento Saving/CA con Azione = "Derisking":[NORMAL] documenta il [BOLD]valore economico[BOLD] generato dall'introduzione di un nuovo fornitore alternativo. Il campo [BOLD]New Supplier Introduced[BOLD] registra quale fornitore ha contribuito.
+[LIST] • [BOLD]Voce nel tab Derisking:[NORMAL] è l'[BOLD]anagrafica qualitativa[BOLD] del fornitore — lo stato di avanzamento nel processo di qualifica, i contatti e la categoria.
+[INFO]I due strumenti sono complementari: usa gli eventi Saving/CA con Azione "Derisking" per tracciare i benefici economici, e il tab Derisking per gestire la pipeline di qualifica dei nuovi fornitori.
+
+[H1]5. Impostazioni e Manutenzione
 Questa sezione, accessibile dalla schermata principale, è divisa in schede per una gestione chiara e ordinata del programma.
 
 [H2]Lavoro in Team Multi-Utente
@@ -680,7 +843,7 @@ DataFlow utilizza cartelle e file specifici per il suo funzionamento. Percorsi p
 [LIST] • [BOLD]Log:[NORMAL] [CODE]%LOCALAPPDATA%\DataFlow\dataflow.log[CODE]
 [INFO]Puoi personalizzare la posizione della cartella DataFlow tramite Impostazioni → Database → Cartella DataFlow Personalizzata.
 
-[H1]5. Problemi Comuni e Soluzioni
+[H1]6. Problemi Comuni e Soluzioni
 Questa sezione ti aiuterà a risolvere i problemi più comuni che potresti incontrare durante l'utilizzo di DataFlow.
 
 [H2]Le Modifiche dalla Griglia non si Salvano
@@ -748,7 +911,7 @@ Procedura:
 
 [BOLD]IMPORTANTE: [WARNING]Questa procedura sostituisce il database attuale con il backup. Dati creati dopo il backup andranno persi.
 
-[H1]6. Requisiti di Sistema e Limiti
+[H1]7. Requisiti di Sistema e Limiti
 Questa sezione descrive i requisiti di sistema e i limiti tecnici di DataFlow.
 
 [H2]Requisiti Minimi
@@ -768,7 +931,7 @@ Questa sezione descrive i requisiti di sistema e i limiti tecnici di DataFlow.
 Performance
 DataFlow è ottimizzato per la gestione di un numero molto grande di RdO. Con database molto grandi, le operazioni di ricerca e filtro potrebbero risultare più lente.
 
-[H1]7. Glossario
+[H1]8. Glossario
 Questa sezione definisce i termini tecnici utilizzati in DataFlow.
 
 [LIST] • [BOLD]RdO:[NORMAL] Richiesta di Offerta. Documento con cui si richiede a uno o più fornitori un preventivo per materiali o servizi.
@@ -780,7 +943,7 @@ Questa sezione definisce i termini tecnici utilizzati in DataFlow.
 [LIST] • [BOLD]DB:[NORMAL] Sistema di database analitico ad alte prestazioni utilizzato da DataFlow 2.0.0 per gestire i dati delle RdO.
 [LIST] • [BOLD]Username:[NORMAL] Identificativo univoco generato automaticamente al primo avvio di DataFlow concatenando la prima lettera del nome con il cognome completo, tutto in minuscolo senza spazi e accenti. Esempio: Mario Rossi → [CODE]mrossi[CODE], Laura Bianchi → [CODE]lbianchi[CODE]. Lo username viene utilizzato per nominare la cartella utente ([CODE]DataFlow_[username][CODE]), il database personale ([CODE]dataflow_db_[username].db[CODE]) e per filtrare le RdO in ambienti multi-utente. Lo username viene salvato automaticamente nel file [CODE]config.ini[CODE] e non può essere modificato dall'utente dopo il primo avvio.
 
-[H1]8. File di Log e Diagnostica
+[H1]9. File di Log e Diagnostica
 
 DataFlow genera automaticamente un file di log per registrare eventi importanti e diagnosticare eventuali problemi.
 
@@ -827,7 +990,7 @@ Puoi eliminare manualmente i file di log senza problemi. DataFlow creerà un nuo
 
 [INFO]Quando segnali un bug allo sviluppatore, allega sempre il file [CODE]dataflow.log[CODE] più recente. Contiene informazioni preziose per diagnosticare il problema.
 
-[H1]8. Contatti e Supporto
+[H1]10. Contatti e Supporto
 Informazioni di contatto per supporto tecnico e segnalazione problemi.
 
 [H2]Sviluppatore
