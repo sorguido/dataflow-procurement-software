@@ -3074,6 +3074,9 @@ class MainWindow:
         """Deseleziona tutte le righe in entrambi i sheet"""
         self.tree_attive.deselect("all")
         self.tree_archiviate.deselect("all")
+        self.sheet_saving.deselect("all")
+        self.sheet_cost_avoidance.deselect("all")
+        self.sheet_derisking.deselect("all")
         self.update_button_visibility()
 
     def get_current_tree_and_status(self):
