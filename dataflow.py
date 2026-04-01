@@ -392,7 +392,7 @@ class SettingsWindow(tk.Toplevel):
             SimpleMessageDialog(self, _("Errore"), _("Impossibile salvare: {}").format(e), "error")
 
     def backup_database(self):
-        """Crea backup manuale con VACUUM INTO per garantire consistenza."""
+        """Crea backup manuale copiando i file del database (db, wal, shm)."""
         db_file = get_db_path()
         if not os.path.exists(db_file):
             SimpleMessageDialog(self, _("Errore"), _("File database '{}' non trovato!").format(db_file), "error")
@@ -1491,9 +1491,9 @@ class MainWindow:
                     except (IndexError, ValueError):
                         logger.warning(f"Formato nome backup non riconosciuto: {basename}")
             
-            # Ordina i set per timestamp e mantieni solo gli ultimi 3
+            # Ordina i set per timestamp e mantieni solo gli ultimi 3 (soglia >= 3 perché il nuovo viene aggiunto dopo)
             sorted_timestamps = sorted(backup_sets.keys())
-            while len(sorted_timestamps) > 3:
+            while len(sorted_timestamps) >= 3:
                 old_timestamp = sorted_timestamps.pop(0)
                 for old_file in backup_sets[old_timestamp]:
                     try:
