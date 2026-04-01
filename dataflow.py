@@ -4120,11 +4120,16 @@ class MainWindow:
             return
         is_ita = (lang == 'ita')
 
-        # 2. Re-load eventi dal DB (stessa query di _load_vsm_events → dati raw)
+        # 2. Re-load eventi dal DB rispettando scope utente e filtri attivi (allineato a _load_vsm_events)
         try:
-            with DatabaseManager(get_db_path()) as db_manager:
-                all_events = db_manager.get_all_vsm_events(username=self.current_username)
-            events = [e for e in all_events if e.event_type == event_type]
+            vsm_username_filter = self._get_active_username_filter(self.vsm_username_filter_var)
+            all_events, extra_meta = self._get_vsm_dataset(vsm_username_filter)
+            if extra_meta is not None:
+                pairs = [(ev, m) for ev, m in zip(all_events, extra_meta) if ev.event_type == event_type]
+                events = [p[0] for p in pairs]
+            else:
+                events = [e for e in all_events if e.event_type == event_type]
+            events, _ = self._apply_vsm_filters(events, event_type)
         except Exception as e:
             logger.error(f"[export_vsm] Errore recupero eventi: {e}", exc_info=True)
             SimpleMessageDialog(self.root, _("Errore"), _("Errore nel recupero dati: {}").format(e), "error")
