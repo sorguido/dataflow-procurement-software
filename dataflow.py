@@ -1343,35 +1343,18 @@ class MainWindow:
             else:
                 cwd = os.getcwd()
             
-            # Funzione per chiudere tutto e avviare il nuovo processo
+            # Funzione per chiudere tutto: imposta il flag di riavvio e chiude la GUI.
+            # Il nuovo processo viene lanciato DOPO che mainloop() è tornato.
             def do_restart():
+                global _pending_restart
                 try:
                     # Invalida la cache del DB prima del riavvio
                     reset_db_cache()
                     
-                    # Avvia il nuovo processo PRIMA di chiudere quello corrente
-                    # Usa DETACHED_PROCESS su Windows per evitare che apra una nuova console
-                    if sys.platform == 'win32':
-                        new_process = subprocess.Popen(
-                            cmd, 
-                            cwd=cwd,
-                            creationflags=subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.DETACHED_PROCESS,
-                            close_fds=True
-                        )
-                    else:
-                        new_process = subprocess.Popen(cmd, cwd=cwd, start_new_session=True)
+                    # Memorizza il comando da lanciare dopo la chiusura della GUI
+                    _pending_restart = (cmd, cwd)
                     
-                    # Attendi fino a 2 secondi che il processo si stabilizzi
-                    import time
-                    for _ in range(20):
-                        if new_process.poll() is None:  # Processo ancora in esecuzione
-                            break
-                        time.sleep(0.1)
-                    
-                    # Piccolo delay aggiuntivo per sicurezza
-                    time.sleep(0.2)
-                    
-                    # Chiudi tutte le finestre Tkinter
+                    # Chiudi tutte le finestre Tkinter in modo ordinato
                     if hasattr(self, 'root') and self.root:
                         try:
                             # Distruggi tutte le finestre Toplevel
@@ -1381,16 +1364,10 @@ class MainWindow:
                                         widget.destroy()
                                     except:
                                         pass
-                            # Esci dal mainloop
+                            # Esci dal mainloop (root.mainloop() tornerà)
                             self.root.quit()
-                            # Distruggi la root
-                            self.root.destroy()
                         except:
                             pass
-                    
-                    # Forza la terminazione immediata del processo
-                    # Usa os._exit() invece di sys.exit() per evitare che il cleanup blocchi
-                    os._exit(0)
                     
                 except Exception as e:
                     logger.error(f"Errore nel riavvio dell'applicazione: {e}")
@@ -4359,6 +4336,8 @@ class MainWindow:
 # ------------------------------------------------------------------------------------
 # ESECUZIONE PRINCIPALE
 # ------------------------------------------------------------------------------------
+_pending_restart: tuple | None = None  # (cmd, cwd) impostato da restart_program() pre-mainloop
+
 if __name__ == '__main__':
     # Inizializza il sistema di internazionalizzazione PRIMA di creare qualsiasi finestra
     logger.info("=" * 70)
@@ -4539,3 +4518,19 @@ if __name__ == '__main__':
 
     root.after(200, main_task)
     root.mainloop()
+
+    # Riavvio post-mainloop: lancia il nuovo processo solo dopo la chiusura completa della GUI
+    if _pending_restart is not None:
+        _cmd, _cwd = _pending_restart
+        try:
+            if sys.platform == 'win32':
+                subprocess.Popen(
+                    _cmd,
+                    cwd=_cwd,
+                    creationflags=subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.DETACHED_PROCESS,
+                    close_fds=True
+                )
+            else:
+                subprocess.Popen(_cmd, cwd=_cwd, start_new_session=True)
+        except Exception as e:
+            logger.error(f"Errore nel riavvio post-mainloop: {e}")
