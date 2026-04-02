@@ -1020,11 +1020,6 @@ class MainWindow:
             try:
                 # Windows: usa state zoomed
                 self.root.state("zoomed")
-                if sys.platform == 'win32':
-                    logger.info("[WIN_RESTORE_DIAG-A] after state(zoomed): state=%s geometry=%s winfo=%dx%d req=%dx%d",
-                        self.root.state(), self.root.geometry(),
-                        self.root.winfo_width(), self.root.winfo_height(),
-                        self.root.winfo_reqwidth(), self.root.winfo_reqheight())
             except:
                 # Fallback: se nessuno dei due funziona, ignora
                 pass
@@ -4499,39 +4494,9 @@ if __name__ == '__main__':
         time.sleep(0.25)
 
         # Prepara e mostra la finestra principale
-        # Win32: se la finestra è già maximizzata, calculate_center_position restituisce le
-        # dimensioni minime dei widget (non lo schermo) e root.geometry() le scriverebbe come
-        # "restore geometry" interna, causando il ripristino a dimensione minuscola dopo un
-        # drag dalla title bar. Si imposta invece una geometry sensata (75% schermo, centrata).
-        # Il ramo else è il codice originale, invariato su Linux e su Windows non-zoomed.
-        if sys.platform == 'win32':
-            logger.info("[WIN_RESTORE_DIAG-B] pre-check: state=%s geometry=%s",
-                root.state(), root.geometry())
-        if sys.platform == 'win32' and root.state() == 'zoomed':
-            _sw = root.winfo_screenwidth()
-            _sh = root.winfo_screenheight()
-            _w = max(1200, int(_sw * 0.75))
-            _h = max(768, int(_sh * 0.75))
-            _x = (_sw - _w) // 2
-            _y = (_sh - _h) // 2
-            root.geometry(f'{_w}x{_h}+{_x}+{_y}')
-            if sys.platform == 'win32':
-                logger.info("[WIN_RESTORE_DIAG-C] post-geom (fix-branch): state=%s geometry=%s winfo=%dx%d req=%dx%d",
-                    root.state(), root.geometry(),
-                    root.winfo_width(), root.winfo_height(),
-                    root.winfo_reqwidth(), root.winfo_reqheight())
-        else:
-            geometry = calculate_center_position(root)
-            root.geometry(geometry)
-            if sys.platform == 'win32':
-                logger.info("[WIN_RESTORE_DIAG-C] post-geom (else-branch): state=%s geometry=%s winfo=%dx%d req=%dx%d",
-                    root.state(), root.geometry(),
-                    root.winfo_width(), root.winfo_height(),
-                    root.winfo_reqwidth(), root.winfo_reqheight())
+        geometry = calculate_center_position(root)
+        root.geometry(geometry)
         root.deiconify()
-        if sys.platform == 'win32':
-            logger.info("[WIN_RESTORE_DIAG-D] post-deiconify: state=%s geometry=%s",
-                root.state(), root.geometry())
         root.lift()
         root.attributes('-topmost', True)
 
@@ -4544,9 +4509,6 @@ if __name__ == '__main__':
         # BUG #41 FIX: usa funzione nominata invece di lambda per evitare reference leak
         def remove_topmost():
             try:
-                if sys.platform == 'win32':
-                    logger.info("[WIN_RESTORE_DIAG-E] remove_topmost: state=%s geometry=%s",
-                        root.state(), root.geometry())
                 root.attributes('-topmost', False)
             except:
                 pass
