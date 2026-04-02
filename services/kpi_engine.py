@@ -80,6 +80,45 @@ def _build_date_filter(
     return clauses, params
 
 
+def _build_impact_period_filter(
+    date_from: Optional[str],
+    date_to:   Optional[str],
+    year:      Optional[int],
+) -> tuple:
+    """
+    Costruisce clausole WHERE per filtri sul periodo di competenza economica
+    (``vi.anno`` / ``vi.mese``) invece che su ``event_date``.
+
+    Il parametro ``year`` ha priorità su ``date_from`` / ``date_to``.
+
+    Returns:
+        (clauses: list[str], params: list)
+    """
+    clauses: list = []
+    params:  list = []
+
+    if year is not None:
+        clauses.append("vi.anno = ?")
+        params.append(year)
+    else:
+        if date_from:
+            try:
+                d = _date.fromisoformat(date_from)
+                clauses.append("vi.anno * 100 + vi.mese >= ?")
+                params.append(d.year * 100 + d.month)
+            except ValueError:
+                pass
+        if date_to:
+            try:
+                d = _date.fromisoformat(date_to)
+                clauses.append("vi.anno * 100 + vi.mese <= ?")
+                params.append(d.year * 100 + d.month)
+            except ValueError:
+                pass
+
+    return clauses, params
+
+
 def _where(*clause_lists) -> str:
     """
     Unisce più liste di clausole con AND e restituisce la stringa WHERE completa.
@@ -121,18 +160,18 @@ def _sum_impacts(
     cursor,
     tipo_valore: str,
     opex_filter: Optional[int],
-    event_date_clauses: list,
-    event_date_params: list,
+    period_clauses: list,
+    period_params: list,
 ) -> tuple:
     """
     Somma valore_teorico e valore_effettivo da vsm_impacts,
-    con JOIN su vsm_events per filtri su tipo evento e data.
+    con JOIN su vsm_events per filtrare su opex_ripetitivo.
 
     Args:
-        tipo_valore:         'Saving' o 'Cost Avoidance'
-        opex_filter:         1 → solo ricorrenti, 0 → solo non ricorrenti, None → tutti
-        event_date_clauses:  clausole WHERE già qualificate con alias 've.'
-        event_date_params:   parametri corrispondenti
+        tipo_valore:    'Saving' o 'Cost Avoidance'
+        opex_filter:    1 → solo ricorrenti, 0 → solo non ricorrenti, None → tutti
+        period_clauses: clausole WHERE per periodo di competenza (vi.anno / vi.mese)
+        period_params:  parametri corrispondenti
 
     Returns:
         (sum_teorico: float, sum_effettivo: float)
@@ -144,7 +183,7 @@ def _sum_impacts(
         base_clauses.append("ve.opex_ripetitivo = ?")
         base_params.append(opex_filter)
 
-    w = _where(base_clauses, event_date_clauses)
+    w = _where(base_clauses, period_clauses)
     query = f"""
         SELECT COALESCE(SUM(vi.valore_teorico),   0.0),
                COALESCE(SUM(vi.valore_effettivo), 0.0)
@@ -152,7 +191,7 @@ def _sum_impacts(
         JOIN vsm_events ve ON vi.event_id = ve.event_id
         {w}
     """
-    cursor.execute(query, tuple(base_params + event_date_params))
+    cursor.execute(query, tuple(base_params + period_params))
     row = cursor.fetchone()
     if row:
         return float(row[0] or 0.0), float(row[1] or 0.0)
@@ -281,14 +320,15 @@ def get_saving_kpi(
         }
     """
     result = {
-        "theoretical_saving":   0.0,
-        "actual_saving":        0.0,
-        "average_saving_pct":   0.0,
-        "best_saving_pct":      0.0,
-        "worst_saving_pct":     0.0,
-        "median_saving_pct":    0.0,
-        "recurring_impact":     0.0,
-        "non_recurring_impact": 0.0,
+        "theoretical_saving":     0.0,
+        "actual_saving":          0.0,
+        "average_saving_pct":     0.0,
+        "best_saving_pct":        0.0,
+        "worst_saving_pct":       0.0,
+        "median_saving_pct":      0.0,
+        "recurring_impact":       0.0,
+        "non_recurring_impact":   0.0,
+        "carry_over_to_next_year": None,
     }
 
     try:
@@ -296,20 +336,34 @@ def get_saving_kpi(
         with DatabaseManager(path, read_only=True) as db:
             c = db.cursor
 
-            d_clauses, d_params = _build_date_filter(
-                "ve.event_date", date_from, date_to, year
-            )
+            # Filtro per competenza economica (vi.anno / vi.mese)
+            vi_clauses, vi_params = _build_impact_period_filter(date_from, date_to, year)
 
             # Totali teorico/effettivo
-            teorico, effettivo = _sum_impacts(c, "Saving", None, d_clauses, d_params)
+            teorico, effettivo = _sum_impacts(c, "Saving", None, vi_clauses, vi_params)
             result["theoretical_saving"] = round(teorico, 2)
             result["actual_saving"]      = round(effettivo, 2)
 
             # Ricorrente / Non ricorrente (opex_ripetitivo)
-            _, rec     = _sum_impacts(c, "Saving", 1, d_clauses, d_params)
-            _, non_rec = _sum_impacts(c, "Saving", 0, d_clauses, d_params)
+            _, rec     = _sum_impacts(c, "Saving", 1, vi_clauses, vi_params)
+            _, non_rec = _sum_impacts(c, "Saving", 0, vi_clauses, vi_params)
             result["recurring_impact"]     = round(rec, 2)
             result["non_recurring_impact"] = round(non_rec, 2)
+
+            # Carry-over anno successivo: quota N+1 da eventi già esistenti entro 31/12/N
+            if year is not None:
+                end_of_year = f"{year}-12-31"
+                c.execute(
+                    """
+                    SELECT COALESCE(SUM(vi.valore_effettivo), 0.0)
+                    FROM vsm_impacts vi
+                    JOIN vsm_events ve ON vi.event_id = ve.event_id
+                    WHERE vi.tipo_valore = ? AND vi.anno = ? AND ve.event_date <= ?
+                    """,
+                    ("Saving", year + 1, end_of_year),
+                )
+                row = c.fetchone()
+                result["carry_over_to_next_year"] = round(float(row[0] or 0.0), 2)
 
             # Percentuali di saving per evento.
             # best / worst / median: statistiche per-evento (invariate semanticamente).
@@ -403,14 +457,15 @@ def get_cost_avoidance_kpi(
         }
     """
     result = {
-        "theoretical_cost_avoidance": 0.0,
-        "actual_cost_avoidance":       0.0,
-        "average_pct":                 0.0,
-        "best_pct":                    0.0,
-        "worst_pct":                   0.0,
-        "median_pct":                  0.0,
-        "recurring":                   0.0,
-        "non_recurring":               0.0,
+        "theoretical_cost_avoidance":  0.0,
+        "actual_cost_avoidance":        0.0,
+        "average_pct":                  0.0,
+        "best_pct":                     0.0,
+        "worst_pct":                    0.0,
+        "median_pct":                   0.0,
+        "recurring":                    0.0,
+        "non_recurring":                0.0,
+        "carry_over_to_next_year":      None,
     }
 
     try:
@@ -418,18 +473,32 @@ def get_cost_avoidance_kpi(
         with DatabaseManager(path, read_only=True) as db:
             c = db.cursor
 
-            d_clauses, d_params = _build_date_filter(
-                "ve.event_date", date_from, date_to, year
-            )
+            # Filtro per competenza economica (vi.anno / vi.mese)
+            vi_clauses, vi_params = _build_impact_period_filter(date_from, date_to, year)
 
-            teorico, effettivo = _sum_impacts(c, "Cost Avoidance", None, d_clauses, d_params)
+            teorico, effettivo = _sum_impacts(c, "Cost Avoidance", None, vi_clauses, vi_params)
             result["theoretical_cost_avoidance"] = round(teorico, 2)
             result["actual_cost_avoidance"]      = round(effettivo, 2)
 
-            _, rec     = _sum_impacts(c, "Cost Avoidance", 1, d_clauses, d_params)
-            _, non_rec = _sum_impacts(c, "Cost Avoidance", 0, d_clauses, d_params)
+            _, rec     = _sum_impacts(c, "Cost Avoidance", 1, vi_clauses, vi_params)
+            _, non_rec = _sum_impacts(c, "Cost Avoidance", 0, vi_clauses, vi_params)
             result["recurring"]     = round(rec, 2)
             result["non_recurring"] = round(non_rec, 2)
+
+            # Carry-over anno successivo: quota N+1 da eventi già esistenti entro 31/12/N
+            if year is not None:
+                end_of_year = f"{year}-12-31"
+                c.execute(
+                    """
+                    SELECT COALESCE(SUM(vi.valore_effettivo), 0.0)
+                    FROM vsm_impacts vi
+                    JOIN vsm_events ve ON vi.event_id = ve.event_id
+                    WHERE vi.tipo_valore = ? AND vi.anno = ? AND ve.event_date <= ?
+                    """,
+                    ("Cost Avoidance", year + 1, end_of_year),
+                )
+                row = c.fetchone()
+                result["carry_over_to_next_year"] = round(float(row[0] or 0.0), 2)
 
             # Percentuale CA per evento.
             # Cost Avoidance usa sempre importo_richiesto_iniziale come base:
@@ -613,6 +682,13 @@ def get_available_years(db_path: Optional[str] = None) -> list:
             c.execute(
                 "SELECT DISTINCT strftime('%Y', created_at) "
                 "FROM potential_suppliers WHERE created_at IS NOT NULL"
+            )
+            for (y,) in c.fetchall():
+                if y:
+                    years.add(int(y))
+            # Anni di competenza economica in vsm_impacts (include anni futuri da ricorrenti)
+            c.execute(
+                "SELECT DISTINCT anno FROM vsm_impacts WHERE anno IS NOT NULL"
             )
             for (y,) in c.fetchall():
                 if y:

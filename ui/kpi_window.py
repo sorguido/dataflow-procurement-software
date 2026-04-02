@@ -341,6 +341,7 @@ class KpiWindow(tk.Toplevel):
             (_("Median %"),                    "median_pct"),
             (_("Recurring (\u20ac)"),     "recurring"),
             (_("Non-Recurring (\u20ac)"), "non_recurring"),
+            (_("Carry-over to next year (\u20ac)"), "carry_over_to_next_year"),
         ]
         self._ca_labels = self._build_section(parent, items, section_key='ca')
 
@@ -987,13 +988,18 @@ class KpiWindow(tk.Toplevel):
         money_keys = {"theoretical_saving", "actual_saving",
                       "recurring_impact", "non_recurring_impact"}
         for key, lbl in self._saving_labels.items():
-            v = data.get(key, 0)
             if key in pct_keys:
-                lbl.config(text=_fmt_pct(v), foreground="#222222")
+                lbl.config(text=_fmt_pct(data.get(key, 0)), foreground="#222222")
+            elif key == "carry_over_to_next_year":
+                raw = data.get(key)
+                if raw is None:
+                    lbl.config(text="\u2014", foreground="#888888")
+                else:
+                    lbl.config(text=_fmt_money(raw), foreground="#222222")
             elif key in money_keys:
-                lbl.config(text=_fmt_money(v), foreground="#222222")
+                lbl.config(text=_fmt_money(data.get(key, 0)), foreground="#222222")
             else:
-                lbl.config(text=str(v or 0), foreground="#222222")
+                lbl.config(text=str(data.get(key, 0) or 0), foreground="#222222")
 
     def _update_ca_cards(self, data: dict):
         """Aggiorna le card Cost Avoidance con i dati restituiti dall'engine."""
@@ -1001,13 +1007,18 @@ class KpiWindow(tk.Toplevel):
         money_keys = {"theoretical_cost_avoidance", "actual_cost_avoidance",
                       "recurring", "non_recurring"}
         for key, lbl in self._ca_labels.items():
-            v = data.get(key, 0)
             if key in pct_keys:
-                lbl.config(text=_fmt_pct(v), foreground="#222222")
+                lbl.config(text=_fmt_pct(data.get(key, 0)), foreground="#222222")
+            elif key == "carry_over_to_next_year":
+                raw = data.get(key)
+                if raw is None:
+                    lbl.config(text="\u2014", foreground="#888888")
+                else:
+                    lbl.config(text=_fmt_money(raw), foreground="#222222")
             elif key in money_keys:
-                lbl.config(text=_fmt_money(v), foreground="#222222")
+                lbl.config(text=_fmt_money(data.get(key, 0)), foreground="#222222")
             else:
-                lbl.config(text=str(v or 0), foreground="#222222")
+                lbl.config(text=str(data.get(key, 0) or 0), foreground="#222222")
 
     def _update_derisking_cards(self, data: dict):
         """Aggiorna le card Derisking con i dati restituiti dall'engine."""

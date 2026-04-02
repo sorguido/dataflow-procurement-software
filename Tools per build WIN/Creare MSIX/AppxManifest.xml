@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Package IgnorableNamespaces="build uap uap4 rescap rescap6" xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10" xmlns:build="http://schemas.microsoft.com/developer/appx/2015/build" xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10" xmlns:uap4="http://schemas.microsoft.com/appx/manifest/uap/windows10/4" xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities" xmlns:rescap6="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities/6">
+  <Resources>
+    <Resource Language="en-US" />
+    <Resource Language="it-IT" />
+  </Resources>
+  <Dependencies>
+    <TargetDeviceFamily MaxVersionTested="10.0.17763.0" MinVersion="10.0.17763.0" Name="Windows.Desktop" />
+  </Dependencies>
+  <Properties>
+    <DisplayName>DataFlow Procurement Software</DisplayName>
+    <PublisherDisplayName>Guido Sorarù</PublisherDisplayName>
+    <Description>DataFlow Procurement Software</Description>
+    <Logo>add_data\Logo_50x50.png</Logo>
+  </Properties>
+  <Capabilities>
+    <rescap:Capability Name="runFullTrust" />
+  </Capabilities>
+  <Identity Publisher="CN=767D10E0-BBBE-428C-AABD-25A5776E6EE0" Name="GuidoSorar.DataFlowProcurementSoftware" Version="2.0.1.0" ProcessorArchitecture="x64" />
+  <Applications>
+    <Application Id="DataFlow" EntryPoint="Windows.FullTrustApplication" Executable="dataflow.exe">
+      <uap:VisualElements 
+      DisplayName="DataFlow" 
+      Square150x150Logo="add_data/Logo_150x150.png" 
+      Square44x44Logo="add_data/Logo_44x44.png" 
+      BackgroundColor="#333333" 
+      Description="DataFlow" />
+    </Application>
+  </Applications>
+  <build:Metadata>
+    <build:Item Name="MsixHero" Version="3.1.0.0" />
+    <build:Item Name="MakePri.exe" Version="10.0.22621.1" />
+    <build:Item Name="SignTool.exe" Version="10.0.22621.1" />
+    <build:Item Name="MakeAppx.exe" Version="10.0.22621.1" />
+    <build:Item Name="OperatingSystem" Version="10.0.26200.0" />
+  </build:Metadata>
+</Package>

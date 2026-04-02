@@ -52,7 +52,7 @@ def _build_month_buckets(
     # ------- CASE 1: anno fisso → 12 bucket -------
     if year is not None:
         buckets = [f'{year:04d}-{m:02d}' for m in range(1, 13)]
-        return [b for b in buckets if b <= today_ym]
+        return buckets   # tutti i 12 mesi, nessun cap a oggi
 
     # ------- CASE 2: rolling preset (date_from + date_to fornite dalla UI) -------
     if date_from and date_to:
@@ -154,6 +154,31 @@ def _dclauses(col: str, date_from, date_to, year) -> tuple:
     return clauses, params
 
 
+def _dclauses_impact(date_from, date_to, year) -> tuple:
+    """Clausole WHERE per filtri su vi.anno / vi.mese (competenza economica)."""
+    clauses: list = []
+    params:  list = []
+    if year is not None:
+        clauses.append("vi.anno = ?")
+        params.append(year)
+    else:
+        if date_from:
+            try:
+                d = _date.fromisoformat(date_from)
+                clauses.append("vi.anno * 100 + vi.mese >= ?")
+                params.append(d.year * 100 + d.month)
+            except ValueError:
+                pass
+        if date_to:
+            try:
+                d = _date.fromisoformat(date_to)
+                clauses.append("vi.anno * 100 + vi.mese <= ?")
+                params.append(d.year * 100 + d.month)
+            except ValueError:
+                pass
+    return clauses, params
+
+
 def _where(*clause_lists) -> str:
     merged = [c for lst in clause_lists for c in lst]
     return ("WHERE " + " AND ".join(merged)) if merged else ""
@@ -217,7 +242,7 @@ def get_saving_chart_data(
         return []
 
     try:
-        clauses, params = _dclauses('ve.event_date', date_from, date_to, year)
+        clauses, params = _dclauses_impact(date_from, date_to, year)
         w = _where(["vi.tipo_valore = ?"], clauses)
         with DatabaseManager(path, read_only=True) as db:
             db.cursor.execute(
@@ -266,7 +291,7 @@ def get_cost_avoidance_chart_data(
         return []
 
     try:
-        clauses, params = _dclauses('ve.event_date', date_from, date_to, year)
+        clauses, params = _dclauses_impact(date_from, date_to, year)
         w = _where(["vi.tipo_valore = ?"], clauses)
         with DatabaseManager(path, read_only=True) as db:
             db.cursor.execute(

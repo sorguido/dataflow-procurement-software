@@ -227,7 +227,7 @@ def _rows_rfq(data, is_ita):
 def _rows_saving(data, is_ita):
     if not data:
         return []
-    return [
+    rows = [
         ('Saving', _t(is_ita, "Saving Teorico",              "Theoretical Saving"),        _f(data.get('theoretical_saving')),   _FMT_MONEY),
         ('Saving', _t(is_ita, "Saving Effettivo",            "Actual Saving"),             _f(data.get('actual_saving')),         _FMT_MONEY),
         ('Saving', _t(is_ita, "Media % Saving Teorico",      "Avg Theoretical Saving %"),  _f(data.get('average_saving_pct')),   _FMT_PCT),
@@ -237,12 +237,21 @@ def _rows_saving(data, is_ita):
         ('Saving', _t(is_ita, "Impatto Ricorrente (€)",      "Recurring Impact (€)"),      _f(data.get('recurring_impact')),     _FMT_MONEY),
         ('Saving', _t(is_ita, "Impatto Non Ricorrente (€)",  "Non-Recurring Impact (€)"),  _f(data.get('non_recurring_impact')), _FMT_MONEY),
     ]
+    co = data.get('carry_over_to_next_year')
+    if co is not None:
+        rows.append((
+            'Saving',
+            _t(is_ita, "Carry-over Anno Successivo (€)", "Carry-over to Next Year (€)"),
+            _f(co),
+            _FMT_MONEY,
+        ))
+    return rows
 
 
 def _rows_ca(data, is_ita):
     if not data:
         return []
-    return [
+    rows = [
         ('Cost Avoidance', _t(is_ita, "CA Teorico",             "Theoretical CA"),        _f(data.get('theoretical_cost_avoidance')),  _FMT_MONEY),
         ('Cost Avoidance', _t(is_ita, "CA Effettivo",           "Actual CA"),             _f(data.get('actual_cost_avoidance')),        _FMT_MONEY),
         ('Cost Avoidance', _t(is_ita, "Media % CA Teorico",     "Avg Theoretical CA %"),  _f(data.get('average_pct')),                  _FMT_PCT),
@@ -252,6 +261,15 @@ def _rows_ca(data, is_ita):
         ('Cost Avoidance', _t(is_ita, "Ricorrente (€)",         "Recurring (€)"),         _f(data.get('recurring')),                    _FMT_MONEY),
         ('Cost Avoidance', _t(is_ita, "Non Ricorrente (€)",     "Non-Recurring (€)"),     _f(data.get('non_recurring')),                 _FMT_MONEY),
     ]
+    co = data.get('carry_over_to_next_year')
+    if co is not None:
+        rows.append((
+            'Cost Avoidance',
+            _t(is_ita, "Carry-over Anno Successivo (€)", "Carry-over to Next Year (€)"),
+            _f(co),
+            _FMT_MONEY,
+        ))
+    return rows
 
 
 def _rows_derisking(data, is_ita):
