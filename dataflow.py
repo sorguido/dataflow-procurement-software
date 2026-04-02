@@ -1012,6 +1012,12 @@ class MainWindow:
         set_window_icon(self.root)
         self.root.title(_("DataFlow Procurement Software - Cruscotto Principale"))
         
+        # Windows: la normal size di default è troppo piccola; imposta base minima
+        # esplicita prima del maximize per evitare restore/normal size minuscola.
+        if sys.platform == 'win32':
+            self.root.geometry("1200x768")
+            self.root.minsize(1200, 768)
+
         # Avvia finestra massimizzata (compatibilità Linux/Windows)
         try:
             # Linux/X11: usa attributes -zoomed
