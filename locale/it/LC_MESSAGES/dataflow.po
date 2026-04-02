@@ -1688,8 +1688,8 @@ msgstr ""
 msgid "Nessun file da copiare nella cartella sorgente"
 msgstr "Nessun file da copiare nella cartella sorgente"
 
-msgid "v2.0.1 - Sviluppato da "
-msgstr "v2.0.1 - Sviluppato da "
+msgid "v2.1.0 - Sviluppato da "
+msgstr "v2.1.0 - Sviluppato da "
 
 msgid ""
 "Licenza d'Uso (GNU GPLv3) - DataFlow Procurement Software\n"

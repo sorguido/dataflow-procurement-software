@@ -2527,8 +2527,8 @@ msgstr ""
 msgid "Allegato eliminato."
 msgstr "Attachment deleted."
 
-msgid "v2.0.1 - Sviluppato da "
-msgstr "v2.0.1 - Developed by "
+msgid "v2.1.0 - Sviluppato da "
+msgstr "v2.1.0 - Developed by "
 
 msgid "Dati non validi"
 msgstr "Invalid data"

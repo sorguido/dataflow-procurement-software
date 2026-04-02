@@ -301,7 +301,7 @@ def build_main_dashboard(app):
     # -----------------------------------------------------------------------
     footer_frame = ttk.Frame(app.root)
     footer_frame.grid(row=4, column=0, sticky="ew", padx=10, pady=5)
-    ttk.Label(footer_frame, text=_("v2.0.1 - Sviluppato da ")).pack(side="left")
+    ttk.Label(footer_frame, text=_("v2.1.0 - Sviluppato da ")).pack(side="left")
     name_label = ttk.Label(footer_frame, text="Guido Sorarù", foreground="blue", cursor="hand2")
     name_label.pack(side="left")
     name_label.bind("<Button-1>", lambda e: webbrowser.open("https://www.linkedin.com/in/guido-soraru-buyer/"))
