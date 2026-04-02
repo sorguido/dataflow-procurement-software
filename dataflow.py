@@ -1009,14 +1009,14 @@ class SettingsWindow(tk.Toplevel):
 class MainWindow:
     def __init__(self, root):
         self.root = root;
-        set_window_icon(self.root)
+#        set_window_icon(self.root)
         self.root.title(_("DataFlow Procurement Software - Cruscotto Principale"))
         
         # Windows: la normal size di default è troppo piccola; imposta base minima
         # esplicita prima del maximize per evitare restore/normal size minuscola.
         if sys.platform == 'win32':
             self.root.geometry("1200x768")
-            self.root.minsize(1200, 768)
+            self.root.minsize(1000, 700)
 
         # Avvia finestra massimizzata (compatibilità Linux/Windows)
         try:
