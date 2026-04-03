@@ -2502,7 +2502,7 @@ class MainWindow:
         Separato da _delete_vsm_events: usa supplier_persistence, non vsm_persistence.
         Pattern coerente con _delete_vsm_events (confirm dialog, refresh, error handling).
         """
-        sheet, _ = self.get_current_tree_and_status()
+        sheet, _status = self.get_current_tree_and_status()
 
         selected_rows = self._get_selected_row_indices(sheet)
         if not selected_rows:
