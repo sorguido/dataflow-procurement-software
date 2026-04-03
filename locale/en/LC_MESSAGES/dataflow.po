@@ -2967,8 +2967,8 @@ msgstr "© 2025"
 msgid "✓ Username aggiornato da '{}' a '{}'"
 msgstr "✓ Username aggiornato da '{}' a '{}'"
 
-msgid " © 2025 - Rilasciato sotto licenza GNU GPLv3"
-msgstr " © 2025 - Released under GNU GPLv3 license"
+msgid " © 2025–2026 - Rilasciato sotto licenza GNU GPLv3"
+msgstr " © 2025–2026 - Released under GNU GPLv3 license"
 
 msgid ""
 "Contratto di Licenza per l'Utente Finale (GNU GPLv3) - DataFlow Procurement Software\n"

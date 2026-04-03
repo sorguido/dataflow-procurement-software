@@ -120,8 +120,8 @@ msgstr "  - Righe importate: {}"
 msgid "  - Righe saltate (già esistenti): {}"
 msgstr "  - Righe saltate (già esistenti): {}"
 
-msgid " © 2025 - Rilasciato sotto licenza GNU GPLv3"
-msgstr " © 2025 - Rilasciato sotto licenza GNU GPLv3"
+msgid " © 2025–2026 - Rilasciato sotto licenza GNU GPLv3"
+msgstr " © 2025–2026 - Rilasciato sotto licenza GNU GPLv3"
 
 msgid "0. Primi Passi"
 msgstr "0. Primi Passi"
