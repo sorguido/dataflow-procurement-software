@@ -305,7 +305,7 @@ def build_main_dashboard(app):
     name_label = ttk.Label(footer_frame, text="Guido Sorarù", foreground="blue", cursor="hand2")
     name_label.pack(side="left")
     name_label.bind("<Button-1>", lambda e: webbrowser.open("https://www.linkedin.com/in/guido-soraru-buyer/"))
-    ttk.Label(footer_frame, text=_(" © 2025 - Rilasciato sotto licenza GNU GPLv3")).pack(side="left")
+    ttk.Label(footer_frame, text=_(" © 2025–2026 - Rilasciato sotto licenza GNU GPLv3")).pack(side="left")
 
     # -----------------------------------------------------------------------
     # RFQ treeviews
