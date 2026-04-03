@@ -1009,7 +1009,7 @@ class SettingsWindow(tk.Toplevel):
 class MainWindow:
     def __init__(self, root):
         self.root = root;
-#        set_window_icon(self.root)
+        set_window_icon(self.root)
         self.root.title(_("DataFlow Procurement Software - Cruscotto Principale"))
         
         # Windows: la normal size di default è troppo piccola; imposta base minima
