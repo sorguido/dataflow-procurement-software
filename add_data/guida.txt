@@ -1,7 +1,7 @@
 [H1]Guida Utente DataFlow Procurement Software
 [INFO]Documentazione versione: Aprile 2026
 
-Questa guida ti accompagnerà nell'utilizzo di DataFlow, il software per la gestione delle Richieste di Offerta.
+Questa guida ti accompagnerà nell'utilizzo di DataFlow, il software per la gestione delle Richieste di Offerta e del flusso del valore del Buyer.
 
 [H1]0. Primi Passi
 
@@ -1019,7 +1019,7 @@ Grazie per aver scelto DataFlow. Spero che questo software possa semplificare la
 
 DataFlow è ora disponibile come progetto open source.
 
-La versione Linux dell'applicazione è rilasciata sotto licenza GNU GPLv3 e il codice sorgente è disponibile su GitHub.
+La versione Linux e Windows dell'applicazione è rilasciata sotto licenza GNU GPLv3 e il codice sorgente è disponibile su GitHub.
 
 Gli sviluppatori interessati a migliorare, estendere o adattare il software (incluse eventuali future versioni per Windows) sono i benvenuti a contribuire al progetto.
 

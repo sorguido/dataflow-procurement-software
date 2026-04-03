@@ -1,7 +1,7 @@
 [H1]DataFlow Procurement Software User Guide
 [INFO]Documentation version: April 2026
 
-This guide will help you use DataFlow, the software for managing Requests for Offer.
+This guide will help you use DataFlow, the software for managing Requests for Offer and Buyers Value Stream.
 
 [H1]0. Getting Started
 
@@ -1026,7 +1026,7 @@ Thank you for choosing DataFlow. I hope this software can simplify the managemen
 
 DataFlow is now available as an open-source project.
 
-The Linux version of the application has been released under the GNU GPLv3 license and the source code is available on GitHub.
+The Linux and Windows version of the application has been released under the GNU GPLv3 license and the source code is available on GitHub.
 
 Developers interested in improving, extending, or adapting the software (including future Windows versions) are welcome to contribute to the project.
 
