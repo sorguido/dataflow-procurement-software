@@ -3039,6 +3039,9 @@ class MainWindow:
             # Proteggi i sheet e il pulsante Actions (e il suo menu)
             if (current_widget == self.tree_attive or 
                 current_widget == self.tree_archiviate or
+                current_widget == self.sheet_saving or
+                current_widget == self.sheet_cost_avoidance or
+                current_widget == self.sheet_derisking or
                 current_widget == self.btn_actions or
                 current_widget == self.actions_menu):
                 is_inside_protected_area = True
