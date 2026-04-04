@@ -567,9 +567,10 @@ class SettingsWindow(tk.Toplevel):
         
         warning_text = _(
             "⚠️ ATTENZIONE: stai per cambiare la posizione della cartella DataFlow.\n\n"
-            "IMPORTANTE:\n"
-            "- La cartella attuale non verrà spostata automaticamente\n"
-            "- L'app verrà riavviata per applicare la modifica\n\n"
+            "La cartella attuale verrà copiata automaticamente nella nuova posizione "
+            "selezionata, inclusi database e allegati. "
+            "L'operazione potrebbe richiedere alcuni istanti.\n\n"
+            "Al termine, l'applicazione verrà riavviata.\n\n"
             "Posizione attuale:\n{}\n\n"
             "Vuoi procedere?"
         ).format(current_dataflow_dir)
