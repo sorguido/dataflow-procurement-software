@@ -91,7 +91,6 @@ from utils.validation_utils import sanitize_filename, format_date_for_db, format
 init_i18n()
 
 # Importa UI components (DOPO init_i18n per avere _() disponibile)
-from ui.help_window import HelpWindow
 from ui.kpi_window import KpiWindow
 from ui.window_launchers import open_help_window, on_kpi_click
 from ui.windows.view_request_window import ViewRequestWindow
