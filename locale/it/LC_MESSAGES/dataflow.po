@@ -3374,3 +3374,6 @@ msgstr "Sei sicuro di voler eliminare {} fornitore(i)?\nQuesta operazione non pu
 
 msgid "{} fornitore(i) eliminato(i) con successo."
 msgstr "{} fornitore(i) eliminato(i) con successo."
+
+msgid "≡ License"
+msgstr "≡ Licenza"
