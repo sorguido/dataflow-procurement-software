@@ -3381,3 +3381,12 @@ msgstr "{} fornitore(i) eliminato(i) con successo."
 
 msgid "≡ License"
 msgstr "≡ Licenza"
+
+msgid "Accettazione Licenza"
+msgstr "Accettazione Licenza"
+
+msgid "Per utilizzare DataFlow Procurement Software è necessario accettare i termini e le condizioni d'uso."
+msgstr "Per utilizzare DataFlow Procurement Software è necessario accettare i termini e le condizioni d'uso."
+
+msgid "📄 Leggi la Licenza"
+msgstr "📄 Leggi la Licenza"

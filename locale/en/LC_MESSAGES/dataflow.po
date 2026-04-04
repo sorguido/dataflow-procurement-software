@@ -3392,3 +3392,12 @@ msgstr "Are you sure you want to delete {} supplier(s)?\nThis operation cannot b
 
 msgid "{} fornitore(i) eliminato(i) con successo."
 msgstr "{} supplier(s) deleted successfully."
+
+msgid "Accettazione Licenza"
+msgstr "License Agreement"
+
+msgid "Per utilizzare DataFlow Procurement Software è necessario accettare i termini e le condizioni d'uso."
+msgstr "To use DataFlow Procurement Software, you must accept the terms and conditions of use."
+
+msgid "📄 Leggi la Licenza"
+msgstr "📄 Read License"

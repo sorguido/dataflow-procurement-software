@@ -102,7 +102,6 @@ a = Analysis(
         'services.startup_service',
         'ui',
         'ui.help_window',
-        'ui.license_window',
         'ui.dialogs',
         'ui.dialogs.common_dialogs',
         'ui.windows',

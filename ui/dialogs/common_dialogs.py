@@ -439,3 +439,53 @@ class SplashScreen(tk.Toplevel):
         self.update_idletasks()
         self.status_label['text'] = txt
         self.update_idletasks()
+
+
+class LicenseAcceptanceDialog(tk.Toplevel):
+    """Dialog minimale per accettazione licenza al primo avvio."""
+    def __init__(self, parent, url):
+        super().__init__(parent)
+        self.withdraw()
+        self.accepted = False
+        self._url = url
+        set_window_icon(self)
+        self.title(_("Accettazione Licenza"))
+        self.transient(parent)
+        self.resizable(False, False)
+        self.grab_set()
+        self.protocol("WM_DELETE_WINDOW", self._on_exit)
+
+        frame = ttk.Frame(self, padding=20)
+        frame.pack(fill="both", expand=True)
+
+        ttk.Label(
+            frame,
+            text=_("Per utilizzare DataFlow Procurement Software è necessario accettare i termini e le condizioni d'uso."),
+            font=(None, 10),
+            wraplength=380,
+            justify="left"
+        ).pack(pady=(0, 20))
+
+        btn_frame = ttk.Frame(frame)
+        btn_frame.pack()
+
+        ttk.Button(btn_frame, text=_("📄 Leggi la Licenza"), command=self._on_license, width=18).pack(side="left", padx=5)
+        ttk.Button(btn_frame, text=_("✅ Accetto"), command=self._on_accept, width=12).pack(side="left", padx=5)
+        ttk.Button(btn_frame, text=_("❌ Esci"), command=self._on_exit, width=12).pack(side="left", padx=5)
+
+        center_window(self)
+        self.deiconify()
+        self.wait_visibility()
+
+    def _on_license(self):
+        webbrowser.open(self._url)
+
+    def _on_accept(self):
+        self.accepted = True
+        self.grab_release()
+        self.destroy()
+
+    def _on_exit(self):
+        self.accepted = False
+        self.grab_release()
+        self.destroy()

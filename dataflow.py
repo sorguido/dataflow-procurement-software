@@ -92,7 +92,7 @@ init_i18n()
 
 # Importa UI components (DOPO init_i18n per avere _() disponibile)
 from ui.kpi_window import KpiWindow
-from ui.window_launchers import open_help_window, on_kpi_click
+from ui.window_launchers import open_help_window, on_kpi_click, open_license_window
 from ui.windows.view_request_window import ViewRequestWindow
 from ui.components.main_dashboard_toolbar import MainDashboardToolbar
 from ui.components.collapsible_filters import CollapsibleFilters
@@ -113,7 +113,6 @@ from services.startup_service import (
     initialize_dataflow_directory_structure
 )
 from database.db_helpers import crea_database_v4
-from ui.license_window import LicenseWindow
 from ui.dialogs.common_dialogs import (
     LanguagePrompt,
     NewRdOTypeDialog,
@@ -121,7 +120,8 @@ from ui.dialogs.common_dialogs import (
     CopyProgressWindow,
     SplashScreen,
     SimpleYesNoDialog,
-    SimpleMessageDialog
+    SimpleMessageDialog,
+    LicenseAcceptanceDialog
 )
 
 # Esegui pulizia all'avvio
@@ -1078,54 +1078,8 @@ class MainWindow:
 
     # --- INIZIO NUOVI METODI LICENZA ---
     def open_license_window(self):
-        """Apre la finestra della licenza in modalità sola lettura."""
-        # --- CORREZIONE OBBLIGATORIA ---
-        # Rimuovi temporaneamente topmost per permettere alla finestra 
-        # di licenza di apparire SOPRA.
-        self.root.attributes('-topmost', False)
-        # --- FINE CORREZIONE ---
-        
-        LicenseWindow(self.root, first_run=False)
+        open_license_window(self)
 
-    def show_first_run_license(self):
-        """
-        Mostra la finestra modale della licenza al primo avvio.
-        Blocca l'esecuzione finché l'utente non accetta o esce.
-        """
-        # --- CORREZIONE OBBLIGATORIA ---
-        # Rimuovi temporaneamente topmost per permettere alla finestra 
-        # di licenza di apparire SOPRA.
-        self.root.attributes('-topmost', False)
-        # --- FINE CORREZIONE ---
-        
-        license_prompt = LicenseWindow(self.root, first_run=True)
-        self.root.wait_window(license_prompt) # Attende che la finestra di licenza venga chiusa
-        
-        if not license_prompt.accepted:
-            # L'utente ha cliccato "Esci" o ha chiuso la finestra
-            # Usa after per evitare problemi di timing con la distruzione della finestra
-            self.root.after(100, self.root.destroy)
-            return False
-        else:
-            # L'utente ha cliccato "Accetto", salva l'impostazione
-            try:
-                config = configparser.ConfigParser(interpolation=None)
-                config_file = get_config_file()
-                if os.path.exists(config_file):
-                    config.read(config_file)
-                if 'Settings' not in config:
-                    config['Settings'] = {}
-                config['Settings']['license_accepted'] = 'True'
-                # BUG #49 FIX: Usa encoding UTF-8 per gestire caratteri speciali
-                with open(config_file, 'w', encoding='utf-8') as f:
-                    config.write(f)
-            except Exception as e:
-                SimpleMessageDialog(self.root, _("Errore"), _("Impossibile salvare l'impostazione della licenza: {}\n\nIl programma continuerà, ma la licenza potrebbe riapparire al prossimo avvio.").format(e), "error")
-            
-            # Assicura che la finestra principale sia visibile e attiva
-            self.root.deiconify()
-            self.root.focus_force()
-            return True
     # --- FINE NUOVI METODI LICENZA ---
 
     def _load_identity_from_config(self):
@@ -4404,7 +4358,7 @@ if __name__ == '__main__':
 
         # 1) Mostra la licenza PRIMA di qualsiasi creazione DB
         if not license_was_accepted:
-            license_prompt = LicenseWindow(root, first_run=True)
+            license_prompt = LicenseAcceptanceDialog(root, url="https://github.com/sorguido/dataflow-procurement-software/blob/main/LICENSE")
             root.wait_window(license_prompt)
             if not getattr(license_prompt, 'accepted', False):
                 try:

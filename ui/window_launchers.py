@@ -9,6 +9,12 @@ _WIKI_URLS = {
 }
 _WIKI_FALLBACK = "https://github.com/sorguido/dataflow-procurement-software/wiki"
 
+_LICENSE_URL = "https://github.com/sorguido/dataflow-procurement-software/blob/main/LICENSE"
+
+
+def open_license_window(app):
+    webbrowser.open(_LICENSE_URL)
+
 
 def open_help_window(app):
     lang = get_current_language()
