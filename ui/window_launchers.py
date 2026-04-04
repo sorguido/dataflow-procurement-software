@@ -7,7 +7,7 @@ _WIKI_URLS = {
     "it": "https://github.com/sorguido/dataflow-procurement-software/wiki/IT-Home",
     "en": "https://github.com/sorguido/dataflow-procurement-software/wiki/EN-Home",
 }
-_WIKI_FALLBACK = _WIKI_URLS["en"]
+_WIKI_FALLBACK = "https://github.com/sorguido/dataflow-procurement-software/wiki"
 
 
 def open_help_window(app):
