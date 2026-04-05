@@ -9,7 +9,7 @@ Genera lo stesso dataset di generate_test_db.py ma con:
 NON sovrascrive DB reali né il database EN (test_dataflow_full.db).
 """
 
-import generate_test_db as _base
+import generate_test_db_eng as _base
 
 # ---------------------------------------------------------------------------
 # OVERRIDE: percorso database italiano
