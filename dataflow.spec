@@ -14,9 +14,16 @@ Note: This uses one-folder mode (not one-file) for better Tcl/Tk compatibility.
 
 import sys
 import os
-from PyInstaller.utils.hooks import collect_data_files, collect_submodules
 
 block_cipher = None
+
+# ============================================================================
+# FAIL-FAST: pre-flight checks
+# ============================================================================
+if not os.path.exists('dataflow.py'):
+    raise SystemExit("ERROR: entry-point 'dataflow.py' not found. Run PyInstaller from the project root.")
+if not os.path.exists('add_data/DataFlow.ico'):
+    raise SystemExit("ERROR: icon 'add_data/DataFlow.ico' not found. Run PyInstaller from the project root.")
 
 # ============================================================================
 # AUTOMATIC TCL/TK DETECTION (Windows compatibility fix)
@@ -101,7 +108,6 @@ a = Analysis(
         'services.app_paths',
         'services.startup_service',
         'ui',
-        'ui.help_window',
         'ui.dialogs',
         'ui.dialogs.common_dialogs',
         'ui.windows',
@@ -173,7 +179,7 @@ exe = EXE(
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
-    upx=True,
+    upx=False,
     console=False,  # Set to False for GUI application (no console window)
     disable_windowed_traceback=False,
     argv_emulation=False,
@@ -181,6 +187,7 @@ exe = EXE(
     codesign_identity=None,
     entitlements_file=None,
     icon='add_data/DataFlow.ico',
+    manifest='app.manifest.xml',
 )
 
 # ============================================================================
@@ -194,7 +201,7 @@ coll = COLLECT(
     a.zipfiles,
     a.datas,
     strip=False,
-    upx=True,
+    upx=False,
     upx_exclude=[],
     name='dataflow',
 )
