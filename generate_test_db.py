@@ -300,7 +300,10 @@ def create_test_database():
     # --- 3. VSM Events ---
     _genera_vsm(db)
 
-    # --- 4. Verifica conteggi ---
+    # --- 4. Potential Suppliers (Derisking tab) ---
+    _genera_potential_suppliers(db)
+
+    # --- 5. Verifica conteggi ---
     _verifica_conteggi(db)
 
     db.close()
@@ -399,6 +402,174 @@ def _genera_vsm(db: DatabaseManager):
     print(f"  VSM inseriti: {VSM_PER_TIPO * 3}")
 
 
+POTENTIAL_SUPPLIERS_DATA = [
+    (
+        'Acciai Speciali Valpadana SRL', 'Steel', 'Qualificato',
+        'Marco Ferretti', 'm.ferretti@acciaivalpadana.it', '+39 0444 512300',
+        'www.acciaivalpadana.it',
+        'Second qualified supplier for S355 steel sheets. Audit passed 2024-11. EN 10025 certification.',
+        '2024-11-15', '2024-11-15T10:30:00',
+    ),
+    (
+        'Eurosteel Componenti SpA', 'Steel', 'In valutazione',
+        'Laura Bianchi', 'l.bianchi@eurosteel.eu', '+39 030 7742100',
+        'www.eurosteel.eu',
+        'Alternative supplier for C45 drawn bars. Sample qualification in progress. Offer received 2025-02.',
+        '2025-02-10', '2025-02-10T09:00:00',
+    ),
+    (
+        'MetalTech Brescia SRL', 'Mechanical machining', 'Qualificato',
+        'Giovanni Rossi', 'g.rossi@metaltech-bs.it', '+39 030 3451200',
+        'www.metaltech-bs.it',
+        'Qualified subcontractor for CNC turning on SS316L. Production capacity validated. Lead time 10 days.',
+        '2024-09-20', '2024-09-20T14:00:00',
+    ),
+    (
+        'Nordic Steel Components AB', 'Steel', 'Nuovo',
+        'Erik Lindstrom', 'e.lindstrom@nordicsteel.se', '+46 31 7001200',
+        'www.nordicsteel.se',
+        'Swedish supplier identified as alternative to Eastern European supplier. First commercial visit 2025-03.',
+        '2025-03-05', '2025-03-05T11:00:00',
+    ),
+    (
+        'Trattamenti Termici Padova SpA', 'Heat treatments', 'Qualificato',
+        'Stefano Meneghetti', 's.meneghetti@ttpd.it', '+39 049 8823400',
+        'www.ttpd.it',
+        'Qualified backup for C45 hardening and case hardening. Active standby agreement. Capacity 2 t/day.',
+        '2024-06-01', '2024-06-01T08:30:00',
+    ),
+    (
+        'Galvanica Lombarda SRL', 'Surface treatments', 'In valutazione',
+        'Paola Carminati', 'p.carminati@galvanicalombarda.it', '+39 02 9290500',
+        'www.galvanicalombarda.it',
+        'Second supplier for electrolytic zinc plating and nickel plating. Samples sent 2025-01. Awaiting quality report.',
+        '2025-01-20', '2025-01-20T10:00:00',
+    ),
+    (
+        'Verniciatura Industriale Veneta SRL', 'Surface treatments', 'Qualificato',
+        'Antonio Zilio', 'a.zilio@viv-srl.it', '+39 0422 631800',
+        'www.viv-srl.it',
+        'Backup supplier for epoxy coating RAL 7035. Homologation completed 2023-10. Annual framework agreement.',
+        '2023-10-12', '2023-10-12T15:00:00',
+    ),
+    (
+        'Fonderia Bresciana SpA', 'Castings', 'In valutazione',
+        'Franco Pezzotti', 'f.pezzotti@fonderiabresciana.it', '+39 030 9821000',
+        'www.fonderiabresciana.it',
+        'Italian alternative for GJL-250 grey cast iron castings. First sampling in progress. Expected by 2025-05.',
+        '2025-02-28', '2025-02-28T09:30:00',
+    ),
+    (
+        'CNC Precision Parts GmbH', 'Mechanical machining', 'Qualificato',
+        'Klaus Weber', 'k.weber@cnc-precision.de', '+49 711 4503200',
+        'www.cnc-precision.de',
+        'German partner for 4140 milling and precision grinding. ISO 9001:2015. Lead time 15 days. Active backup since 2023.',
+        '2023-07-18', '2023-07-18T13:00:00',
+    ),
+    (
+        'Lavorazioni Meccaniche Bergamo SRL', 'Mechanical machining', 'Scartato',
+        'Roberto Cattaneo', 'r.cattaneo@lmbergamo.it', '+39 035 3310800',
+        '',
+        'Failed quality audit 2024-04. Out-of-spec tolerances on turned samples. Reassess after corrective actions.',
+        '2024-04-10', '2024-04-10T16:00:00',
+    ),
+    (
+        'Stampaggio Metalli Emilia SRL', 'Stamping', 'Qualificato',
+        'Elena Monti', 'e.monti@sme-srl.it', '+39 059 8812200',
+        'www.sme-srl.it',
+        'Second supplier for EN-AC-46000 aluminium stamping. Re-source completed 2024-03. Guaranteed annual volume 4,000 pcs.',
+        '2024-03-22', '2024-03-22T10:30:00',
+    ),
+    (
+        'Meccanica di Piacenza SRL', 'Mechanical machining', 'In valutazione',
+        'Andrea Ferri', 'a.ferri@meccanicapc.it', '+39 0523 601500',
+        'www.meccanicapc.it',
+        'Local supplier for lead time reduction on critical parts. Factory visit 2025-03-18. Adequate CNC capacity.',
+        '2025-03-18', '2025-03-18T11:00:00',
+    ),
+    (
+        'Forgiatura Toscana SpA', 'Forging', 'Nuovo',
+        'Massimo Landi', 'm.landi@forgiaturatoscana.it', '+39 055 8923100',
+        'www.forgiaturatoscana.it',
+        'Identified as potential alternative for PN16 forged flanges. Technical documentation requested 2025-04.',
+        '2025-04-02', '2025-04-02T09:00:00',
+    ),
+    (
+        'Officine Guidetti SRL', 'Mechanical machining', 'Qualificato',
+        'Luca Guidetti', 'l.guidetti@officineguidetti.it', '+39 0372 421600',
+        'www.officineguidetti.it',
+        'Subcontractor for SK3 precision grinding. Active backup on critical components. EN ISO 9001 certified.',
+        '2023-11-05', '2023-11-05T14:00:00',
+    ),
+    (
+        'Costruzioni Meccaniche Piemonte SRL', 'Welded structures', 'In valutazione',
+        'Davide Gallo', 'd.gallo@cmp-srl.it', '+39 011 9043200',
+        'www.cmp-srl.it',
+        'Second supplier for welded frames and EN1090 structures. Welder qualification in progress. Expected by 2025-06.',
+        '2025-01-30', '2025-01-30T10:00:00',
+    ),
+    (
+        'Catene Industriali Veneto SRL', 'Mechanical transmissions', 'Qualificato',
+        'Mirko Trevisan', 'm.trevisan@cateneveneto.it', '+39 049 9213400',
+        'www.cateneveneto.it',
+        'Second authorized distributor for ISO 606 08B simplex chains. Active multi-sourcing agreement 2024. Local stock 200 m.',
+        '2024-05-14', '2024-05-14T09:00:00',
+    ),
+    (
+        'Ingranaggi Precisi Lombardia SRL', 'Mechanical transmissions', 'Nuovo',
+        'Chiara Colombo', 'c.colombo@ingranaggeriprecisi.it', '+39 02 4001500',
+        '',
+        'Initial contact for module 3 cylindrical gears. Quote request sent 2025-03-28.',
+        '2025-03-28', '2025-03-28T15:30:00',
+    ),
+    (
+        'Guarnizioni & Tenute SRL', 'Rubber and seals', 'Qualificato',
+        'Fabio Negri', 'f.negri@guarnizionientenute.it', '+39 035 4124500',
+        'www.guarnizionientenute.it',
+        'Second qualified supplier for NBR and FKM gaskets. Samples approved 2024-08. Annual agreement signed.',
+        '2024-08-05', '2024-08-05T11:00:00',
+    ),
+    (
+        'Cuscinetti Nord Italia Srl', 'Bearings and transmissions', 'Qualificato',
+        'Simona Riva', 's.riva@cni-srl.it', '+39 02 6682100',
+        'www.cni-srl.it',
+        'Second authorized SKF distributor for 6205-2RS and roller bearings. Fixed SKF price list 2025. Milan warehouse.',
+        '2024-10-01', '2024-10-01T08:30:00',
+    ),
+    (
+        'Profilati Strutturali Sud SpA', 'Steel', 'Scartato',
+        'Giuseppe Marino', 'g.marino@profilatisudspa.it', '+39 081 7530900',
+        'www.profilatisudspa.it',
+        'Rejected due to excessive lead time (60 days vs 20 days required) and lack of EN 10210 certifications. Reconsider only if lead time improves.',
+        '2024-07-22', '2024-07-22T15:00:00',
+    ),
+]
+
+
+def _genera_potential_suppliers(db: DatabaseManager):
+    """Inserisce i 20 fornitori potenziali (tab Derisking)."""
+    print(f"\nGenerazione {len(POTENTIAL_SUPPLIERS_DATA)} fornitori potenziali (Derisking) ...")
+    db.conn.executemany(
+        """
+        INSERT INTO potential_suppliers
+            (supplier_name, category, supplier_status, contact_name,
+             email, phone, website, notes, username, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        [
+            (
+                name, category, status, contact, email, phone,
+                website, notes, USERNAME, created_at, updated_at,
+            )
+            for name, category, status, contact, email, phone,
+                website, notes, created_at, updated_at
+            in POTENTIAL_SUPPLIERS_DATA
+        ],
+    )
+    db.conn.commit()
+    print(f"  Fornitori potenziali inseriti: {len(POTENTIAL_SUPPLIERS_DATA)}")
+
+
 def _verifica_conteggi(db: DatabaseManager):
     """Stampa i conteggi di verifica del database generato."""
     print("\n--- Verifica conteggi ---")
@@ -416,6 +587,7 @@ def _verifica_conteggi(db: DatabaseManager):
     vsm_ca     = q("SELECT COUNT(*) FROM vsm_events WHERE event_type='Cost Avoidance'")
     vsm_der    = q("SELECT COUNT(*) FROM vsm_events WHERE event_type='Derisking'")
     imp_tot    = q("SELECT COUNT(*) FROM vsm_impacts")
+    ps_tot     = q("SELECT COUNT(*) FROM potential_suppliers")
 
     print(f"  richieste_offerta  : {rfq_tot:>6}  (atteso: {RFQ_TOTALI})")
     print(f"  richiesta_fornitori: {sup_tot:>6}  (atteso: {RFQ_TOTALI * 3})")
@@ -426,6 +598,7 @@ def _verifica_conteggi(db: DatabaseManager):
     print(f"    Cost Avoidance   : {vsm_ca:>6}  (atteso: {VSM_PER_TIPO})")
     print(f"    Derisking        : {vsm_der:>6}  (atteso: {VSM_PER_TIPO})")
     print(f"  vsm_impacts        : {imp_tot:>6}")
+    print(f"  potential_suppliers: {ps_tot:>6}  (atteso: {len(POTENTIAL_SUPPLIERS_DATA)})")
 
     print("\n  Distribuzione RFQ per anno:")
     rows = c.execute(
@@ -447,6 +620,7 @@ def _verifica_conteggi(db: DatabaseManager):
     print(f"  Orfani offerte_ricevute  : {orfani_off}  (atteso: 0)")
 
     ok = (rfq_tot == RFQ_TOTALI and vsm_tot == VSM_PER_TIPO * 3
+          and ps_tot == len(POTENTIAL_SUPPLIERS_DATA)
           and orfani_det == 0 and orfani_off == 0)
     print(f"\n{'\u2705  Tutti i controlli superati.' if ok else '\u26a0\ufe0f  Attenzione: verificare i conteggi sopra.'}")
 
