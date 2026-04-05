@@ -3390,3 +3390,9 @@ msgstr "Per utilizzare DataFlow Procurement Software è necessario accettare i t
 
 msgid "📄 Leggi la Licenza"
 msgstr "📄 Leggi la Licenza"
+
+msgid "Formato e-mail non valido."
+msgstr "Formato e-mail non valido."
+
+msgid "Formato URL web non valido."
+msgstr "Formato URL web non valido."

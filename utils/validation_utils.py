@@ -70,3 +70,35 @@ def format_price_display(num):
         # In caso di errore, restituisci stringa vuota o valore originale
         logger.warning(f"Impossibile formattare prezzo '{num}': {e}")
         return str(num) if num else ''
+
+
+def is_valid_email(value: str) -> bool:
+    """Verifica che value sia un indirizzo e-mail con formato ragionevole.
+
+    Restituisce True se value è vuoto (campo opzionale).
+    Non effettua verifica di esistenza del dominio.
+    """
+    if not value:
+        return True
+    pattern = r'^[^\s@]+@[a-zA-Z0-9][a-zA-Z0-9.\-]*\.[a-zA-Z]{2,}$'
+    return bool(re.match(pattern, value))
+
+
+def is_valid_website(value: str) -> bool:
+    """Verifica che value sia un URL/dominio web con formato ragionevole.
+
+    Accetta: https://..., http://..., www...., dominio.tld, sub.dominio.tld
+    Restituisce True se value è vuoto (campo opzionale).
+    Non effettua verifica di esistenza del sito.
+    """
+    if not value:
+        return True
+    if ' ' in value:
+        return False
+    if value.startswith('http://') or value.startswith('https://'):
+        pattern = r'^https?://[a-zA-Z0-9][^\s]*\.[a-zA-Z]{2,}'
+    elif value.startswith('www.'):
+        pattern = r'^www\.[a-zA-Z0-9][^\s]*\.[a-zA-Z]{2,}$'
+    else:
+        pattern = r'^[a-zA-Z0-9][a-zA-Z0-9\-]*(\.[a-zA-Z0-9][a-zA-Z0-9\-]*)*\.[a-zA-Z]{2,}$'
+    return bool(re.match(pattern, value))

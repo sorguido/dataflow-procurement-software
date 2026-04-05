@@ -28,6 +28,7 @@ from models.potential_supplier import PotentialSupplier, SUPPLIER_STATUS_CHOICES
 from utils.i18n_utils import _
 from utils.resource_utils import set_window_icon
 from utils.window_utils import center_window
+from utils.validation_utils import is_valid_email, is_valid_website
 from ui.dialogs.common_dialogs import SimpleMessageDialog
 
 logger = logging.getLogger(__name__)
@@ -340,6 +341,18 @@ class PotentialSupplierDialog(tk.Toplevel):
                 "error",
             )
             self._entry_supplier_name.focus_set()
+            return
+
+        email_value = self.var_email.get().strip()
+        if not is_valid_email(email_value):
+            SimpleMessageDialog(self, _("Validazione"), _("Formato e-mail non valido."), "error")
+            self._entry_email.focus_set()
+            return
+
+        web_value = self.var_website.get().strip()
+        if not is_valid_website(web_value):
+            SimpleMessageDialog(self, _("Validazione"), _("Formato URL web non valido."), "error")
+            self._entry_website.focus_set()
             return
 
         # Recupera l'username dal campo (always disabled, ma contiene il valore)
