@@ -4069,7 +4069,7 @@ class MainWindow:
                 events = [p[0] for p in pairs]
             else:
                 events = [e for e in all_events if e.event_type == event_type]
-            events, _ = self._apply_vsm_filters(events, event_type)
+            events, _unused_meta = self._apply_vsm_filters(events, event_type)
         except Exception as e:
             logger.error(f"[export_vsm] Errore recupero eventi: {e}", exc_info=True)
             SimpleMessageDialog(self.root, _("Errore"), _("Errore nel recupero dati: {}").format(e), "error")
