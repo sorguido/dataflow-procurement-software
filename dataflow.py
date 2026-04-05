@@ -1991,7 +1991,7 @@ class MainWindow:
             data_rows.append([
                 s.supplier_name or "",
                 s.category or "",
-                s.supplier_status or "",
+                _(s.supplier_status) if s.supplier_status else "",
                 s.contact_name or "",
                 s.email or "",
                 s.phone or "",
@@ -4221,13 +4221,26 @@ class MainWindow:
         else:
             headers = ["Supplier", "Category", "Status", "Contact", "E-mail", "Phone", "Web", "Notes", "User"]
 
+        # Mapping canonical → label EN per la colonna Status (stesso pattern di action_map_en nel VSM export)
+        _STATUS_EXPORT_EN = {
+            "Nuovo":          "New",
+            "In valutazione": "Under Evaluation",
+            "Qualificato":    "Qualified",
+            "Scartato":       "Rejected",
+        }
+
         # 4. Costruzione righe dal modello PotentialSupplier
         data_rows = []
         for s in suppliers:
+            status_display = (
+                s.supplier_status
+                if is_ita
+                else _STATUS_EXPORT_EN.get(s.supplier_status, s.supplier_status)
+            ) if s.supplier_status else ""
             data_rows.append([
                 s.supplier_name,
                 s.category,
-                s.supplier_status,
+                status_display,
                 s.contact_name,
                 s.email,
                 s.phone,

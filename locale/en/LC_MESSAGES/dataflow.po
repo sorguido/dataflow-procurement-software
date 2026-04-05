@@ -3407,3 +3407,15 @@ msgstr "Invalid email format."
 
 msgid "Formato URL web non valido."
 msgstr "Invalid web URL format."
+
+msgid "Nuovo"
+msgstr "New"
+
+msgid "In valutazione"
+msgstr "Under Evaluation"
+
+msgid "Qualificato"
+msgstr "Qualified"
+
+msgid "Scartato"
+msgstr "Rejected"

@@ -23,9 +23,37 @@ from services.supplier_category_persistence import (
     ensure_supplier_category_exists,
     CategoryError,
 )
-from models.potential_supplier import PotentialSupplier, SUPPLIER_STATUS_CHOICES
+from models.potential_supplier import (
+    PotentialSupplier,
+    SUPPLIER_STATUS_CHOICES,
+    SUPPLIER_STATUS_NUOVO,
+    SUPPLIER_STATUS_IN_VALUTAZIONE,
+    SUPPLIER_STATUS_QUALIFICATO,
+    SUPPLIER_STATUS_SCARTATO,
+)
 
 from utils.i18n_utils import _
+
+
+def _status_label(canonical: str) -> str:
+    """Converte un valore canonico status → label tradotta per la UI."""
+    _map = {
+        SUPPLIER_STATUS_NUOVO:          lambda: _("Nuovo"),
+        SUPPLIER_STATUS_IN_VALUTAZIONE: lambda: _("In valutazione"),
+        SUPPLIER_STATUS_QUALIFICATO:    lambda: _("Qualificato"),
+        SUPPLIER_STATUS_SCARTATO:       lambda: _("Scartato"),
+    }
+    fn = _map.get(canonical)
+    return fn() if fn is not None else canonical  # fallback difensivo: mostra il valore grezzo
+
+
+def _status_canonical(label: str) -> str:
+    """Converte la label UI tradotta → valore canonico da persistere nel DB."""
+    # Costruisce la mappa inversa a runtime per rispettare la lingua corrente
+    _reverse = {_status_label(c): c for c in SUPPLIER_STATUS_CHOICES}
+    return _reverse.get(label, label)  # fallback difensivo: usa il valore ricevuto
+
+
 from utils.resource_utils import set_window_icon
 from utils.window_utils import center_window
 from utils.validation_utils import is_valid_email, is_valid_website
@@ -81,7 +109,7 @@ class PotentialSupplierDialog(tk.Toplevel):
         self.var_supplier_name = tk.StringVar()
         self.var_category = tk.StringVar()       # selezione da dropdown
         self.var_new_category = tk.StringVar()   # nuova categoria testo libero
-        self.var_status = tk.StringVar(value=SUPPLIER_STATUS_CHOICES[0])  # "Nuovo"
+        self.var_status = tk.StringVar(value=_status_label(SUPPLIER_STATUS_CHOICES[0]))
         self.var_contact = tk.StringVar()
         self.var_email = tk.StringVar()
         self.var_phone = tk.StringVar()
@@ -166,7 +194,7 @@ class PotentialSupplierDialog(tk.Toplevel):
         self._combo_status = ttk.Combobox(
             general,
             textvariable=self.var_status,
-            values=SUPPLIER_STATUS_CHOICES,
+            values=[_status_label(c) for c in SUPPLIER_STATUS_CHOICES],
             state="readonly",
             width=16,
         )
@@ -305,10 +333,11 @@ class PotentialSupplierDialog(tk.Toplevel):
         else:
             self.var_category.set("")
             self.var_new_category.set(cat)
-        self.var_status.set(
+        _canonical = (
             supplier.supplier_status if supplier.supplier_status in SUPPLIER_STATUS_CHOICES
             else SUPPLIER_STATUS_CHOICES[0]
         )
+        self.var_status.set(_status_label(_canonical))
         self.var_contact.set(supplier.contact_name or "")
         self.var_email.set(supplier.email or "")
         self.var_phone.set(supplier.phone or "")
@@ -366,7 +395,7 @@ class PotentialSupplierDialog(tk.Toplevel):
             id=self.supplier_id,  # None per NEW, int per EDIT
             supplier_name=supplier_name,
             category=category,
-            supplier_status=self.var_status.get(),
+            supplier_status=_status_canonical(self.var_status.get()),
             contact_name=self.var_contact.get().strip(),
             email=self.var_email.get().strip(),
             phone=self.var_phone.get().strip(),
