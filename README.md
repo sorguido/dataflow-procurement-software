@@ -2,9 +2,9 @@
 
 📊 DataFlow is the essential desktop application designed to put an end to the dispersion of information typical of purchasing departments.
 
-👨‍💼 Developed by a buyer for buyers, DataFlow offers a comprehensive platform to manage every stage of Requests for Quotation (RFQs) and analyse supplier quotes.
+👨‍💼 Developed by a buyer for buyers, DataFlow offers a comprehensive platform to manage every stage of Requests for Quotation (RFQs), analyse supplier quotes, and measure procurement performance through dedicated KPI tracking.
 
-✨ What's new in version 2.0.0: Multi-user support with personal data folders, ability to view colleagues' databases, and improved stability with optimized data management.
+✨ What's new in version 2.1.0: Value Stream Mapping (VSM) module for tracking Savings, Cost Avoidances, and Derisking activities. New KPI Analysis window with charts and Excel export. Potential Supplier registry integrated in the Derisking workflow. Global search bar and modular dashboard architecture.
 
 🎯 The 'DataFlow' software is positioned as a niche tool and decision support tool that bridges the gap between basic management (Excel) and expensive ERP modules.
 
@@ -22,6 +22,7 @@ Every new request, whether for a standard supply or contract manufacturing, foll
 5️⃣ Attach the quotations received to the file.  
 6️⃣ If necessary, perform the SQDC (Safety, Quality, Delivery, Cost) analysis to determine the winning Supplier.  
 7️⃣ Save the SQDC analysis in the RFQ for future reference.  
+8️⃣ Log negotiation results as VSM events (Saving / Cost Avoidance / Derisking) to build your procurement KPI history.
 
 📌 Single Point of Reference: Each RFQ is a complete record that includes the negotiation history, requested items, technical references (drawings, codes) and deadlines.
 
@@ -30,7 +31,9 @@ Enter prices item by item to obtain an immediate and transparent comparison betw
 
 📁 Integrated Archive: Quotation documents, internal communications, drawings and technical specifications are no longer attachments 'lost' in an inbox, but are archived in a logical manner and can be consulted directly from the Request for Quotation tab.
 
-👥 Team Collaboration (NEW): Each user has their own personal data area, with the ability to view colleagues' RFQs in read-only mode. Ideal for purchasing departments with multiple buyers and for supervisors who need visibility into ongoing negotiations.
+👥 Team Collaboration: Each user has their own personal data area, with the ability to view colleagues' RFQs in read-only mode. Ideal for purchasing departments with multiple buyers and for supervisors who need visibility into ongoing negotiations.
+
+📈 Procurement KPIs: Track the measurable impact of your negotiation activity over time. The KPI Analysis window provides aggregated metrics on RFQ activity, Savings, Cost Avoidances, and Derisking, with interactive charts and Excel export.
 
 🎯 DataFlow puts you back in control. It ensures that purchasing decisions are always based on complete, transparent and easily accessible data, allowing you to focus on strategic negotiation rather than hunting for information.
 
@@ -38,27 +41,64 @@ Enter prices item by item to obtain an immediate and transparent comparison betw
 
 ---
 
-Originally developed for Windows and also published on the [Microsoft Store](https://apps.microsoft.com/detail/9nt3bbg1w0k7?hl=en-EN&gl=EN) the project is now being released as an open-source Linux edition under the **GNU GPLv3** license.  
+Originally developed for Windows and also published on the [Microsoft Store](https://apps.microsoft.com/detail/9nt3bbg1w0k7?hl=en-EN&gl=EN), the project is now released as an open-source Linux edition under the **GNU GPLv3** license.
 
 The application is written in **Python** with a **Tkinter** GUI and uses **SQLite** as its local database engine.  
-The current Linux port already includes cross-platform path handling, Linux window icon support, multilingual support (Italian and English), Excel import/export, attachment management, purchaseer the **GNU GPL order tracking, notes, and SQDC analysis support.  
-The codebase also includes a dedicated database manager with SQLite/WAL support and logic for aggregating data across multiple user databases.
+The current Linux port includes cross-platform path handling, Linux window icon support, multilingual support (Italian and English), Excel import/export, attachment management, purchase order tracking, notes, SQDC analysis support, VSM event tracking, KPI analysis, and a potential supplier registry.  
+The codebase includes a dedicated database manager with SQLite/WAL support and logic for aggregating data across multiple user databases.
 
 ---
 
 ## Highlights
 
-- Desktop application for procurement and RfQ management
+- Desktop application for procurement and RFQ management
 - Python + Tkinter graphical interface
 - SQLite database backend
-- Excel import/export with `openpyxl`
+- Excel import/export
 - Attachment handling
 - Purchase order (PO) tracking
 - Notes management
 - SQDC analysis export/save workflow
-- English and Italian language support via gettext/polib
-- Linux-compatible port with fixes for platform-specific behavior
+- **VSM module**: track Saving, Cost Avoidance, and Derisking events
+- **KPI Analysis window**: aggregated metrics with charts and Excel export
+- **Potential Supplier registry**: manage and qualify new suppliers (Derisking workflow)
+- **Global search bar**: multi-field search across all main dashboard tabs
+- English and Italian language support
+- Linux-compatible port with fixes for platform-specific behaviour
 - Existing Windows distribution on Microsoft Store
+
+---
+
+## Functional Areas
+
+### RFQ Management
+Create, manage, and archive Requests for Quotation. Record supplier quotes item by item, attach documents, track purchase orders, and run SQDC analyses to support supplier selection decisions.
+
+### Value Stream Mapping (VSM) — New in 2.1.0
+Track negotiation outcomes as structured events directly from the main dashboard:
+
+- **Saving**: price reduction achieved through negotiation, with optional payment terms driver
+- **Cost Avoidance**: prevented cost increase, with configurable realizzo percentage
+- **Derisking**: supply chain risk reduction activity, with new supplier introduction tracking
+
+Each event generates monthly economic impact projections. OPEX-repetitive events propagate their effect over up to 24 months.
+
+### KPI Analysis — New in 2.1.0
+A dedicated window provides aggregated procurement KPIs across four dimensions:
+
+- **RFQ KPIs**: volume, active/archived breakdown, supplier and product code coverage
+- **Saving KPIs**: theoretical vs. actual saving amounts with trend charts
+- **Cost Avoidance KPIs**: avoided costs over time
+- **Derisking KPIs**: new suppliers introduced, qualification status distribution
+
+Filters by year or custom date range. Export to Excel available.
+
+### Potential Supplier Registry — New in 2.1.0
+Manage the lifecycle of potential new suppliers directly within the Derisking tab:
+
+- Record supplier name, category, contact details, and qualification status
+- Statuses: New, Under Evaluation, Qualified, Rejected
+- Integrated with the Derisking VSM workflow
 
 ---
 
@@ -74,30 +114,20 @@ The codebase also includes a dedicated database manager with SQLite/WAL support 
 
 ---
 
-## Project status
+## Project Status
 
-The Linux version is currently the open-source edition of the project.
-
-Recent work on the port includes:
-
-- removal/fix of Windows-specific paths
-- Linux-compatible window icon handling
-- Tkinter fix related to `grab_set()` placement after `wait_visibility()`
-- update of licensing from Freeware to GNU GPLv3 for the Linux release
-- multilingual updates in both the application and documentation
-- footer/documentation cleanup aligned with the new license
-- final refactoring done
+Version 2.1.0 marks the transition from a pure RFQ management tool to a broader procurement performance platform, adding structured tracking of negotiation outcomes and KPI measurement capabilities.
 
 ---
 
-## Tech stack
+## Tech Stack
 
 - **Language:** Python
 - **GUI:** Tkinter
-- **Database:** SQLite
+- **Database:** SQLite (WAL mode)
 - **Main file:** `dataflow.py`
 
-### Main dependencies
+### Main Dependencies
 
 - `openpyxl`
 - `Pillow`
@@ -109,11 +139,11 @@ Recent work on the port includes:
 
 ## Installation
 
-### Linux Installation  
+### Linux Installation
 
 # [📥 DOWNLOAD 📥](https://github.com/sorguido/dataflow-procurement-software/releases)
 
-➡ Download AppImage package and double click it (for all Linux Distributions)  
+➡ Download AppImage package and double click it (for all Linux distributions)
 
 or
 
@@ -122,7 +152,7 @@ or
 Install with double click or:
 
 ```bash
-sudo apt install ./dataflow_2.0.0_amd64.deb
+sudo apt install ./dataflow_2.1.0_amd64.deb
 ```
 
 ## Installing from Source
@@ -164,59 +194,32 @@ polib
 tkcalendar
 tksheet
 ```
+
 ---
 
 ## License
 
 This project is released under the **GNU General Public License v3.0**.
 
-The complete license text must be included in the repository in the `LICENSE` file.
+The complete license text is included in the repository in the `LICENSE` file.
 
 ---
 
-## Windows version note
+## Windows Version Note
 
-A Windows version of DataFlow also exists and has been published on the Microsoft Store  
+A Windows version of DataFlow also exists and has been published on the Microsoft Store:  
 https://apps.microsoft.com/detail/9nt3bbg1w0k7?hl=en-EN&gl=EN
 
-The Linux edition is the open-source GNU GPLv3 release. If future Windows releases are aligned with the same licensing model, they may also be distributed through this repository or a related packaging workflow.
+The edition is open-source GNU GPLv3 release. If future Windows/Linux releases are aligned with the same licensing model, they may also be distributed through this repository or a related packaging workflow.
 
 ---
 
 ## Contributing
 
-DataFlow is now available as an open-source project.
+DataFlow is available as an open-source project.
 
-The Linux version of the application has been released under the GNU GPLv3 license and the source code is available on GitHub.
+The application has been released under the GNU GPLv3 license and the source code is available on GitHub.
 
 Developers interested in improving or adapting the software, including future Windows versions, are welcome to contribute.
 
 ---
-
-## Developer Documentation
-
-For developers interested in understanding the internal architecture of DataFlow, please refer to the technical documentation.
-
-➡️ [Developer Guide](https://github.com/sorguido/dataflow-procurement-software/wiki)
-
-This document explains:
-
-- project architecture
-- module structure
-- utilities and services
-- UI organization
-- database interaction
-- development guidelines
-
----
-
-## Changelog
-- 📜 [Changelog v2.0.1](CHANGELOG.md)
-
-
-## Repository link
-
-```text
-https://github.com/sorguido/dataflow-procurement-software
-```
-
