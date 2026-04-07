@@ -67,6 +67,18 @@ def _t(is_ita, ita, eng):
     return ita if is_ita else eng
 
 
+# Mapping canonical status (sempre IT nel DB) → label EN per export KPI.
+# Mantenere allineato a:
+#   • models/potential_supplier.SUPPLIER_STATUS_*  (costanti canoniche)
+#   • dataflow._export_derisking_excel._STATUS_EXPORT_EN  (stesso mapping, percorso export standalone)
+_STATUS_DERISKING_EN = {
+    "Nuovo":          "New",
+    "In valutazione": "Under Evaluation",
+    "Qualificato":    "Qualified",
+    "Scartato":       "Rejected",
+}
+
+
 def _i(v):
     """Valore intero, 0 su errore."""
     try:
@@ -286,7 +298,9 @@ def _rows_derisking(data, is_ita):
          None),
     ]
     for stato, count in data.get('status_counts', {}).items():
-        rows.append(('Derisking', stato, _i(count), None))
+        rows.append(('Derisking',
+                     stato if is_ita else (_STATUS_DERISKING_EN.get(stato) or stato),
+                     _i(count), None))
     return rows
 
 

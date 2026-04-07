@@ -3889,6 +3889,12 @@ class MainWindow:
             'date': "Del" if is_ita else "Date",
             'type': "Tipo" if is_ita else "Type"
         }
+        # Mapping tipo RFQ canonical (sempre IT nel DB) → label EN per export.
+        # Mantenere allineato a utils/i18n_utils.normalize_rfq_type e translate_rfq_type.
+        _rfq_type_en = {
+            "Fornitura piena": "Full Supply",
+            "Conto lavoro":    "Work Order",
+        }
 
         # 4. Setup Excel
         wb = openpyxl.Workbook()
@@ -3945,7 +3951,7 @@ class MainWindow:
                 ws.cell(row=current_row, column=4, value=f"{headers_map['date']}: {self._format_date_for_display(de_db)}")
                 ws.cell(row=current_row, column=7, value=f"Ref: {rif}")
                 current_row += 1
-                ws.cell(row=current_row, column=1, value=f"{headers_map['type']}: {translate_rfq_type(tipo_normalizzato)}")
+                ws.cell(row=current_row, column=1, value=f"{headers_map['type']}: {tipo_normalizzato if is_ita else _rfq_type_en.get(tipo_normalizzato, tipo_normalizzato)}")
                 current_row += 2
 
                 # --- SCRITTURA HEADER TABELLA ---
