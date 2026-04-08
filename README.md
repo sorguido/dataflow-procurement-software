@@ -145,14 +145,10 @@ Version 2.1.0 marks the transition from a pure RFQ management tool to a broader 
 
 ➡ Download AppImage package and double click it (for all Linux distributions)
 
-or
-
-➡ Download Linux package (.deb)
-
-Install with double click or:
+Use with double click or:
 
 ```bash
-sudo apt install ./dataflow_2.1.0_amd64.deb
+chmod +x DataFlow_2.1.0_Linux_x86_64.AppImage
 ```
 
 ## Installing from Source
