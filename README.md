@@ -105,11 +105,17 @@ Manage the lifecycle of potential new suppliers directly within the Derisking ta
 ## Screenshots
 
 ![Main Window](docs/screenshot/EN/1.png)
+
 ![Main Window](docs/screenshot/EN/2.png)
+
 ![Main Window](docs/screenshot/EN/3.png)
+
 ![Main Window](docs/screenshot/EN/4.png)
+
 ![Main Window](docs/screenshot/EN/5.png)
+
 ![Main Window](docs/screenshot/EN/6.png)
+
 ![Main Window](docs/screenshot/EN/7.png)
 
 ---
@@ -139,19 +145,23 @@ Version 2.1.0 marks the transition from a pure RFQ management tool to a broader 
 
 ## Installation
 
-### Linux Installation
-
 # [📥 DOWNLOAD 📥](https://github.com/sorguido/dataflow-procurement-software/releases)
+
+### Linux Installation
 
 ➡ Download AppImage package and double click it (for all Linux distributions)
 
-Use with double click or:
+After downloading the package, give execution permissions:
 
 ```bash
 chmod +x DataFlow_2.1.0_Linux_x86_64.AppImage
 ```
 
-## Installing from Source
+### Windows Installation
+
+➡ [Download](https://apps.microsoft.com/detail/9nt3bbg1w0k7?hl=en-EN&gl=EN) Msix package from Microsoft Store
+
+### Installing from Source
 
 ### 1. Clone the repository
 
