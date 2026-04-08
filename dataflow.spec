@@ -1,9 +1,23 @@
 # -*- mode: python ; coding: utf-8 -*-
+
 from PyInstaller.utils.hooks import collect_data_files
+import os
 
-datas = [('locale', 'locale')]
-datas += collect_data_files('babel')
 
+def collect_folder(folder_name):
+    items = []
+    for root, _, files in os.walk(folder_name):
+        for filename in files:
+            src = os.path.join(root, filename)
+            rel_dir = os.path.relpath(root, ".")
+            items.append((src, rel_dir))
+    return items
+
+
+datas = []
+datas += collect_data_files("babel")
+datas += collect_folder("add_data")
+datas += collect_folder("locale")
 
 a = Analysis(
     ['dataflow.py'],
@@ -16,27 +30,31 @@ a = Analysis(
     runtime_hooks=[],
     excludes=[],
     noarchive=False,
-    optimize=0,
 )
+
 pyz = PYZ(a.pure)
 
 exe = EXE(
     pyz,
     a.scripts,
-    a.binaries,
-    a.datas,
     [],
+    exclude_binaries=True,
     name='dataflow',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
-    upx=True,
-    upx_exclude=[],
-    runtime_tmpdir=None,
+    upx=False,
     console=False,
-    disable_windowed_traceback=False,
-    argv_emulation=False,
-    target_arch=None,
-    codesign_identity=None,
-    entitlements_file=None,
+    icon='add_data\\DataFlow.ico',
+    manifest='app.manifest.xml',
+)
+
+coll = COLLECT(
+    exe,
+    a.binaries,
+    a.datas,
+    strip=False,
+    upx=False,
+    upx_exclude=[],
+    name='dataflow',
 )
