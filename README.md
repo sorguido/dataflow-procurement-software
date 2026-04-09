@@ -222,10 +222,46 @@ The edition is open-source GNU GPLv3 release. If future Windows/Linux releases a
 
 ## Contributing
 
-DataFlow is available as an open-source project.
+DataFlow is an open-source project developed with a strong focus on stability, clarity and real-world usability in procurement workflows.
 
-The application has been released under the GNU GPLv3 license and the source code is available on GitHub.
+Contributions are not only welcome — they are essential for the sustainable evolution of the project.
 
-Developers interested in improving or adapting the software, including future Windows versions, are welcome to contribute.
+However, this project follows a set of guiding principles (“dogma”) to preserve its reliability and usability:
+
+- Prefer **small, surgical, and reversible changes**
+- Avoid **global refactors** unless strictly necessary
+- Do not introduce **new dependencies** without strong justification
+- Prioritize **stability over innovation**
+- Maintain **UI consistency and predictable behavior**
+- Every change must aim to **avoid regressions**
+
+### Where to start
+
+If you want to contribute, the best entry points are:
+
+- Bug fixes (especially UI, translations, and Excel export)
+- Small usability improvements
+- Minor performance or stability fixes
+
+### Areas requiring caution
+
+The following areas are considered high-impact and should not be modified without prior discussion:
+
+- `dataflow.py` core logic
+- Database schema and persistence layer
+- Main dashboard behavior and navigation flow
+- Packaging and build system
+
+### Approach
+
+This project is maintained with a **quality-first mindset**.  
+Contributions are reviewed carefully and must align with the principles above.
+
+If in doubt, open an issue before starting work.
+
+---
+
+📘 For a deeper understanding of the architecture and internal logic, refer to the technical manual:  
+[Technical Manual](docs/DATAFLOW_2.1.0_TECHNICAL_MANUAL.md)
 
 ---
