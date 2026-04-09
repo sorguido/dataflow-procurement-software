@@ -255,7 +255,7 @@ The following areas are considered high-impact and should not be modified withou
 ### Approach
 
 This project is maintained with a **quality-first mindset**.  
-Contributions are reviewed carefully and must align with the principles above.
+Contributions must align with the principles above.
 
 If in doubt, open an issue before starting work.
 
