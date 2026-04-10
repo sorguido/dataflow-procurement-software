@@ -3567,3 +3567,12 @@ msgstr "❌ Delete"
 
 msgid "➕ Add"
 msgstr "➕ Add"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Copia in corso..."
+msgstr "Copy in progress..."
+
+msgid "Preparazione..."
+msgstr "Preparing..."

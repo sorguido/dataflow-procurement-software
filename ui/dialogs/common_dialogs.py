@@ -332,11 +332,11 @@ class UserIdentityDialog(tk.Toplevel):
 
 class CopyProgressWindow(tk.Toplevel):
     """Finestra di progresso per operazioni di copia file (stile splash screen)."""
-    def __init__(self, parent, title="Copia in corso..."):
+    def __init__(self, parent, title=None):
         super().__init__(parent)
         self.withdraw()
         set_window_icon(self)
-        self.title(title)
+        self.title(title or tr("Copia in corso..."))
         self.overrideredirect(True)
         
         frame = ttk.Frame(self, borderwidth=2, relief="raised")
@@ -357,7 +357,7 @@ class CopyProgressWindow(tk.Toplevel):
         
         self.status_label = ttk.Label(
             frame,
-            text="Preparazione...",
+            text=tr("Preparazione..."),
             font=("Helvetica", 10),
             width=50,
             anchor="center"

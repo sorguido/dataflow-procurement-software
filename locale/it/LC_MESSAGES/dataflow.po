@@ -3556,3 +3556,12 @@ msgstr "❌ Elimina"
 
 msgid "➕ Add"
 msgstr "➕ Aggiungi"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Copia in corso..."
+msgstr "Copia in corso..."
+
+msgid "Preparazione..."
+msgstr "Preparazione..."
