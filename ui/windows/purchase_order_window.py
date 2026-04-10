@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 class PurchaseOrderWindow(tk.Toplevel):
     def __init__(self, parent, request_id):
         super().__init__(parent)
+        self.withdraw()
         self.request_id = request_id
         self.parent = parent
         
@@ -130,12 +131,13 @@ class PurchaseOrderWindow(tk.Toplevel):
         # Gestione chiusura finestra - PRIMA di caricare i dati
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
         
-        # Centra la finestra
-        center_window(self)
-        
         # Carica i fornitori e i PO esistenti - ALLA FINE
         self.load_suppliers_for_request()
         self.load_po_entries()
+
+        # Stabilizza layout prima di mostrare/centrare per evitare "salti" visivi
+        self.update_idletasks()
+        center_window(self)
     
     def on_closing(self):
         """Salva i dati prima di chiudere."""
