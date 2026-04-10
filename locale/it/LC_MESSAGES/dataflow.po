@@ -2088,7 +2088,7 @@ msgid "Per utilizzare DataFlow è necessario completare i dati richiesti."
 msgstr "Per utilizzare DataFlow è necessario completare i dati richiesti."
 
 msgid "📋 Add PO"
-msgstr "📋 Add PO"
+msgstr "📋 Inserisci OdA"
 
 msgid "{} RdO eliminate e database compattato."
 msgstr "{} RdO eliminate e database compattato."
@@ -2611,7 +2611,7 @@ msgid "⚠️ Errore Fornitori"
 msgstr "⚠️ Errore Fornitori"
 
 msgid "Supplier:"
-msgstr "Supplier:"
+msgstr "Fornitore:"
 
 msgid "Impossibile salvare la modifica: {}"
 msgstr "Impossibile salvare la modifica: {}"
@@ -2623,7 +2623,7 @@ msgid "Copia DataFlow in corso..."
 msgstr "Copia DataFlow in corso..."
 
 msgid "Purchase Order Management"
-msgstr "Purchase Order Management"
+msgstr "Gestione Numeri Ordine"
 
 msgid "Impossibile creare la nuova RdO: {}"
 msgstr "Impossibile creare la nuova RdO: {}"
@@ -2849,10 +2849,10 @@ msgid "- Analisi SQDC"
 msgstr "- Analisi SQDC"
 
 msgid "PO Number:"
-msgstr "PO Number:"
+msgstr "Numero Ordine:"
 
 msgid "Associate purchase order numbers with RfQ suppliers"
-msgstr "Associate purchase order numbers with RfQ suppliers"
+msgstr "Associa numeri di ordine ai fornitori della RdO"
 
 msgid ""
 "Hai inserito lo stesso fornitore più volte:\n"
