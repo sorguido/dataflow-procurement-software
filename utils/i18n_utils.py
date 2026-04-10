@@ -221,9 +221,9 @@ def translate_rfq_type(rfq_type):
     
     # Traduci il valore canonico
     if canonical == "Fornitura piena":
-        return _("Fornitura piena")
+        return tr("Fornitura piena")
     elif canonical == "Conto lavoro":
-        return _("Conto lavoro")
+        return tr("Conto lavoro")
     else:
         # Fallback: ritorna il valore normalizzato tradotto
-        return _(canonical)
+        return tr(canonical)

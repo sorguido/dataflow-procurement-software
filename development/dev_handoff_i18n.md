@@ -1,41 +1,57 @@
 # Dev Handoff i18n
 
 ## Architettura corrente
-- Translation service centralizzato in `utils/i18n_utils.py`.
-- API runtime ufficiale nei moduli migrati: `tr(...)`.
-- `.po/.mo` mantenuti.
-- `_`/`builtins._` mantenuti solo per compatibilita' legacy fuori scope.
+- Translation service centralizzato: `utils/i18n_utils.py`.
+- API runtime ufficiale nei moduli applicativi: `tr(...)`.
+- `.po/.mo` mantenuti (gettext).
+- `_` / `builtins._` mantenuti solo come ponte legacy nel service, non nei moduli applicativi migrati.
 
-## File modificati (giro finale)
-- `ui/dialogs/common_dialogs.py`
+## File modificati
+- `dataflow.py`
+- `services/dashboard_controller.py`
+- `ui/dialogs/manage_supplier_categories_dialog.py`
+- `ui/dialogs/vsm_event_dialog.py`
+- `ui/dialogs/potential_supplier_dialog.py`
+- `ui/components/main_dashboard_toolbar.py`
+- `ui/components/collapsible_filters.py`
+- `ui/main_dashboard_builder.py`
+- `ui/windows/sqdc_analysis_window.py`
+- `ui/windows/notes_window.py`
+- `ui/windows/edit_suppliers_window.py`
+- `ui/windows/edit_reference_window.py`
+- `ui/kpi_chart.py`
+- `ui/kpi_window.py`
+- `utils/i18n_utils.py`
+- `development/dev_tools/compile_translations.py`
 - `locale/it/LC_MESSAGES/dataflow.po`
 - `locale/en/LC_MESSAGES/dataflow.po`
 - `locale/it/LC_MESSAGES/dataflow.mo`
 - `locale/en/LC_MESSAGES/dataflow.mo`
 
-## Modifiche completate
-- Residui i18n eliminati nei moduli gia' migrati:
-  - `CopyProgressWindow`: rimossi hardcoded IT su titolo default e stato iniziale, ora via `tr(...)`.
-  - Allineati cataloghi per `OK`, `Copia in corso...`, `Preparazione...`.
-- Coerenza codice-cataloghi validata per i flussi migrati:
-  - `ui/kpi_window.py`
-  - `ui/windows/view_request_window.py`
-  - `ui/windows/purchase_order_window.py`
-  - `ui/dialogs/common_dialogs.py`
-  - `ui/windows/attachment_window.py`
+## Moduli completati
+- Migrazione completa `_()` -> `tr(...)` nei moduli applicativi rilevati dalla scansione globale.
+- Rimozione import legacy `_` nei moduli migrati.
+- Rimozione fallback locale `builtins._` da `dataflow.py`.
+- Allineamento cataloghi su tutti i `msgid` runtime (`tr(...)`) rilevati da audit AST globale.
+- Hardcoded UI locali residui eliminati nei moduli migrati (`kpi_chart`, `collapsible_filters`, `common_dialogs` già aggiornato nei giri precedenti).
+
+## Moduli ancora aperti
+- Nessun modulo aperto nel perimetro i18n applicativo migrato.
 
 ## Verifiche eseguite
-- Audit automatico: nessun `msgid` mancante in IT/EN per tutte le chiamate `tr(...)` nei moduli sopra.
-- Ricompilazione cataloghi: `python3 dev_tools/compile_translations.py` (OK).
-- Compilazione Python: `python3 -m py_compile ...` sui moduli migrati (OK).
+- Scansione globale `_()`/`builtins._`/import legacy su `*.py`.
+- Audit AST globale `tr(...)` vs cataloghi IT/EN: `files_with_missing = 0`.
+- Compilazione Python globale: `python3 -m py_compile $(rg --files -g '*.py')` -> OK.
+- Compilazione cataloghi: `python3 development/dev_tools/compile_translations.py` -> OK.
 
 ## Problemi aperti
-- Nessun residuo i18n aperto nei flussi gia' migrati oggetto del refactor.
-- Restano potenziali legacy fuori scope nei moduli non migrati.
+- Nessun problema bloccante emerso nel perimetro i18n migrato.
 
 ## Rischi residui
-- Catalogo storico ampio e misto IT/EN in aree fuori scope.
+- Duplicati storici nei `.po` possibili (non bloccanti per runtime gettext).
+- Eventuali stringhe non-UI (branding/placeholder tecnici) intenzionalmente lasciate non tradotte se non parte del flusso localizzazione utente.
 
 ## Rollback per blocchi
-- Blocco A (codice locale): revert `ui/dialogs/common_dialogs.py`.
+- Blocco A (migrazione chiamate): revert dei file applicativi migrati (`dataflow.py`, `services/`, `ui/`).
 - Blocco B (cataloghi): revert `locale/*/LC_MESSAGES/dataflow.po` e ricompilare `.mo`.
+- Blocco C (tooling): revert `development/dev_tools/compile_translations.py`.

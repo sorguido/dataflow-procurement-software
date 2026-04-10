@@ -16,7 +16,7 @@ from database_manager import DatabaseManager, DatabaseError
 from services.app_paths import get_db_path, get_fixed_attachments_dir
 from utils.window_utils import center_window
 from utils.resource_utils import set_window_icon, resource_path
-from utils.i18n_utils import _, get_current_language
+from utils.i18n_utils import tr, get_current_language
 from utils.format_utils import parse_float_from_comma_string
 from utils.validation_utils import sanitize_filename
 from ui.dialogs.common_dialogs import SimpleMessageDialog, SimpleYesNoDialog
@@ -31,7 +31,7 @@ class SQDCAnalysisWindow(tk.Toplevel):
         set_window_icon(self)
         self.request_id = request_id
         self.db_path = get_db_path()
-        self.title(_("Analisi SQDC - RdO N° {}").format(self.request_id))
+        self.title(tr("Analisi SQDC - RdO N° {}").format(self.request_id))
         self.transient(parent)
         self.grab_set()
         
@@ -49,9 +49,9 @@ class SQDCAnalysisWindow(tk.Toplevel):
         # Pulsanti (sempre in fondo)
         button_frame = ttk.Frame(self)
         button_frame.pack(side="bottom", fill="x", padx=10, pady=10)
-        ttk.Button(button_frame, text=_("📊 Esporta Excel"), command=self.export_to_excel).pack(side="left", padx=5)
-        ttk.Button(button_frame, text=_("💾 Salva SQDC"), command=self.save_sqdc).pack(side="left", padx=5)
-        ttk.Button(button_frame, text=_("❌ Chiudi"), command=self.destroy).pack(side="right", padx=5)
+        ttk.Button(button_frame, text=tr("📊 Esporta Excel"), command=self.export_to_excel).pack(side="left", padx=5)
+        ttk.Button(button_frame, text=tr("💾 Salva SQDC"), command=self.save_sqdc).pack(side="left", padx=5)
+        ttk.Button(button_frame, text=tr("❌ Chiudi"), command=self.destroy).pack(side="right", padx=5)
         
         # UI principale (espandibile)
         main_frame = ttk.Frame(self, padding="10")
@@ -63,12 +63,12 @@ class SQDCAnalysisWindow(tk.Toplevel):
         
         # Tab 1: Pesi
         tab_weights = ttk.Frame(self.notebook, padding="10")
-        self.notebook.add(tab_weights, text=_("Pesi (%)"))
+        self.notebook.add(tab_weights, text=tr("Pesi (%)"))
         self.create_weights_tab(tab_weights)
         
         # Tab 2: Voti
         tab_scores = ttk.Frame(self.notebook, padding="10")
-        self.notebook.add(tab_scores, text=_("Voti (1-10)"))
+        self.notebook.add(tab_scores, text=tr("Voti (1-10)"))
         self.create_scores_tab(tab_scores)
         
         # Binding per validazione quando si passa al tab Voti
@@ -112,23 +112,23 @@ class SQDCAnalysisWindow(tk.Toplevel):
                                            'delivery': tk.StringVar(value=''), 'cost': tk.StringVar(value='')}
         except DatabaseError as e:
             logger.error(f"Errore database in load_suppliers: {e}", exc_info=True)
-            SimpleMessageDialog(self, _("Errore Database"), _("Impossibile caricare i fornitori: {}").format(e), "error")
+            SimpleMessageDialog(self, tr("Errore Database"), tr("Impossibile caricare i fornitori: {}").format(e), "error")
     
     def create_weights_tab(self, parent):
         """Crea il tab per l'inserimento dei pesi percentuali"""
         info_label = ttk.Label(parent, 
-                              text=_("Assegna i pesi percentuali a ciascun criterio (la somma deve essere 100%):"),
+                              text=tr("Assegna i pesi percentuali a ciascun criterio (la somma deve essere 100%):"),
                               font=(None, 10))
         info_label.pack(pady=(0, 10))
         
-        descs_frame = ttk.LabelFrame(parent, text=_("Descrizioni Criteri"), padding="10")
+        descs_frame = ttk.LabelFrame(parent, text=tr("Descrizioni Criteri"), padding="10")
         descs_frame.pack(fill="x", pady=(0, 5))
         
         descriptions = [
-            (_("Safety"), _("aderenza del fornitore agli standard di sicurezza, alle conformità normativa relativa al prodotto/servizio e al rischio finanziario e geopolitico.")),
-            (_("Quality"), _("capacità del fornitore di rispettare integralmente le specifiche tecniche concordate.")),
-            (_("Delivery"), _("capacità di rispettare il tempo di consegna offerto e la flessibilità a fronte di eventuali variazioni richieste.")),
-            (_("Cost"), _("competitività relativa al prezzo totale offerto, considerando i termini di pagamento e i costi accessori (es. trasporto, installazione)."))
+            (tr("Safety"), tr("aderenza del fornitore agli standard di sicurezza, alle conformità normativa relativa al prodotto/servizio e al rischio finanziario e geopolitico.")),
+            (tr("Quality"), tr("capacità del fornitore di rispettare integralmente le specifiche tecniche concordate.")),
+            (tr("Delivery"), tr("capacità di rispettare il tempo di consegna offerto e la flessibilità a fronte di eventuali variazioni richieste.")),
+            (tr("Cost"), tr("competitività relativa al prezzo totale offerto, considerando i termini di pagamento e i costi accessori (es. trasporto, installazione)."))
         ]
         
         for i, (criterion, desc) in enumerate(descriptions):
@@ -137,14 +137,14 @@ class SQDCAnalysisWindow(tk.Toplevel):
             ttk.Label(row_frame, text=criterion + ":", font=(None, 10, 'bold'), width=12, anchor='w').pack(side="left", padx=(0, 10))
             ttk.Label(row_frame, text=desc, font=(None, 9), foreground="gray", wraplength=500).pack(side="left", fill="x")
         
-        weights_frame = ttk.LabelFrame(parent, text=_("Pesi Percentuali"), padding="10")
+        weights_frame = ttk.LabelFrame(parent, text=tr("Pesi Percentuali"), padding="10")
         weights_frame.pack(fill="x", pady=(5, 10))
         
         for criterion in ['safety', 'quality', 'delivery', 'cost']:
             row = ttk.Frame(weights_frame)
             row.pack(fill="x", pady=5)
-            label_text = {'safety': _("Safety"), 'quality': _("Quality"), 
-                         'delivery': _("Delivery"), 'cost': _("Cost")}[criterion]
+            label_text = {'safety': tr("Safety"), 'quality': tr("Quality"), 
+                         'delivery': tr("Delivery"), 'cost': tr("Cost")}[criterion]
             ttk.Label(row, text=label_text + ":", width=15, anchor='w').pack(side="left")
             entry = ttk.Entry(row, textvariable=self.weights[criterion], width=10)
             entry.pack(side="left", padx=5)
@@ -153,14 +153,14 @@ class SQDCAnalysisWindow(tk.Toplevel):
     def create_scores_tab(self, parent):
         """Crea il tab per l'inserimento dei voti usando tksheet"""
         info_label = ttk.Label(parent, 
-                              text=_("Assegna un voto da 1 a 10 per ciascun criterio e fornitore (doppio click per modificare):"),
+                              text=tr("Assegna un voto da 1 a 10 per ciascun criterio e fornitore (doppio click per modificare):"),
                               font=(None, 10))
         info_label.pack(pady=(0, 10))
         
         # Pulsante per calcolare automaticamente i voti Cost
         calc_cost_frame = ttk.Frame(parent)
         calc_cost_frame.pack(fill="x", pady=(0, 10))
-        ttk.Button(calc_cost_frame, text=_("🔄 Calcola Cost Automaticamente"), 
+        ttk.Button(calc_cost_frame, text=tr("🔄 Calcola Cost Automaticamente"), 
                   command=self.auto_calculate_cost).pack()
         
         # Frame per avviso prezzi mancanti (inizialmente nascosto)
@@ -212,7 +212,7 @@ class SQDCAnalysisWindow(tk.Toplevel):
             return
         
         # Definisci gli headers
-        headers = [_("Fornitore"), _("Safety"), _("Quality"), _("Delivery"), _("Cost"), _("TOTALE")]
+        headers = [tr("Fornitore"), tr("Safety"), tr("Quality"), tr("Delivery"), tr("Cost"), tr("TOTALE")]
         
         # Costruisci le righe di dati e trova i vincitori
         data_rows = []
@@ -303,10 +303,10 @@ class SQDCAnalysisWindow(tk.Toplevel):
             if 1 <= score <= 10:
                 return str(score)
             else:
-                SimpleMessageDialog(self, _("Valore Non Valido"), _("I voti devono essere tra 1 e 10."), "warning")
+                SimpleMessageDialog(self, tr("Valore Non Valido"), tr("I voti devono essere tra 1 e 10."), "warning")
                 return None
         except ValueError:
-            SimpleMessageDialog(self, _("Valore Non Valido"), _("I voti devono essere numeri interi da 1 a 10."), "warning")
+            SimpleMessageDialog(self, tr("Valore Non Valido"), tr("I voti devono essere numeri interi da 1 a 10."), "warning")
             return None
     
     def on_sqdc_cell_edit(self, event):
@@ -353,9 +353,9 @@ class SQDCAnalysisWindow(tk.Toplevel):
             suppliers_list = ", ".join(self.missing_price_suppliers)
             
             if len(self.missing_price_suppliers) == 1:
-                warning_text = _("⚠️ ATTENZIONE: Impossibile calcolare il prezzo automaticamente per il fornitore {} per mancanza di prezzi o quantità nella tabella di RdO. Il voto Cost è stato impostato a 0.").format(suppliers_list)
+                warning_text = tr("⚠️ ATTENZIONE: Impossibile calcolare il prezzo automaticamente per il fornitore {} per mancanza di prezzi o quantità nella tabella di RdO. Il voto Cost è stato impostato a 0.").format(suppliers_list)
             else:
-                warning_text = _("⚠️ ATTENZIONE: Impossibile calcolare il prezzo automaticamente per i fornitori {} per mancanza di prezzi o quantità nella tabella di RdO. I voti Cost sono stati impostati a 0.").format(suppliers_list)
+                warning_text = tr("⚠️ ATTENZIONE: Impossibile calcolare il prezzo automaticamente per i fornitori {} per mancanza di prezzi o quantità nella tabella di RdO. I voti Cost sono stati impostati a 0.").format(suppliers_list)
             
             self.price_warning_label.config(text=warning_text)
             self.price_warning_frame.pack(fill="x", padx=10, pady=(0, 10))
@@ -373,12 +373,12 @@ class SQDCAnalysisWindow(tk.Toplevel):
                            float(self.weights['delivery'].get() or 0) + 
                            float(self.weights['cost'].get() or 0))
         except (ValueError, TypeError):
-            SimpleMessageDialog(self, _("Errore Pesi"), _("I pesi devono essere numeri validi."), "error")
+            SimpleMessageDialog(self, tr("Errore Pesi"), tr("I pesi devono essere numeri validi."), "error")
             return
         
         # Verifica che la somma sia 100%
         if abs(total_weight - 100) > 0.01:
-            SimpleMessageDialog(self, _("Errore Pesi"), _("La somma dei pesi deve essere 100%. Attualmente: {:.1f}%").format(total_weight), "error")
+            SimpleMessageDialog(self, tr("Errore Pesi"), tr("La somma dei pesi deve essere 100%. Attualmente: {:.1f}%").format(total_weight), "error")
             return
         
         # Carica prezzi da database
@@ -466,7 +466,7 @@ class SQDCAnalysisWindow(tk.Toplevel):
 
         except DatabaseError as e:
             logger.error(f"SQDC auto_calculate_cost: Database error: {e}", exc_info=True)
-            SimpleMessageDialog(self, _("Errore Database"), _("Errore nel recupero dei prezzi dal database: {}").format(e), "error")
+            SimpleMessageDialog(self, tr("Errore Database"), tr("Errore nel recupero dei prezzi dal database: {}").format(e), "error")
         finally:
             self.refresh_scores_sheet()
             self.update_price_warning()
@@ -490,15 +490,15 @@ class SQDCAnalysisWindow(tk.Toplevel):
             try:
                 weight = float(self.weights[criterion].get() or 0)
                 if weight < 0 or weight > 100:
-                    SimpleMessageDialog(self, _("Errore Pesi"), _("I pesi devono essere tra 0 e 100."), "error")
+                    SimpleMessageDialog(self, tr("Errore Pesi"), tr("I pesi devono essere tra 0 e 100."), "error")
                     return False
                 total_weight += weight
             except ValueError:
-                SimpleMessageDialog(self, _("Errore Pesi"), _("I pesi devono essere numeri validi."), "error")
+                SimpleMessageDialog(self, tr("Errore Pesi"), tr("I pesi devono essere numeri validi."), "error")
                 return False
         
         if abs(total_weight - 100) > 0.01:
-            SimpleMessageDialog(self, _("Errore Pesi"), _("La somma dei pesi deve essere 100%. Attualmente: {:.1f}%").format(total_weight), "error")
+            SimpleMessageDialog(self, tr("Errore Pesi"), tr("La somma dei pesi deve essere 100%. Attualmente: {:.1f}%").format(total_weight), "error")
             return False
         
         return True
@@ -513,15 +513,15 @@ class SQDCAnalysisWindow(tk.Toplevel):
             for criterion in ['safety', 'quality', 'delivery', 'cost']:
                 value = self.scores[supplier][criterion].get()
                 if not value:
-                    SimpleMessageDialog(self, _("Errore Voti"), _("Devi compilare tutti i voti."), "error")
+                    SimpleMessageDialog(self, tr("Errore Voti"), tr("Devi compilare tutti i voti."), "error")
                     return False
                 try:
                     score = int(value)
                     if score < 1 or score > 10:
-                        SimpleMessageDialog(self, _("Errore Voti"), _("I voti devono essere tra 1 e 10.\nFornitore: {}\nCriterio: {}").format(supplier, criterion), "error")
+                        SimpleMessageDialog(self, tr("Errore Voti"), tr("I voti devono essere tra 1 e 10.\nFornitore: {}\nCriterio: {}").format(supplier, criterion), "error")
                         return False
                 except ValueError:
-                    SimpleMessageDialog(self, _("Errore Voti"), _("I voti devono essere numeri interi da 1 a 10.\nFornitore: {}\nCriterio: {}").format(supplier, criterion), "error")
+                    SimpleMessageDialog(self, tr("Errore Voti"), tr("I voti devono essere numeri interi da 1 a 10.\nFornitore: {}\nCriterio: {}").format(supplier, criterion), "error")
                     return False
         
         return True
@@ -564,7 +564,7 @@ class SQDCAnalysisWindow(tk.Toplevel):
         template_path = resource_path(os.path.join("add_data", template_name))
         
         if not os.path.exists(template_path):
-            SimpleMessageDialog(self, _("Errore"), _("File modello non trovato!\nAssicurarsi che '{}' esista nella cartella 'add_data'.").format(template_name), "error")
+            SimpleMessageDialog(self, tr("Errore"), tr("File modello non trovato!\nAssicurarsi che '{}' esista nella cartella 'add_data'.").format(template_name), "error")
             return
         
         wb = None
@@ -644,8 +644,8 @@ class SQDCAnalysisWindow(tk.Toplevel):
             
             filepath = filedialog.asksaveasfilename(
                 defaultextension=".xlsx",
-                filetypes=[(_("File Excel"), "*.xlsx")],
-                title=_("Salva Analisi SQDC"),
+                filetypes=[(tr("File Excel"), "*.xlsx")],
+                title=tr("Salva Analisi SQDC"),
                 initialfile=default_name,
                 parent=self
             )
@@ -653,11 +653,11 @@ class SQDCAnalysisWindow(tk.Toplevel):
             if filepath:
                 wb.save(filepath)
                 logger.info(f"Analisi SQDC esportata: {filepath}")
-                SimpleMessageDialog(self, _("Successo"), _("Analisi SQDC esportata con successo:\n{}").format(filepath), "info")
+                SimpleMessageDialog(self, tr("Successo"), tr("Analisi SQDC esportata con successo:\n{}").format(filepath), "info")
         
         except Exception as e:
             logger.error(f"Errore esportazione SQDC: {e}", exc_info=True)
-            SimpleMessageDialog(self, _("Errore Esportazione"), _("Impossibile esportare l'analisi: {}").format(e), "error")
+            SimpleMessageDialog(self, tr("Errore Esportazione"), tr("Impossibile esportare l'analisi: {}").format(e), "error")
         finally:
             if wb is not None:
                 try:
@@ -758,7 +758,7 @@ class SQDCAnalysisWindow(tk.Toplevel):
             
             archive_path = get_fixed_attachments_dir()
             if not archive_path:
-                SimpleMessageDialog(self, _("Errore"), _("Percorso allegati non disponibile."), "error")
+                SimpleMessageDialog(self, tr("Errore"), tr("Percorso allegati non disponibile."), "error")
                 return
             
             try:
@@ -781,16 +781,16 @@ class SQDCAnalysisWindow(tk.Toplevel):
                     db_manager.insert_or_update_allegato_sqdc(self.request_id, sqdc_filename, new_filename)
                 
                 logger.info(f"Analisi SQDC salvata come Documento Interno: {new_filename} -> {dest_path}")
-                SimpleMessageDialog(self, _("Successo"), _("Analisi SQDC salvata correttamente nei Documenti Interni."), "info")
+                SimpleMessageDialog(self, tr("Successo"), tr("Analisi SQDC salvata correttamente nei Documenti Interni."), "info")
                 self.destroy()
                 
             except DatabaseError as e:
                 logger.error(f"Errore database in save_sqdc: {e}", exc_info=True)
-                SimpleMessageDialog(self, _("Errore Database"), _("Impossibile salvare l'analisi: {}").format(e), "error")
+                SimpleMessageDialog(self, tr("Errore Database"), tr("Impossibile salvare l'analisi: {}").format(e), "error")
         
         except Exception as e:
             logger.error(f"Errore nella creazione file SQDC: {e}", exc_info=True)
-            SimpleMessageDialog(self, _("Errore"), _("Impossibile creare il file: {}").format(e), "error")
+            SimpleMessageDialog(self, tr("Errore"), tr("Impossibile creare il file: {}").format(e), "error")
         finally:
             if wb is not None:
                 try:

@@ -3565,3 +3565,117 @@ msgstr "Copia in corso..."
 
 msgid "Preparazione..."
 msgstr "Preparazione..."
+
+msgid "Data"
+msgstr "Data"
+
+msgid "E-mail"
+msgstr "E-mail"
+
+msgid "Web"
+msgstr "Web"
+
+msgid "Errore Eliminazione"
+msgstr "Errore Eliminazione"
+
+msgid "Errore VSM"
+msgstr "Errore VSM"
+
+msgid "Errore nel recupero dati: {}"
+msgstr "Errore nel recupero dati: {}"
+
+msgid "Evento VSM duplicato."
+msgstr "Evento VSM duplicato."
+
+msgid "Evento VSM duplicato. Aggiorna manualmente per vedere la copia."
+msgstr "Evento VSM duplicato. Aggiorna manualmente per vedere la copia."
+
+msgid "Il percorso selezionato è molto lungo ({} caratteri).\nWindows potrebbe avere problemi nell'accesso ai file.\nVuoi procedere comunque?"
+msgstr "Il percorso selezionato è molto lungo ({} caratteri).\nWindows potrebbe avere problemi nell'accesso ai file.\nVuoi procedere comunque?"
+
+msgid "Impossibile aprire il form: {}"
+msgstr "Impossibile aprire il form: {}"
+
+msgid "Impossibile caricare gli eventi VSM: {}\n"
+msgstr "Impossibile caricare gli eventi VSM: {}\n"
+
+msgid "Impossibile duplicare l'evento:\n{}"
+msgstr "Impossibile duplicare l'evento:\n{}"
+
+msgid "Impossibile eliminare gli eventi:\n{}"
+msgstr "Impossibile eliminare gli eventi:\n{}"
+
+msgid "Impossibile eliminare i fornitori:\n{}"
+msgstr "Impossibile eliminare i fornitori:\n{}"
+
+msgid "Impossibile identificare l'evento selezionato."
+msgstr "Impossibile identificare l'evento selezionato."
+
+msgid "Nessun dato da esportare nella vista corrente."
+msgstr "Nessun dato da esportare nella vista corrente."
+
+msgid "Non puoi duplicare eventi VSM di altri utenti.\nPuoi operare solo sui tuoi eventi."
+msgstr "Non puoi duplicare eventi VSM di altri utenti.\nPuoi operare solo sui tuoi eventi."
+
+msgid "Puoi eliminare solo i tuoi eventi VSM.\nAlcuni eventi selezionati appartengono ad altri utenti."
+msgstr "Puoi eliminare solo i tuoi eventi VSM.\nAlcuni eventi selezionati appartengono ad altri utenti."
+
+msgid "Puoi eliminare solo i tuoi fornitori.\nAlcuni fornitori selezionati appartengono ad altri utenti."
+msgstr "Puoi eliminare solo i tuoi fornitori.\nAlcuni fornitori selezionati appartengono ad altri utenti."
+
+msgid "Sei sicuro di voler eliminare {} evento(i) VSM?\nQuesta operazione non può essere annullata."
+msgstr "Sei sicuro di voler eliminare {} evento(i) VSM?\nQuesta operazione non può essere annullata."
+
+msgid "Seleziona un evento da modificare."
+msgstr "Seleziona un evento da modificare."
+
+msgid "Seleziona un solo evento VSM per duplicarlo."
+msgstr "Seleziona un solo evento VSM per duplicarlo."
+
+msgid "Seleziona un solo evento per la modifica."
+msgstr "Seleziona un solo evento per la modifica."
+
+msgid "Seleziona uno o più eventi da eliminare."
+msgstr "Seleziona uno o più eventi da eliminare."
+
+msgid "Seleziona uno o più fornitori da eliminare."
+msgstr "Seleziona uno o più fornitori da eliminare."
+
+msgid "Selezionare un evento VSM da duplicare."
+msgstr "Selezionare un evento VSM da duplicare."
+
+msgid "Selezione Multipla"
+msgstr "Selezione Multipla"
+
+msgid "{} evento(i) VSM eliminato(i) con successo."
+msgstr "{} evento(i) VSM eliminato(i) con successo."
+
+msgid "Visualizza Evento VSM"
+msgstr "Visualizza Evento VSM"
+
+msgid "✖ Chiudi"
+msgstr "✖ Chiudi"
+
+msgid "❌ OPERAZIONE FALLITA\n\nImpossibile completare lo spostamento della cartella DataFlow.\n\nDettaglio errore:\n{error}\n\nLe impostazioni originali sono state ripristinate.\nConsulta il file di log per maggiori dettagli."
+msgstr "❌ OPERAZIONE FALLITA\n\nImpossibile completare lo spostamento della cartella DataFlow.\n\nDettaglio errore:\n{error}\n\nLe impostazioni originali sono state ripristinate.\nConsulta il file di log per maggiori dettagli."
+
+msgid "Cost Avoidance"
+msgstr "Evitamento Costi"
+
+msgid "Derisking"
+msgstr "Riduzione Rischio"
+
+msgid "Saving"
+msgstr "Saving"
+
+msgid "≋ KPI"
+msgstr "≋ KPI"
+
+msgid "➕ Nuovo Evento"
+msgstr "➕ Nuovo Evento"
+
+msgid "No data available"
+msgstr "Nessun dato disponibile"
+
+msgid "Search Filters"
+msgstr "Filtri di Ricerca"

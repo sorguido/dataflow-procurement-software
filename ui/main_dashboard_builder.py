@@ -26,7 +26,7 @@ from PIL import Image, ImageTk
 from tkcalendar import DateEntry
 
 from utils.resource_utils import resource_path
-from utils.i18n_utils import _, get_current_language
+from utils.i18n_utils import tr, get_current_language
 from ui.components.main_dashboard_toolbar import MainDashboardToolbar
 from ui.components.collapsible_filters import CollapsibleFilters
 
@@ -62,14 +62,14 @@ def build_main_dashboard(app):
 
     # --- Pulsanti Operativi (Riga Superiore) ---
     # 1. New Event (dinamico: RdO o VSM in base al tab attivo - Step 4D.6)
-    app.btn_new_rdo = ttk.Button(frame_top, text=_("➕ Nuovo Evento"), command=app.open_new_event)
+    app.btn_new_rdo = ttk.Button(frame_top, text=tr("➕ Nuovo Evento"), command=app.open_new_event)
     app.btn_new_rdo.pack(side="left", padx=(0, 10))
 
     # 2. Actions dropdown (sostituisce Delete/Duplicate/Archive/Reactivate)
     # Pattern desktop classico: Menubutton con menu contestuale
     app.btn_actions = ttk.Menubutton(
         frame_top,
-        text=_("⚡ Actions"),
+        text=tr("⚡ Actions"),
         state="disabled"
     )
     app.btn_actions.pack(side="left", padx=(0, 10))
@@ -79,19 +79,19 @@ def build_main_dashboard(app):
     app.btn_actions.config(menu=app.actions_menu)
 
     # 3. Export Excel (Export Globale)
-    app.btn_mega_export = ttk.Button(frame_top, text=_("📊 Export Excel"), command=app.mega_export_excel)
+    app.btn_mega_export = ttk.Button(frame_top, text=tr("📊 Export Excel"), command=app.mega_export_excel)
     app.btn_mega_export.pack(side="left", padx=(0, 20))
 
     # 4. KPI Dashboard
-    app.btn_kpi = ttk.Button(frame_top, text=_("≋ KPI"), command=app.on_kpi_click)
+    app.btn_kpi = ttk.Button(frame_top, text=tr("≋ KPI"), command=app.on_kpi_click)
     app.btn_kpi.pack(side="left", padx=(0, 20))
 
     # --- MODIFICA: Aggiunto pulsante Licenza e riordinato ---
-    app.btn_guida = ttk.Button(frame_top, text=_("❓ Guida"), command=app.open_help_window)
+    app.btn_guida = ttk.Button(frame_top, text=tr("❓ Guida"), command=app.open_help_window)
     app.btn_guida.pack(side="right")
-    app.btn_license = ttk.Button(frame_top, text=_("≡ License"), command=app.open_license_window)
+    app.btn_license = ttk.Button(frame_top, text=tr("≡ License"), command=app.open_license_window)
     app.btn_license.pack(side="right", padx=(0, 10))
-    app.btn_settings = ttk.Button(frame_top, text=_("⚙️ Impostazioni"), command=app.open_settings_window)
+    app.btn_settings = ttk.Button(frame_top, text=tr("⚙️ Impostazioni"), command=app.open_settings_window)
     app.btn_settings.pack(side="right", padx=(0, 10))
     # --- FINE MODIFICA ---
 
@@ -110,7 +110,7 @@ def build_main_dashboard(app):
     app.main_dashboard_toolbar.grid(row=1, column=0, sticky="ew", padx=10, pady=5)
 
     # Row 2: Filtri collassabili (Step 5)
-    app.collapsible_filters = CollapsibleFilters(app.root, label_text=_("Filtri di Ricerca"))
+    app.collapsible_filters = CollapsibleFilters(app.root, label_text=tr("Filtri di Ricerca"))
     # Salva configurazione grid per expand()/collapse()
     app.collapsible_filters.set_grid_config(row=2, column=0, sticky="ew", padx=10, pady=(0, 5))
     # Default collapsed: grid_remove() lo nasconde senza lasciare gap
@@ -131,30 +131,30 @@ def build_main_dashboard(app):
     _rf = app.rfq_filter_subframe  # alias locale per brevità
 
     app.search_vars = {name: tk.StringVar() for name in ['global', 'num', 'ref', 'forn', 'cod', 'desc', 'ord', 'cod_grezzo', 'dis_grezzo', 'mat_cl']}
-    app.search_tipo = tk.StringVar(value=_("Tutte"))
+    app.search_tipo = tk.StringVar(value=tr("Tutte"))
 
-    ttk.Label(_rf, text=_("Numero RdO:")).grid(row=0, column=0, sticky="w")
+    ttk.Label(_rf, text=tr("Numero RdO:")).grid(row=0, column=0, sticky="w")
     ttk.Entry(_rf, textvariable=app.search_vars['num']).grid(row=0, column=1, sticky="ew")
-    ttk.Label(_rf, text=_("Tipo RdO:")).grid(row=0, column=2, sticky="w")
-    ttk.Combobox(_rf, textvariable=app.search_tipo, values=[_("Tutte"), _("Fornitura piena"), _("Conto lavoro")], state="readonly").grid(row=0, column=3, sticky="ew")
-    ttk.Label(_rf, text=_("Riferimento:")).grid(row=1, column=0, sticky="w")
+    ttk.Label(_rf, text=tr("Tipo RdO:")).grid(row=0, column=2, sticky="w")
+    ttk.Combobox(_rf, textvariable=app.search_tipo, values=[tr("Tutte"), tr("Fornitura piena"), tr("Conto lavoro")], state="readonly").grid(row=0, column=3, sticky="ew")
+    ttk.Label(_rf, text=tr("Riferimento:")).grid(row=1, column=0, sticky="w")
     ttk.Entry(_rf, textvariable=app.search_vars['ref']).grid(row=1, column=1, sticky="ew")
-    ttk.Label(_rf, text=_("Fornitore:")).grid(row=1, column=2, sticky="w")
+    ttk.Label(_rf, text=tr("Fornitore:")).grid(row=1, column=2, sticky="w")
     ttk.Entry(_rf, textvariable=app.search_vars['forn']).grid(row=1, column=3, sticky="ew")
-    ttk.Label(_rf, text=_("Cod. Materiale:")).grid(row=2, column=0, sticky="w")
+    ttk.Label(_rf, text=tr("Cod. Materiale:")).grid(row=2, column=0, sticky="w")
     ttk.Entry(_rf, textvariable=app.search_vars['cod']).grid(row=2, column=1, sticky="ew")
-    ttk.Label(_rf, text=_("Desc. Materiale:")).grid(row=2, column=2, sticky="w")
+    ttk.Label(_rf, text=tr("Desc. Materiale:")).grid(row=2, column=2, sticky="w")
     ttk.Entry(_rf, textvariable=app.search_vars['desc']).grid(row=2, column=3, sticky="ew")
-    ttk.Label(_rf, text=_("Num. Ordine:")).grid(row=0, column=4, sticky="w")
+    ttk.Label(_rf, text=tr("Num. Ordine:")).grid(row=0, column=4, sticky="w")
     ttk.Entry(_rf, textvariable=app.search_vars['ord']).grid(row=0, column=5, sticky="ew")
-    ttk.Label(_rf, text=_("Cod. Grezzo:")).grid(row=3, column=0, sticky="w")
+    ttk.Label(_rf, text=tr("Cod. Grezzo:")).grid(row=3, column=0, sticky="w")
     ttk.Entry(_rf, textvariable=app.search_vars['cod_grezzo']).grid(row=3, column=1, sticky="ew")
-    ttk.Label(_rf, text=_("Allegato Grezzo:")).grid(row=3, column=2, sticky="w")
+    ttk.Label(_rf, text=tr("Allegato Grezzo:")).grid(row=3, column=2, sticky="w")
     ttk.Entry(_rf, textvariable=app.search_vars['dis_grezzo']).grid(row=3, column=3, sticky="ew")
-    ttk.Label(_rf, text=_("Mat. c/lavoro:")).grid(row=3, column=4, sticky="w")
+    ttk.Label(_rf, text=tr("Mat. c/lavoro:")).grid(row=3, column=4, sticky="w")
     ttk.Entry(_rf, textvariable=app.search_vars['mat_cl']).grid(row=3, column=5, sticky="ew")
 
-    ttk.Label(_rf, text=_("Utente:")).grid(row=1, column=4, sticky="w")
+    ttk.Label(_rf, text=tr("Utente:")).grid(row=1, column=4, sticky="w")
     default_user_value = app.current_username if getattr(app, 'current_username', '') else app.all_users_placeholder
     app.username_filter_var = tk.StringVar(value=default_user_value)
     app.user_filter_combo = ttk.Combobox(
@@ -167,9 +167,9 @@ def build_main_dashboard(app):
     app.user_filter_combo.bind("<<ComboboxSelected>>", lambda _e: app.refresh_data())
 
     app.date_entries = {}
-    for i, (lbl, key) in enumerate([(_("Da:"), "emm_da"), (_("A:"), "emm_a"), (_("Da:"), "scad_da"), (_("A:"), "scad_a")]):
+    for i, (lbl, key) in enumerate([(tr("Da:"), "emm_da"), (tr("A:"), "emm_a"), (tr("Da:"), "scad_da"), (tr("A:"), "scad_a")]):
         row, col_lbl, col_entry = (4 + i // 2, (i % 2) * 2, (i % 2) * 2 + 1)
-        prefix = _("Data Emissione ") if i < 2 else _("Data Scadenza ")
+        prefix = tr("Data Emissione ") if i < 2 else tr("Data Scadenza ")
         ttk.Label(_rf, text=prefix + lbl).grid(row=row, column=col_lbl, sticky="w")
         de = DateEntry(_rf, date_pattern='dd/mm/yyyy', locale=('it_IT' if get_current_language() == 'it' else 'en_US'))
         de.grid(row=row, column=col_entry, sticky="ew")
@@ -197,7 +197,7 @@ def build_main_dashboard(app):
     app.vsm_actual_to_var = tk.StringVar()
 
     # --- Riga 0: filtri comuni a tutti i tab VSM (Utente, Dal, Al) ---
-    ttk.Label(_vsf, text=_("Utente:")).grid(row=0, column=0, sticky="w", padx=(0, 5), pady=5)
+    ttk.Label(_vsf, text=tr("Utente:")).grid(row=0, column=0, sticky="w", padx=(0, 5), pady=5)
     _vsm_cb = ttk.Combobox(
         _vsf,
         textvariable=app.vsm_username_filter_var,
@@ -208,7 +208,7 @@ def build_main_dashboard(app):
     _vsm_cb.bind("<<ComboboxSelected>>", lambda _e: app._on_vsm_username_filter_changed())
     app.vsm_user_filter_combos = [_vsm_cb]
 
-    ttk.Label(_vsf, text=_("Da:")).grid(row=0, column=2, sticky="w", padx=(10, 5), pady=5)
+    ttk.Label(_vsf, text=tr("Da:")).grid(row=0, column=2, sticky="w", padx=(10, 5), pady=5)
     app.vsm_date_from_entry = DateEntry(
         _vsf, date_pattern='dd/mm/yyyy',
         locale=('it_IT' if get_current_language() == 'it' else 'en_US'),
@@ -216,7 +216,7 @@ def build_main_dashboard(app):
     app.vsm_date_from_entry.grid(row=0, column=3, sticky="w", pady=5)
     app.vsm_date_from_entry.delete(0, 'end')
 
-    ttk.Label(_vsf, text=_("A:")).grid(row=0, column=4, sticky="w", padx=(10, 5), pady=5)
+    ttk.Label(_vsf, text=tr("A:")).grid(row=0, column=4, sticky="w", padx=(10, 5), pady=5)
     app.vsm_date_to_entry = DateEntry(
         _vsf, date_pattern='dd/mm/yyyy',
         locale=('it_IT' if get_current_language() == 'it' else 'en_US'),
@@ -227,29 +227,29 @@ def build_main_dashboard(app):
     # --- Spec frame Saving / Cost Avoidance (riga 1, condiviso) ---
     _vsm_sc_spec = ttk.Frame(_vsf)
     _vsm_sc_spec.grid(row=1, column=0, columnspan=6, sticky="ew")
-    ttk.Label(_vsm_sc_spec, text=_("Azione:")).grid(row=0, column=0, sticky="w", padx=(0, 5), pady=3)
+    ttk.Label(_vsm_sc_spec, text=tr("Azione:")).grid(row=0, column=0, sticky="w", padx=(0, 5), pady=3)
     ttk.Combobox(
         _vsm_sc_spec,
         textvariable=app.vsm_action_var,
         state="readonly",
-        values=["", _("Negoziazione"), "Derisking", _("Altro")],
+        values=["", tr("Negoziazione"), "Derisking", tr("Altro")],
         width=18,
     ).grid(row=0, column=1, sticky="w", pady=3)
-    ttk.Label(_vsm_sc_spec, text=_("Ripetitivo:")).grid(row=0, column=2, sticky="w", padx=(10, 5), pady=3)
+    ttk.Label(_vsm_sc_spec, text=tr("Ripetitivo:")).grid(row=0, column=2, sticky="w", padx=(10, 5), pady=3)
     ttk.Combobox(
         _vsm_sc_spec,
         textvariable=app.vsm_repetitive_var,
         state="readonly",
-        values=["", _("Sì"), _("No")],
+        values=["", tr("Sì"), tr("No")],
         width=8,
     ).grid(row=0, column=3, sticky="w", pady=3)
-    ttk.Label(_vsm_sc_spec, text=_("Teorico Da:")).grid(row=1, column=0, sticky="w", padx=(0, 5), pady=3)
+    ttk.Label(_vsm_sc_spec, text=tr("Teorico Da:")).grid(row=1, column=0, sticky="w", padx=(0, 5), pady=3)
     ttk.Entry(_vsm_sc_spec, textvariable=app.vsm_theoretical_from_var, width=12).grid(row=1, column=1, sticky="w", pady=3)
-    ttk.Label(_vsm_sc_spec, text=_("A:")).grid(row=1, column=2, sticky="w", padx=(10, 5), pady=3)
+    ttk.Label(_vsm_sc_spec, text=tr("A:")).grid(row=1, column=2, sticky="w", padx=(10, 5), pady=3)
     ttk.Entry(_vsm_sc_spec, textvariable=app.vsm_theoretical_to_var, width=12).grid(row=1, column=3, sticky="w", pady=3)
-    ttk.Label(_vsm_sc_spec, text=_("Effettivo Da:")).grid(row=2, column=0, sticky="w", padx=(0, 5), pady=3)
+    ttk.Label(_vsm_sc_spec, text=tr("Effettivo Da:")).grid(row=2, column=0, sticky="w", padx=(0, 5), pady=3)
     ttk.Entry(_vsm_sc_spec, textvariable=app.vsm_actual_from_var, width=12).grid(row=2, column=1, sticky="w", pady=3)
-    ttk.Label(_vsm_sc_spec, text=_("A:")).grid(row=2, column=2, sticky="w", padx=(10, 5), pady=3)
+    ttk.Label(_vsm_sc_spec, text=tr("A:")).grid(row=2, column=2, sticky="w", padx=(10, 5), pady=3)
     ttk.Entry(_vsm_sc_spec, textvariable=app.vsm_actual_to_var, width=12).grid(row=2, column=3, sticky="w", pady=3)
 
     # --- Spec frame Derisking (riga 1, vuoto — i fornitori potenziali non hanno Ripetitivo) ---
@@ -269,8 +269,8 @@ def build_main_dashboard(app):
     # -----------------------------------------------------------------------
     btn_search_frame = ttk.Frame(search_frame)
     btn_search_frame.grid(row=0, column=1, sticky="ns", padx=20)
-    ttk.Button(btn_search_frame, text=_("🔍 Cerca"), command=app.search_requests).pack(fill="x", expand=True, pady=2)
-    ttk.Button(btn_search_frame, text=_("🔎 Pulisci Filtri"), command=app.clear_filters).pack(fill="x", expand=True, pady=2)
+    ttk.Button(btn_search_frame, text=tr("🔍 Cerca"), command=app.search_requests).pack(fill="x", expand=True, pady=2)
+    ttk.Button(btn_search_frame, text=tr("🔎 Pulisci Filtri"), command=app.clear_filters).pack(fill="x", expand=True, pady=2)
 
     # -----------------------------------------------------------------------
     # Row 3: Notebook (dopo i filtri collassabili)
@@ -280,16 +280,16 @@ def build_main_dashboard(app):
 
     app.tab_attive = ttk.Frame(app.notebook)
     app.tab_archiviate = ttk.Frame(app.notebook)
-    app.notebook.add(app.tab_attive, text=_("RdO Attive"))
-    app.notebook.add(app.tab_archiviate, text=_("RdO Archiviate"))
+    app.notebook.add(app.tab_attive, text=tr("RdO Attive"))
+    app.notebook.add(app.tab_archiviate, text=tr("RdO Archiviate"))
 
     # Tab VSM (Step 4A: Direct Tab Integration)
     app.tab_saving = ttk.Frame(app.notebook)
     app.tab_cost_avoidance = ttk.Frame(app.notebook)
     app.tab_derisking = ttk.Frame(app.notebook)
-    app.notebook.add(app.tab_saving, text=_("Saving"))
-    app.notebook.add(app.tab_cost_avoidance, text=_("Cost Avoidance"))
-    app.notebook.add(app.tab_derisking, text=_("Derisking"))
+    app.notebook.add(app.tab_saving, text=tr("Saving"))
+    app.notebook.add(app.tab_cost_avoidance, text=tr("Cost Avoidance"))
+    app.notebook.add(app.tab_derisking, text=tr("Derisking"))
 
     # Step 4B: Crea sheet VSM per ogni tab.
     app.sheet_saving = app._create_vsm_event_sheet(app.tab_saving, event_type="Saving")
@@ -301,11 +301,11 @@ def build_main_dashboard(app):
     # -----------------------------------------------------------------------
     footer_frame = ttk.Frame(app.root)
     footer_frame.grid(row=4, column=0, sticky="ew", padx=10, pady=5)
-    ttk.Label(footer_frame, text=_("v2.1.0 - Sviluppato da ")).pack(side="left")
+    ttk.Label(footer_frame, text=tr("v2.1.0 - Sviluppato da ")).pack(side="left")
     name_label = ttk.Label(footer_frame, text="Guido Sorarù", foreground="blue", cursor="hand2")
     name_label.pack(side="left")
     name_label.bind("<Button-1>", lambda e: webbrowser.open("https://www.linkedin.com/in/guido-soraru-buyer/"))
-    ttk.Label(footer_frame, text=_(" © 2025–2026 - Rilasciato sotto licenza GNU GPLv3")).pack(side="left")
+    ttk.Label(footer_frame, text=tr(" © 2025–2026 - Rilasciato sotto licenza GNU GPLv3")).pack(side="left")
 
     # -----------------------------------------------------------------------
     # RFQ treeviews

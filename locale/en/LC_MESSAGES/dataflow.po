@@ -3576,3 +3576,78 @@ msgstr "Copy in progress..."
 
 msgid "Preparazione..."
 msgstr "Preparing..."
+
+msgid "Data"
+msgstr "Date"
+
+msgid "E-mail"
+msgstr "E-mail"
+
+msgid "Web"
+msgstr "Web"
+
+msgid "Errore VSM"
+msgstr "VSM Error"
+
+msgid "Errore nel recupero dati: {}"
+msgstr "Error retrieving data: {}"
+
+msgid "Il percorso selezionato è molto lungo ({} caratteri).\nWindows potrebbe avere problemi nell'accesso ai file.\nVuoi procedere comunque?"
+msgstr "The selected path is very long ({} characters).\nWindows may have issues accessing files.\nDo you want to continue anyway?"
+
+msgid "Impossibile aprire il form: {}"
+msgstr "Unable to open the form: {}"
+
+msgid "Impossibile caricare gli eventi VSM: {}\n"
+msgstr "Unable to load VSM events: {}\n"
+
+msgid "Impossibile duplicare l'evento:\n{}"
+msgstr "Unable to duplicate the event:\n{}"
+
+msgid "Impossibile eliminare i fornitori:\n{}"
+msgstr "Unable to delete suppliers:\n{}"
+
+msgid "Impossibile identificare l'evento selezionato."
+msgstr "Unable to identify the selected event."
+
+msgid "Nessun dato da esportare nella vista corrente."
+msgstr "No data to export in the current view."
+
+msgid "Puoi eliminare solo i tuoi fornitori.\nAlcuni fornitori selezionati appartengono ad altri utenti."
+msgstr "You can delete only your suppliers.\nSome selected suppliers belong to other users."
+
+msgid "Seleziona un evento da modificare."
+msgstr "Select an event to edit."
+
+msgid "Seleziona un solo evento per la modifica."
+msgstr "Select only one event for editing."
+
+msgid "Seleziona uno o più fornitori da eliminare."
+msgstr "Select one or more suppliers to delete."
+
+msgid "Selezione Multipla"
+msgstr "Multiple Selection"
+
+msgid "Visualizza Evento VSM"
+msgstr "View VSM Event"
+
+msgid "✖ Chiudi"
+msgstr "✖ Close"
+
+msgid "❌ OPERAZIONE FALLITA\n\nImpossibile completare lo spostamento della cartella DataFlow.\n\nDettaglio errore:\n{error}\n\nLe impostazioni originali sono state ripristinate.\nConsulta il file di log per maggiori dettagli."
+msgstr "❌ OPERATION FAILED\n\nUnable to complete moving the DataFlow folder.\n\nError details:\n{error}\n\nOriginal settings have been restored.\nSee the log file for more details."
+
+msgid "Cost Avoidance"
+msgstr "Cost Avoidance"
+
+msgid "Derisking"
+msgstr "Derisking"
+
+msgid "Saving"
+msgstr "Saving"
+
+msgid "Search Filters"
+msgstr "Search Filters"
+
+msgid "No data available"
+msgstr "No data available"

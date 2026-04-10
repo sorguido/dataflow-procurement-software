@@ -14,7 +14,7 @@ Step 5 (Global Search): Ricerca multi-campo con OR logic su 6 campi principali
 import tkinter as tk
 from tkinter import ttk
 
-from utils.i18n_utils import _
+from utils.i18n_utils import tr
 
 
 class MainDashboardToolbar(ttk.Frame):
@@ -98,7 +98,7 @@ class MainDashboardToolbar(ttk.Frame):
         # Label cliccabile con chevron per indicare stato expand/collapse
         self.filters_toggle_label = tk.Label(
             search_container,
-            text=f"⌄ {_('Advanced Filters')}",
+            text=f"⌄ {tr('Advanced Filters')}",
             cursor="hand2",
             foreground="#0066cc",
             font=('TkDefaultFont', 10),
@@ -237,9 +237,9 @@ class MainDashboardToolbar(ttk.Frame):
             # Aggiorna icona chevron in base allo stato
             if hasattr(self.main_window, 'collapsible_filters'):
                 if self.main_window.collapsible_filters.is_expanded():
-                    self.filters_toggle_label.config(text=f"⌃ {_('Advanced Filters')}")
+                    self.filters_toggle_label.config(text=f"⌃ {tr('Advanced Filters')}")
                 else:
-                    self.filters_toggle_label.config(text=f"⌄ {_('Advanced Filters')}")
+                    self.filters_toggle_label.config(text=f"⌄ {tr('Advanced Filters')}")
 
     def set_advanced_filters_enabled(self, enabled: bool):
         """Abilita o disabilita visivamente il toggle Advanced Filters.

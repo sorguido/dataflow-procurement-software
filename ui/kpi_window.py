@@ -70,8 +70,8 @@ def _fmt_pct(v) -> str:
 
 
 def _t_ui(is_ita, ita, eng):
-    """Helper bilingua per stringhe UI calcolate a runtime (fuori da tr())."""
-    return ita if is_ita else eng
+    """Compat: instrada tutte le stringhe UI nel catalogo tramite msgid EN."""
+    return tr(eng)
 
 
 # ---------------------------------------------------------------------------

@@ -7,9 +7,21 @@ Compila tutte le traduzioni nelle directory locale/*/LC_MESSAGES/
 import os
 import polib
 
-# Directory base del progetto
+def _find_project_root(start_dir):
+    """Risalita robusta fino alla root che contiene la directory `locale`."""
+    current = os.path.abspath(start_dir)
+    while True:
+        if os.path.isdir(os.path.join(current, 'locale')):
+            return current
+        parent = os.path.dirname(current)
+        if parent == current:
+            break
+        current = parent
+    return os.path.abspath(start_dir)
+
+
 DEV_TOOLS_DIR = os.path.dirname(os.path.abspath(__file__))
-PROJECT_ROOT = os.path.dirname(DEV_TOOLS_DIR)
+PROJECT_ROOT = _find_project_root(DEV_TOOLS_DIR)
 LOCALE_DIR = os.path.join(PROJECT_ROOT, 'locale')
 
 def compile_translations():

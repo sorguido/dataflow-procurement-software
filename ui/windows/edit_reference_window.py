@@ -11,7 +11,7 @@ from database_manager import DatabaseManager, DatabaseError
 from services.app_paths import get_db_path
 from utils.window_utils import center_window
 from utils.resource_utils import set_window_icon
-from utils.i18n_utils import _
+from utils.i18n_utils import tr
 
 logger = logging.getLogger(__name__)
 
@@ -22,21 +22,21 @@ class EditReferenceWindow(tk.Toplevel):
         self.withdraw()
         set_window_icon(self)
         self.request_id = request_id
-        self.title(_("Modifica Riferimento"))
+        self.title(tr("Modifica Riferimento"))
         self.db_path = get_db_path()
         self.transient(parent)
         
         # Frame pulsanti (sempre in fondo)
         btn_frame = ttk.Frame(self)
         btn_frame.pack(side="bottom", fill="x", padx=10, pady=10)
-        ttk.Button(btn_frame, text=_("💾 Salva"), command=self.save_changes).pack(side="right")
-        ttk.Button(btn_frame, text=_("❌ Annulla"), command=self.destroy).pack(side="right", padx=10)
+        ttk.Button(btn_frame, text=tr("💾 Salva"), command=self.save_changes).pack(side="right")
+        ttk.Button(btn_frame, text=tr("❌ Annulla"), command=self.destroy).pack(side="right", padx=10)
         
         # Frame contenuto (espandibile)
         frame = ttk.Frame(self, padding="10")
         frame.pack(side="top", fill="both", expand=True)
         
-        ttk.Label(frame, text=_("Modifica Riferimento:")).pack(anchor="w")
+        ttk.Label(frame, text=tr("Modifica Riferimento:")).pack(anchor="w")
         self.entry_riferimento = ttk.Entry(frame, width=70)
         self.entry_riferimento.pack(fill="x", expand=True, pady=5)
         
@@ -54,15 +54,15 @@ class EditReferenceWindow(tk.Toplevel):
                 self.entry_riferimento.insert(0, result[0])
         except DatabaseError as e:
             logger.error(f"Errore database in load_current_reference: {e}", exc_info=True)
-            messagebox.showerror(_("Errore"), _("Impossibile caricare riferimento: {}").format(e), parent=self)
+            messagebox.showerror(tr("Errore"), tr("Impossibile caricare riferimento: {}").format(e), parent=self)
     
     def save_changes(self):
         try:
             # BUG #46 FIX: Usa context manager per garantire chiusura DB anche su eccezione
             with DatabaseManager(getattr(self, 'db_path', get_db_path())) as db_manager:
                 db_manager.update_riferimento(self.request_id, self.entry_riferimento.get().strip())
-            messagebox.showinfo(_("Successo"), _("Riferimento aggiornato."), parent=self.master)
+            messagebox.showinfo(tr("Successo"), tr("Riferimento aggiornato."), parent=self.master)
             self.destroy()
         except DatabaseError as e:
             logger.error(f"Errore database in save_changes (EditReferenceWindow): {e}", exc_info=True)
-            messagebox.showerror(_("Errore"), _("Impossibile salvare: {}").format(e), parent=self)
+            messagebox.showerror(tr("Errore"), tr("Impossibile salvare: {}").format(e), parent=self)

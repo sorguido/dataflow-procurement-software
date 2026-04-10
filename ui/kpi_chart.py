@@ -14,6 +14,7 @@ Entrambe si adattano alle dimensioni correnti del Canvas.
 """
 
 import tkinter as tk
+from utils.i18n_utils import tr
 
 # ---------------------------------------------------------------------------
 # Palette — corporate, muted, coerente con DataFlow
@@ -200,7 +201,7 @@ def _canvas_size(canvas: tk.Canvas) -> tuple:
 def _draw_no_data(canvas: tk.Canvas, W: int, H: int) -> None:
     canvas.create_text(
         W // 2, H // 2,
-        text='No data available',
+        text=tr("No data available"),
         fill='#AAAAAA',
         font=(None, 9, 'italic'),
     )

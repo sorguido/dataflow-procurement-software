@@ -12,6 +12,7 @@ Approccio: True Container Pattern
 """
 
 from tkinter import ttk
+from utils.i18n_utils import tr
 
 
 class CollapsibleFilters(ttk.Frame):
@@ -28,7 +29,7 @@ class CollapsibleFilters(ttk.Frame):
     - Reparenting reale: filters_frame è figlio diretto del wrapper
     """
     
-    def __init__(self, parent, label_text="Search Filters"):
+    def __init__(self, parent, label_text=None):
         """Inizializza il wrapper collassabile.
         
         Args:
@@ -36,6 +37,8 @@ class CollapsibleFilters(ttk.Frame):
             label_text: Testo del LabelFrame (i18n gestito dal chiamante)
         """
         super().__init__(parent)
+        if label_text is None:
+            label_text = tr("Search Filters")
         
         self._is_expanded = False  # Default: nascosto
         

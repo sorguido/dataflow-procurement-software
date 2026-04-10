@@ -14,7 +14,7 @@ from database_manager import DatabaseManager, DatabaseError
 from services.app_paths import get_db_path
 from utils.window_utils import center_window
 from utils.resource_utils import set_window_icon
-from utils.i18n_utils import _
+from utils.i18n_utils import tr
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +26,7 @@ class NotesWindow(tk.Toplevel):
         set_window_icon(self)
         self.request_id = request_id
         self.db_path = get_db_path()
-        self.title(_("Note - RdO N° {}").format(self.request_id))
+        self.title(tr("Note - RdO N° {}").format(self.request_id))
         self.resizable(True, True)
         self.parent_window = parent
         # BUG #37 FIX: Verifica esistenza finestra prima di modificare attributes
@@ -41,8 +41,8 @@ class NotesWindow(tk.Toplevel):
         # Pulsanti di salvataggio e chiusura (sempre in fondo)
         button_frame = ttk.Frame(self)
         button_frame.pack(side="bottom", fill="x", padx=10, pady=10)
-        ttk.Button(button_frame, text=_("💾 Salva Nota"), command=self.save_note).pack(side="right")
-        ttk.Button(button_frame, text=_("❌ Annulla"), command=self.on_close).pack(side="right", padx=10)
+        ttk.Button(button_frame, text=tr("💾 Salva Nota"), command=self.save_note).pack(side="right")
+        ttk.Button(button_frame, text=tr("❌ Annulla"), command=self.on_close).pack(side="right", padx=10)
 
         # Frame principale (espandibile)
         main_frame = ttk.Frame(self, padding="10")
@@ -52,9 +52,9 @@ class NotesWindow(tk.Toplevel):
         toolbar = ttk.Frame(main_frame)
         toolbar.pack(fill="x", pady=(0, 5))
 
-        ttk.Button(toolbar, text=_("B Grassetto").replace("B", "𝐁", 1), command=lambda: self.apply_tag("bold")).pack(side="left")
-        ttk.Button(toolbar, text=_("I Corsivo").replace("I", "𝑰", 1), command=lambda: self.apply_tag("italic")).pack(side="left", padx=5)
-        ttk.Button(toolbar, text=_("U Sottolineato").replace("U", "U\u0332", 1), command=lambda: self.apply_tag("underline")).pack(side="left")
+        ttk.Button(toolbar, text=tr("B Grassetto").replace("B", "𝐁", 1), command=lambda: self.apply_tag("bold")).pack(side="left")
+        ttk.Button(toolbar, text=tr("I Corsivo").replace("I", "𝑰", 1), command=lambda: self.apply_tag("italic")).pack(side="left", padx=5)
+        ttk.Button(toolbar, text=tr("U Sottolineato").replace("U", "U\u0332", 1), command=lambda: self.apply_tag("underline")).pack(side="left")
         # Spacer per allineare i pulsanti a sinistra e lasciare libera la caption bar
         ttk.Label(toolbar, text="").pack(side="left", expand=True, fill="x")
 
@@ -144,8 +144,8 @@ class NotesWindow(tk.Toplevel):
             # Se la nota salvata è in un formato vecchio o corrotto, prova a caricarla come testo semplice
             if result and result[0]:
                 self.text_editor.delete("1.0", tk.END)
-                self.text_editor.insert("1.0", _("Impossibile ripristinare la formattazione. Nota caricata come testo semplice:\n\n{}").format(result[0]))
-            SimpleMessageDialog(self, _("Errore Caricamento Nota"), _("Non è stato possibile ripristinare la formattazione della nota. Potrebbe essere stata salvata con una versione precedente.\n\nDettagli: {}").format(e), "warning")
+                self.text_editor.insert("1.0", tr("Impossibile ripristinare la formattazione. Nota caricata come testo semplice:\n\n{}").format(result[0]))
+            SimpleMessageDialog(self, tr("Errore Caricamento Nota"), tr("Non è stato possibile ripristinare la formattazione della nota. Potrebbe essere stata salvata con una versione precedente.\n\nDettagli: {}").format(e), "warning")
 
     def on_close(self):
         try:
@@ -182,8 +182,8 @@ class NotesWindow(tk.Toplevel):
             # Chiama il metodo del genitore per aggiornare il pulsante
             if hasattr(self.master, 'check_note_status_and_update_button'):
                 self.master.check_note_status_and_update_button()
-            SimpleMessageDialog(self, _("Successo"), _("Nota salvata correttamente."), "info")
+            SimpleMessageDialog(self, tr("Successo"), tr("Nota salvata correttamente."), "info")
             self.on_close()
         except DatabaseError as e:
             logger.error(f"Errore database in save_note: {e}", exc_info=True)
-            SimpleMessageDialog(self, _("Errore Database"), _("Impossibile salvare la nota: {}").format(e), "error")
+            SimpleMessageDialog(self, tr("Errore Database"), tr("Impossibile salvare la nota: {}").format(e), "error")

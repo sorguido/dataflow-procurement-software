@@ -32,16 +32,16 @@ from models.potential_supplier import (
     SUPPLIER_STATUS_SCARTATO,
 )
 
-from utils.i18n_utils import _
+from utils.i18n_utils import tr
 
 
 def _status_label(canonical: str) -> str:
     """Converte un valore canonico status → label tradotta per la UI."""
     _map = {
-        SUPPLIER_STATUS_NUOVO:          lambda: _("Nuovo"),
-        SUPPLIER_STATUS_IN_VALUTAZIONE: lambda: _("In valutazione"),
-        SUPPLIER_STATUS_QUALIFICATO:    lambda: _("Qualificato"),
-        SUPPLIER_STATUS_SCARTATO:       lambda: _("Scartato"),
+        SUPPLIER_STATUS_NUOVO:          lambda: tr("Nuovo"),
+        SUPPLIER_STATUS_IN_VALUTAZIONE: lambda: tr("In valutazione"),
+        SUPPLIER_STATUS_QUALIFICATO:    lambda: tr("Qualificato"),
+        SUPPLIER_STATUS_SCARTATO:       lambda: tr("Scartato"),
     }
     fn = _map.get(canonical)
     return fn() if fn is not None else canonical  # fallback difensivo: mostra il valore grezzo
@@ -96,11 +96,11 @@ class PotentialSupplierDialog(tk.Toplevel):
         set_window_icon(self)
 
         if read_only:
-            self.title(_("Visualizza Fornitore"))
+            self.title(tr("Visualizza Fornitore"))
         elif self.is_edit_mode:
-            self.title(_("Modifica Fornitore"))
+            self.title(tr("Modifica Fornitore"))
         else:
-            self.title(_("Nuovo Fornitore"))
+            self.title(tr("Nuovo Fornitore"))
 
         self.transient(parent)
         self.resizable(False, False)
@@ -151,13 +151,13 @@ class PotentialSupplierDialog(tk.Toplevel):
         main.columnconfigure(0, weight=1)
 
         # --- Sezione: Informazioni Generali ---
-        general = ttk.LabelFrame(main, text=_("Informazioni Generali"), padding="10")
+        general = ttk.LabelFrame(main, text=tr("Informazioni Generali"), padding="10")
         general.grid(row=0, column=0, sticky="ew", pady=(0, 10))
         general.columnconfigure(1, weight=1)
 
         row = 0
 
-        ttk.Label(general, text=_("Fornitore: *"), font=(None, 10)).grid(
+        ttk.Label(general, text=tr("Fornitore: *"), font=(None, 10)).grid(
             row=row, column=0, sticky="w", padx=(0, 10), pady=5
         )
         self._entry_supplier_name = ttk.Entry(
@@ -166,7 +166,7 @@ class PotentialSupplierDialog(tk.Toplevel):
         self._entry_supplier_name.grid(row=row, column=1, sticky="ew", pady=5)
         row += 1
 
-        ttk.Label(general, text=_("Categoria:"), font=(None, 10)).grid(
+        ttk.Label(general, text=tr("Categoria:"), font=(None, 10)).grid(
             row=row, column=0, sticky="w", padx=(0, 10), pady=5
         )
         self._combo_category = ttk.Combobox(
@@ -179,7 +179,7 @@ class PotentialSupplierDialog(tk.Toplevel):
         self._combo_category.grid(row=row, column=1, sticky="ew", pady=5)
         row += 1
 
-        ttk.Label(general, text=_("Nuova categoria:"), font=(None, 10)).grid(
+        ttk.Label(general, text=tr("Nuova categoria:"), font=(None, 10)).grid(
             row=row, column=0, sticky="w", padx=(0, 10), pady=(0, 8)
         )
         self._entry_new_category = ttk.Entry(
@@ -188,7 +188,7 @@ class PotentialSupplierDialog(tk.Toplevel):
         self._entry_new_category.grid(row=row, column=1, sticky="ew", pady=(0, 8))
         row += 1
 
-        ttk.Label(general, text=_("Stato:"), font=(None, 10)).grid(
+        ttk.Label(general, text=tr("Stato:"), font=(None, 10)).grid(
             row=row, column=0, sticky="w", padx=(0, 10), pady=5
         )
         self._combo_status = ttk.Combobox(
@@ -201,20 +201,20 @@ class PotentialSupplierDialog(tk.Toplevel):
         self._combo_status.grid(row=row, column=1, sticky="w", pady=5)
         row += 1
 
-        ttk.Label(general, text=_("Utente:"), font=(None, 10)).grid(
+        ttk.Label(general, text=tr("Utente:"), font=(None, 10)).grid(
             row=row, column=0, sticky="w", padx=(0, 10), pady=5
         )
         self._entry_username = ttk.Entry(general, width=22, state="disabled")
         self._entry_username.grid(row=row, column=1, sticky="w", pady=5)
 
         # --- Sezione: Contatti ---
-        contacts = ttk.LabelFrame(main, text=_("Contatti"), padding="10")
+        contacts = ttk.LabelFrame(main, text=tr("Contatti"), padding="10")
         contacts.grid(row=1, column=0, sticky="ew", pady=(0, 10))
         contacts.columnconfigure(1, weight=1)
 
         row = 0
 
-        ttk.Label(contacts, text=_("Contatto:"), font=(None, 10)).grid(
+        ttk.Label(contacts, text=tr("Contatto:"), font=(None, 10)).grid(
             row=row, column=0, sticky="w", padx=(0, 10), pady=5
         )
         self._entry_contact = ttk.Entry(
@@ -223,7 +223,7 @@ class PotentialSupplierDialog(tk.Toplevel):
         self._entry_contact.grid(row=row, column=1, sticky="ew", pady=5)
         row += 1
 
-        self._lbl_email = ttk.Label(contacts, text=_("E-mail:"), font=(None, 10))
+        self._lbl_email = ttk.Label(contacts, text=tr("E-mail:"), font=(None, 10))
         self._lbl_email.grid(row=row, column=0, sticky="w", padx=(0, 10), pady=5)
         self._entry_email = ttk.Entry(
             contacts, textvariable=self.var_email, width=38
@@ -231,7 +231,7 @@ class PotentialSupplierDialog(tk.Toplevel):
         self._entry_email.grid(row=row, column=1, sticky="ew", pady=5)
         row += 1
 
-        ttk.Label(contacts, text=_("Telefono:"), font=(None, 10)).grid(
+        ttk.Label(contacts, text=tr("Telefono:"), font=(None, 10)).grid(
             row=row, column=0, sticky="w", padx=(0, 10), pady=5
         )
         self._entry_phone = ttk.Entry(
@@ -240,7 +240,7 @@ class PotentialSupplierDialog(tk.Toplevel):
         self._entry_phone.grid(row=row, column=1, sticky="w", pady=5)
         row += 1
 
-        self._lbl_web = ttk.Label(contacts, text=_("Web:"), font=(None, 10))
+        self._lbl_web = ttk.Label(contacts, text=tr("Web:"), font=(None, 10))
         self._lbl_web.grid(row=row, column=0, sticky="w", padx=(0, 10), pady=5)
         self._entry_website = ttk.Entry(
             contacts, textvariable=self.var_website, width=38
@@ -248,7 +248,7 @@ class PotentialSupplierDialog(tk.Toplevel):
         self._entry_website.grid(row=row, column=1, sticky="ew", pady=5)
 
         # --- Sezione: Note ---
-        notes_frame = ttk.LabelFrame(main, text=_("Note"), padding="10")
+        notes_frame = ttk.LabelFrame(main, text=tr("Note"), padding="10")
         notes_frame.grid(row=2, column=0, sticky="ew", pady=(0, 15))
         notes_frame.columnconfigure(0, weight=1)
 
@@ -263,21 +263,21 @@ class PotentialSupplierDialog(tk.Toplevel):
 
         if self.read_only:
             ttk.Button(
-                btn_frame, text=_("Chiudi"), command=self.destroy, width=12
+                btn_frame, text=tr("Chiudi"), command=self.destroy, width=12
             ).pack(side="right", padx=(5, 0))
         else:
             ttk.Button(
-                btn_frame, text=_("❌ Annulla"), command=self.destroy, width=12
+                btn_frame, text=tr("❌ Annulla"), command=self.destroy, width=12
             ).pack(side="right", padx=(5, 0))
             ttk.Button(
                 btn_frame,
-                text=_("💾 Salva"),
+                text=tr("💾 Salva"),
                 command=self._on_save,
                 width=12,
             ).pack(side="right")
             self._btn_manage_categories = ttk.Button(
                 btn_frame,
-                text=_("Gestisci Categorie"),
+                text=tr("Gestisci Categorie"),
                 command=self._on_manage_categories,
                 width=18,
             )
@@ -310,8 +310,8 @@ class PotentialSupplierDialog(tk.Toplevel):
             logger.error("Errore caricamento fornitore ID %s: %s", self.supplier_id, e)
             SimpleMessageDialog(
                 self,
-                _("Errore Database"),
-                _("Impossibile caricare i dati del fornitore: {}").format(e),
+                tr("Errore Database"),
+                tr("Impossibile caricare i dati del fornitore: {}").format(e),
                 "error",
             )
             return
@@ -319,8 +319,8 @@ class PotentialSupplierDialog(tk.Toplevel):
         if supplier is None:
             SimpleMessageDialog(
                 self,
-                _("Fornitore non trovato"),
-                _("Il fornitore con ID {} non esiste nel database.").format(self.supplier_id),
+                tr("Fornitore non trovato"),
+                tr("Il fornitore con ID {} non esiste nel database.").format(self.supplier_id),
                 "error",
             )
             return
@@ -365,8 +365,8 @@ class PotentialSupplierDialog(tk.Toplevel):
         if not supplier_name:
             SimpleMessageDialog(
                 self,
-                _("Validazione"),
-                _("Il campo 'Fornitore' è obbligatorio."),
+                tr("Validazione"),
+                tr("Il campo 'Fornitore' è obbligatorio."),
                 "error",
             )
             self._entry_supplier_name.focus_set()
@@ -374,13 +374,13 @@ class PotentialSupplierDialog(tk.Toplevel):
 
         email_value = self.var_email.get().strip()
         if not is_valid_email(email_value):
-            SimpleMessageDialog(self, _("Validazione"), _("Formato e-mail non valido."), "error")
+            SimpleMessageDialog(self, tr("Validazione"), tr("Formato e-mail non valido."), "error")
             self._entry_email.focus_set()
             return
 
         web_value = self.var_website.get().strip()
         if not is_valid_website(web_value):
-            SimpleMessageDialog(self, _("Validazione"), _("Formato URL web non valido."), "error")
+            SimpleMessageDialog(self, tr("Validazione"), tr("Formato URL web non valido."), "error")
             self._entry_website.focus_set()
             return
 
@@ -418,8 +418,8 @@ class PotentialSupplierDialog(tk.Toplevel):
             logger.error("Errore salvataggio fornitore: %s", e)
             SimpleMessageDialog(
                 self,
-                _("Errore Salvataggio"),
-                _("Impossibile salvare il fornitore:\n{}").format(e),
+                tr("Errore Salvataggio"),
+                tr("Impossibile salvare il fornitore:\n{}").format(e),
                 "error",
             )
             return
@@ -522,7 +522,7 @@ class PotentialSupplierDialog(tk.Toplevel):
         self.clipboard_clear()
         self.clipboard_append(email)
         self.update()
-        SimpleMessageDialog(self, _("Info"), _("Mail copied"), "info")
+        SimpleMessageDialog(self, tr("Info"), tr("Mail copied"), "info")
 
     def _on_web_click(self, event=None):
         """Apre il sito web nel browser predefinito."""

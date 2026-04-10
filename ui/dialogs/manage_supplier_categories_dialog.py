@@ -24,7 +24,7 @@ from services.supplier_category_persistence import (
     get_all_supplier_categories,
     CategoryError,
 )
-from utils.i18n_utils import _
+from utils.i18n_utils import tr
 from utils.resource_utils import set_window_icon
 from utils.window_utils import center_window
 from ui.dialogs.common_dialogs import SimpleMessageDialog, SimpleYesNoDialog
@@ -52,7 +52,7 @@ class ManageSupplierCategoriesDialog(tk.Toplevel):
 
         self.withdraw()
         set_window_icon(self)
-        self.title(_("Gestisci Categorie"))
+        self.title(tr("Gestisci Categorie"))
         self.transient(parent)
         self.resizable(False, False)
 
@@ -97,7 +97,7 @@ class ManageSupplierCategoriesDialog(tk.Toplevel):
         top_frame.pack(fill="both", expand=True, pady=(0, 10))
 
         # --- Lista categorie ---
-        list_frame = ttk.LabelFrame(top_frame, text=_("Categorie"), padding="8")
+        list_frame = ttk.LabelFrame(top_frame, text=tr("Categorie"), padding="8")
         list_frame.pack(side="left", fill="both", expand=True, padx=(0, 10))
 
         scrollbar = ttk.Scrollbar(list_frame, orient="vertical")
@@ -120,11 +120,11 @@ class ManageSupplierCategoriesDialog(tk.Toplevel):
         actions_frame.pack(side="left", fill="both", expand=True)
 
         # == Rinomina ==
-        rename_frame = ttk.LabelFrame(actions_frame, text=_("Rinomina"), padding="8")
+        rename_frame = ttk.LabelFrame(actions_frame, text=tr("Rinomina"), padding="8")
         rename_frame.pack(fill="x", pady=(0, 8))
         rename_frame.columnconfigure(1, weight=1)
 
-        ttk.Label(rename_frame, text=_("Nuovo nome:"), font=(None, 10)).grid(
+        ttk.Label(rename_frame, text=tr("Nuovo nome:"), font=(None, 10)).grid(
             row=0, column=0, sticky="w", padx=(0, 8), pady=4
         )
         self.var_new_name = tk.StringVar()
@@ -133,17 +133,17 @@ class ManageSupplierCategoriesDialog(tk.Toplevel):
 
         ttk.Button(
             rename_frame,
-            text=_("Rinomina"),
+            text=tr("Rinomina"),
             command=self._on_rename,
             width=12,
         ).grid(row=1, column=0, columnspan=2, sticky="e", pady=(4, 0))
 
         # == Unisci ==
-        merge_frame = ttk.LabelFrame(actions_frame, text=_("Unisci"), padding="8")
+        merge_frame = ttk.LabelFrame(actions_frame, text=tr("Unisci"), padding="8")
         merge_frame.pack(fill="x", pady=(0, 8))
         merge_frame.columnconfigure(1, weight=1)
 
-        ttk.Label(merge_frame, text=_("Unisci con:"), font=(None, 10)).grid(
+        ttk.Label(merge_frame, text=tr("Unisci con:"), font=(None, 10)).grid(
             row=0, column=0, sticky="w", padx=(0, 8), pady=4
         )
         self.var_merge_target = tk.StringVar()
@@ -157,14 +157,14 @@ class ManageSupplierCategoriesDialog(tk.Toplevel):
 
         ttk.Button(
             merge_frame,
-            text=_("Unisci"),
+            text=tr("Unisci"),
             command=self._on_merge,
             width=12,
         ).grid(row=1, column=0, columnspan=2, sticky="e", pady=(4, 0))
 
         # == Elimina se non usata ==
         delete_frame = ttk.LabelFrame(
-            actions_frame, text=_("Elimina se non usata"), padding="8"
+            actions_frame, text=tr("Elimina se non usata"), padding="8"
         )
         delete_frame.pack(fill="x")
 
@@ -175,7 +175,7 @@ class ManageSupplierCategoriesDialog(tk.Toplevel):
 
         ttk.Button(
             delete_frame,
-            text=_("Elimina se non usata"),
+            text=tr("Elimina se non usata"),
             command=self._on_delete,
             width=22,
         ).pack(anchor="e", pady=(4, 0))
@@ -188,14 +188,14 @@ class ManageSupplierCategoriesDialog(tk.Toplevel):
 
         ttk.Button(
             btn_frame,
-            text=_("💾 Salva"),
+            text=tr("💾 Salva"),
             command=self._on_save,
             width=12,
         ).pack(side="right")
 
         ttk.Button(
             btn_frame,
-            text=_("❌ Annulla"),
+            text=tr("❌ Annulla"),
             command=self._on_cancel,
             width=12,
         ).pack(side="right", padx=(5, 0))
@@ -253,14 +253,14 @@ class ManageSupplierCategoriesDialog(tk.Toplevel):
         """Aggiorna il label con il numero di supplier associati."""
         if name not in self._original_categories:
             self._lbl_supplier_count.configure(
-                text=_("Fornitori: — (verificato al salvataggio)")
+                text=tr("Fornitori: — (verificato al salvataggio)")
             )
             return
         try:
             with DatabaseManager(get_db_path()) as db:
                 count = db.count_suppliers_by_category(name)
             self._lbl_supplier_count.configure(
-                text=_("Fornitori associati: {}").format(count)
+                text=tr("Fornitori associati: {}").format(count)
             )
         except Exception:
             self._lbl_supplier_count.configure(text="")
@@ -332,14 +332,14 @@ class ManageSupplierCategoriesDialog(tk.Toplevel):
 
         if not old_name:
             SimpleMessageDialog(
-                self, _("Attenzione"),
-                _("Seleziona una categoria dalla lista."), "warning"
+                self, tr("Attenzione"),
+                tr("Seleziona una categoria dalla lista."), "warning"
             )
             return
         if not new_name:
             SimpleMessageDialog(
-                self, _("Attenzione"),
-                _("Il nuovo nome non può essere vuoto."), "warning"
+                self, tr("Attenzione"),
+                tr("Il nuovo nome non può essere vuoto."), "warning"
             )
             return
         if old_name == new_name:
@@ -348,8 +348,8 @@ class ManageSupplierCategoriesDialog(tk.Toplevel):
         # Blocco early: rename != merge
         if new_name in self._working_categories:
             SimpleMessageDialog(
-                self, _("Operazione non consentita"),
-                _("La categoria esiste già. Usa la funzione Unisci."), "error"
+                self, tr("Operazione non consentita"),
+                tr("La categoria esiste già. Usa la funzione Unisci."), "error"
             )
             return
 
@@ -368,27 +368,27 @@ class ManageSupplierCategoriesDialog(tk.Toplevel):
 
         if not source:
             SimpleMessageDialog(
-                self, _("Attenzione"),
-                _("Seleziona una categoria sorgente dalla lista."), "warning"
+                self, tr("Attenzione"),
+                tr("Seleziona una categoria sorgente dalla lista."), "warning"
             )
             return
         if not target:
             SimpleMessageDialog(
-                self, _("Attenzione"),
-                _("Seleziona la categoria destinazione dal menu."), "warning"
+                self, tr("Attenzione"),
+                tr("Seleziona la categoria destinazione dal menu."), "warning"
             )
             return
         if source == target:
             SimpleMessageDialog(
-                self, _("Attenzione"),
-                _("Sorgente e destinazione devono essere diverse."), "warning"
+                self, tr("Attenzione"),
+                tr("Sorgente e destinazione devono essere diverse."), "warning"
             )
             return
 
         dlg = SimpleYesNoDialog(
             self,
-            _("Conferma Unione"),
-            _("Tutti i fornitori con categoria '{src}' verranno spostati a '{tgt}'.\n"
+            tr("Conferma Unione"),
+            tr("Tutti i fornitori con categoria '{src}' verranno spostati a '{tgt}'.\n"
               "La categoria '{src}' verrà eliminata.\n\nProcedere?").format(
                 src=source, tgt=target
             ),
@@ -406,8 +406,8 @@ class ManageSupplierCategoriesDialog(tk.Toplevel):
         name = self._get_selected_category()
         if not name:
             SimpleMessageDialog(
-                self, _("Attenzione"),
-                _("Seleziona una categoria dalla lista."), "warning"
+                self, tr("Attenzione"),
+                tr("Seleziona una categoria dalla lista."), "warning"
             )
             return
 
@@ -429,7 +429,7 @@ class ManageSupplierCategoriesDialog(tk.Toplevel):
             with DatabaseManager(get_db_path()) as db:
                 db.apply_category_ops_atomic(self._pending_ops)
         except DatabaseError as e:
-            SimpleMessageDialog(self, _("Errore Database"), str(e), "error")
+            SimpleMessageDialog(self, tr("Errore Database"), str(e), "error")
             return  # non chiudere: l'utente può correggere o annullare
 
         self.changes_made = True
@@ -445,4 +445,3 @@ class ManageSupplierCategoriesDialog(tk.Toplevel):
     def _on_cancel(self):
         """Chiude il dialog senza scrivere nulla nel DB."""
         self.destroy()
-
