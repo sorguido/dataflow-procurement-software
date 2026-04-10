@@ -3430,3 +3430,129 @@ msgstr "Eliminare il numero ordine selezionato?"
 
 msgid "Cannot delete: invalid row index ({})"
 msgstr "Impossibile eliminare: indice riga non valido ({})."
+
+msgid "KPI Analysis"
+msgstr "Analisi KPI"
+
+msgid "Period:"
+msgstr "Periodo:"
+
+msgid "Year:"
+msgstr "Anno:"
+
+msgid "All"
+msgstr "Tutti"
+
+msgid "📥 Export Excel"
+msgstr "📥 Esporta Excel"
+
+msgid "  RFQ  "
+msgstr "  RFQ  "
+
+msgid "  Saving  "
+msgstr "  Risparmio  "
+
+msgid "  Cost Avoidance  "
+msgstr "  Evitamento Costi  "
+
+msgid "  Derisking  "
+msgstr "  Riduzione Rischio  "
+
+msgid "RFQ Active"
+msgstr "RFQ Attive"
+
+msgid "RFQ Archived"
+msgstr "RFQ Archiviate"
+
+msgid "RFQ Total"
+msgstr "RFQ Totali"
+
+msgid "Work Order"
+msgstr "Conto lavoro"
+
+msgid "Full Supply"
+msgstr "Fornitura piena"
+
+msgid "Theoretical Saving"
+msgstr "Saving Teorico"
+
+msgid "Actual Saving"
+msgstr "Saving Effettivo"
+
+msgid "Average Theoretical Saving %"
+msgstr "Media Saving Teorico %"
+
+msgid "Best Saving %"
+msgstr "Miglior Saving %"
+
+msgid "Worst Saving %"
+msgstr "Peggior Saving %"
+
+msgid "Median Saving %"
+msgstr "Mediana Saving %"
+
+msgid "Recurring Impact (€)"
+msgstr "Impatto Ricorrente (€)"
+
+msgid "Non-Recurring Impact (€)"
+msgstr "Impatto Non Ricorrente (€)"
+
+msgid "Theoretical Cost Avoidance"
+msgstr "Cost Avoidance Teorico"
+
+msgid "Actual Cost Avoidance"
+msgstr "Cost Avoidance Effettivo"
+
+msgid "Average Theoretical CA %"
+msgstr "Media CA Teorico %"
+
+msgid "Best %"
+msgstr "Migliore %"
+
+msgid "Worst %"
+msgstr "Peggiore %"
+
+msgid "Median %"
+msgstr "Mediana %"
+
+msgid "Recurring (€)"
+msgstr "Ricorrente (€)"
+
+msgid "Non-Recurring (€)"
+msgstr "Non Ricorrente (€)"
+
+msgid "Carry-over to next year (€)"
+msgstr "Riporto all'anno successivo (€)"
+
+msgid "KPI"
+msgstr "KPI"
+
+msgid "Chart"
+msgstr "Grafico"
+
+msgid "Details"
+msgstr "Dettagli"
+
+msgid "📊 Tutte le sezioni"
+msgstr "📊 Tutte le sezioni"
+
+msgid "📋 Sezione corrente"
+msgstr "📋 Sezione corrente"
+
+msgid "❌ Annulla"
+msgstr "❌ Annulla"
+
+msgid "Close"
+msgstr "Chiudi"
+
+msgid "PO Number"
+msgstr "Numero Ordine"
+
+msgid "Supplier"
+msgstr "Fornitore"
+
+msgid "❌ Delete"
+msgstr "❌ Elimina"
+
+msgid "➕ Add"
+msgstr "➕ Aggiungi"

@@ -3441,3 +3441,129 @@ msgstr "Delete the selected PO number?"
 
 msgid "Cannot delete: invalid row index ({})"
 msgstr "Cannot delete: invalid row index ({})"
+
+msgid "KPI Analysis"
+msgstr "KPI Analysis"
+
+msgid "Period:"
+msgstr "Period:"
+
+msgid "Year:"
+msgstr "Year:"
+
+msgid "All"
+msgstr "All"
+
+msgid "📥 Export Excel"
+msgstr "📥 Export Excel"
+
+msgid "  RFQ  "
+msgstr "  RFQ  "
+
+msgid "  Saving  "
+msgstr "  Saving  "
+
+msgid "  Cost Avoidance  "
+msgstr "  Cost Avoidance  "
+
+msgid "  Derisking  "
+msgstr "  Derisking  "
+
+msgid "RFQ Active"
+msgstr "RFQ Active"
+
+msgid "RFQ Archived"
+msgstr "RFQ Archived"
+
+msgid "RFQ Total"
+msgstr "RFQ Total"
+
+msgid "Work Order"
+msgstr "Work Order"
+
+msgid "Full Supply"
+msgstr "Full Supply"
+
+msgid "Theoretical Saving"
+msgstr "Theoretical Saving"
+
+msgid "Actual Saving"
+msgstr "Actual Saving"
+
+msgid "Average Theoretical Saving %"
+msgstr "Average Theoretical Saving %"
+
+msgid "Best Saving %"
+msgstr "Best Saving %"
+
+msgid "Worst Saving %"
+msgstr "Worst Saving %"
+
+msgid "Median Saving %"
+msgstr "Median Saving %"
+
+msgid "Recurring Impact (€)"
+msgstr "Recurring Impact (€)"
+
+msgid "Non-Recurring Impact (€)"
+msgstr "Non-Recurring Impact (€)"
+
+msgid "Theoretical Cost Avoidance"
+msgstr "Theoretical Cost Avoidance"
+
+msgid "Actual Cost Avoidance"
+msgstr "Actual Cost Avoidance"
+
+msgid "Average Theoretical CA %"
+msgstr "Average Theoretical CA %"
+
+msgid "Best %"
+msgstr "Best %"
+
+msgid "Worst %"
+msgstr "Worst %"
+
+msgid "Median %"
+msgstr "Median %"
+
+msgid "Recurring (€)"
+msgstr "Recurring (€)"
+
+msgid "Non-Recurring (€)"
+msgstr "Non-Recurring (€)"
+
+msgid "Carry-over to next year (€)"
+msgstr "Carry-over to next year (€)"
+
+msgid "KPI"
+msgstr "KPI"
+
+msgid "Chart"
+msgstr "Chart"
+
+msgid "Details"
+msgstr "Details"
+
+msgid "📊 Tutte le sezioni"
+msgstr "📊 All sections"
+
+msgid "📋 Sezione corrente"
+msgstr "📋 Current section"
+
+msgid "❌ Annulla"
+msgstr "❌ Cancel"
+
+msgid "Close"
+msgstr "Close"
+
+msgid "PO Number"
+msgstr "PO Number"
+
+msgid "Supplier"
+msgstr "Supplier"
+
+msgid "❌ Delete"
+msgstr "❌ Delete"
+
+msgid "➕ Add"
+msgstr "➕ Add"
