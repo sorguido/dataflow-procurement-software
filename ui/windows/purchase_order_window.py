@@ -4,7 +4,7 @@ Estratta da dataflow.py per compatibilità con PyInstaller.
 """
 
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import ttk
 import logging
 import json
 import re

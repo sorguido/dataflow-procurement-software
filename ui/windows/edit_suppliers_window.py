@@ -4,7 +4,7 @@ Estratta da dataflow.py per compatibilità con PyInstaller.
 """
 
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import ttk
 import logging
 
 from database_manager import DatabaseManager, DatabaseError
@@ -12,6 +12,7 @@ from services.app_paths import get_db_path
 from utils.window_utils import center_window
 from utils.resource_utils import set_window_icon
 from utils.i18n_utils import tr
+from ui.dialogs.common_dialogs import show_error, show_info, show_warning
 
 logger = logging.getLogger(__name__)
 
@@ -52,16 +53,12 @@ class EditSuppliersWindow(tk.Toplevel):
             self.entry_suppliers.insert(0, ", ".join([r[0] for r in rows]))
         except DatabaseError as e:
             logger.error(f"Errore database in load_current_suppliers: {e}", exc_info=True)
-            messagebox.showerror(tr("Errore"), tr("Impossibile caricare i fornitori: {}").format(e), parent=self)
+            show_error(self, tr("Errore"), tr("Impossibile caricare i fornitori: {}").format(e))
     
     def save_changes(self):
         # Blocca se in modalità read-only
         if getattr(self, 'read_only', False):
-            messagebox.showwarning(
-                tr("Operazione Non Consentita"),
-                tr("Non puoi modificare i fornitori di RdO di altri utenti."),
-                parent=self
-            )
+            show_warning(self, tr("Operazione Non Consentita"), tr("Non puoi modificare i fornitori di RdO di altri utenti."))
             return
         
         new_suppliers = [n.strip() for n in self.entry_suppliers.get().split(',') if n.strip()]
@@ -73,10 +70,10 @@ class EditSuppliersWindow(tk.Toplevel):
             duplicati_unici = list(set(duplicati))
             
             if duplicati_unici:
-                messagebox.showwarning(
+                show_warning(
+                    self,
                     tr("Fornitori Duplicati"),
-                    tr("Hai inserito lo stesso fornitore più volte:\n\n{}\n\nOgni fornitore deve essere inserito una sola volta.").format(', '.join(sorted(set(duplicati_unici)))),
-                    parent=self
+                    tr("Hai inserito lo stesso fornitore più volte:\n\n{}\n\nOgni fornitore deve essere inserito una sola volta.").format(', '.join(sorted(set(duplicati_unici))))
                 )
                 return
         
@@ -105,12 +102,12 @@ class EditSuppliersWindow(tk.Toplevel):
             
             # Messaggio di successo personalizzato
             if new_suppliers:
-                messagebox.showinfo(tr("Successo"), tr("Elenco fornitori aggiornato."), parent=self.master)
+                show_info(self.master, tr("Successo"), tr("Elenco fornitori aggiornato."))
             else:
-                messagebox.showinfo(tr("Successo"), tr("Tutti i fornitori sono stati rimossi."), parent=self.master)
+                show_info(self.master, tr("Successo"), tr("Tutti i fornitori sono stati rimossi."))
             
             self.destroy()
             
         except DatabaseError as e:
             logger.error(f"Errore database in save_changes (EditSuppliersWindow): {e}", exc_info=True)
-            messagebox.showerror(tr("Errore"), tr("Impossibile salvare: {}").format(e), parent=self)
+            show_error(self, tr("Errore"), tr("Impossibile salvare: {}").format(e))

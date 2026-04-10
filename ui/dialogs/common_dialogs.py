@@ -2,7 +2,7 @@
 Dialog componenti per l'applicazione DataFlow.
 """
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import ttk
 import webbrowser
 from PIL import Image, ImageTk
 import os
@@ -105,6 +105,60 @@ class SimpleYesNoDialog(tk.Toplevel):
         self.destroy()
     
     def _on_no(self):
+        self.result = False
+        self.destroy()
+
+
+class SimpleOkCancelDialog(tk.Toplevel):
+    """Dialog semplice per domande OK/Cancel con font uniforme all'app."""
+    def __init__(self, parent, title, message):
+        super().__init__(parent)
+        self.withdraw()
+        set_window_icon(self)
+        self.title(title)
+        self.result = False
+        self.transient(parent)
+        self.resizable(False, False)
+        self.grab_set()
+
+        frame = ttk.Frame(self, padding="20")
+        frame.pack(fill="both", expand=True)
+
+        ttk.Label(
+            frame,
+            text=message,
+            font=(None, 10),
+            wraplength=400,
+            justify="left"
+        ).pack(pady=(0, 15))
+
+        btn_frame = ttk.Frame(frame)
+        btn_frame.pack()
+
+        ttk.Button(
+            btn_frame,
+            text=tr("OK"),
+            command=self._on_ok,
+            width=10
+        ).pack(side="left", padx=5)
+
+        ttk.Button(
+            btn_frame,
+            text=tr("❌ Annulla"),
+            command=self._on_cancel,
+            width=10
+        ).pack(side="left", padx=5)
+
+        self.protocol("WM_DELETE_WINDOW", self._on_cancel)
+        center_window(self)
+        self.deiconify()
+        self.wait_window()
+
+    def _on_ok(self):
+        self.result = True
+        self.destroy()
+
+    def _on_cancel(self):
         self.result = False
         self.destroy()
 
@@ -298,12 +352,12 @@ class UserIdentityDialog(tk.Toplevel):
         first = self.first_var.get().strip()
         last = self.last_var.get().strip()
         if not first or not last:
-            messagebox.showerror(tr("Campi obbligatori"), tr("Inserisci sia il nome sia il cognome."), parent=self)
+            show_error(self, tr("Campi obbligatori"), tr("Inserisci sia il nome sia il cognome."))
             return
         try:
             username = generate_username(first, last)
         except ValueError as e:
-            messagebox.showerror(tr("Formato non valido"), str(e), parent=self)
+            show_error(self, tr("Formato non valido"), str(e))
             return
         self.result = {
             'first_name': first,
@@ -489,3 +543,52 @@ class LicenseAcceptanceDialog(tk.Toplevel):
         self.accepted = False
         self.grab_release()
         self.destroy()
+
+
+def _parse_dialog_args(parent_or_title, title_or_message=None, message=None, **kwargs):
+    """Supporta sia (parent, title, message) sia (title, message, parent=...)."""
+    if message is None:
+        parent = kwargs.get("parent")
+        title = parent_or_title
+        msg = title_or_message
+    else:
+        parent = parent_or_title
+        title = title_or_message
+        msg = message
+    return parent, title, msg
+
+
+def show_info(parent_or_title, title_or_message=None, message=None, **kwargs):
+    """Mostra un dialog informativo con stile uniforme DataFlow."""
+    parent, title, msg = _parse_dialog_args(parent_or_title, title_or_message, message, **kwargs)
+    SimpleMessageDialog(parent, title, msg, "info")
+
+
+def show_success(parent_or_title, title_or_message=None, message=None, **kwargs):
+    """Mostra un dialog di successo con stile uniforme DataFlow."""
+    parent, title, msg = _parse_dialog_args(parent_or_title, title_or_message, message, **kwargs)
+    SimpleMessageDialog(parent, title, msg, "info")
+
+
+def show_error(parent_or_title, title_or_message=None, message=None, **kwargs):
+    """Mostra un dialog di errore con stile uniforme DataFlow."""
+    parent, title, msg = _parse_dialog_args(parent_or_title, title_or_message, message, **kwargs)
+    SimpleMessageDialog(parent, title, msg, "error")
+
+
+def show_warning(parent_or_title, title_or_message=None, message=None, **kwargs):
+    """Mostra un dialog di warning con stile uniforme DataFlow."""
+    parent, title, msg = _parse_dialog_args(parent_or_title, title_or_message, message, **kwargs)
+    SimpleMessageDialog(parent, title, msg, "warning")
+
+
+def show_confirm(parent_or_title, title_or_message=None, message=None, **kwargs):
+    """Mostra una conferma Yes/No con stile uniforme DataFlow."""
+    parent, title, msg = _parse_dialog_args(parent_or_title, title_or_message, message, **kwargs)
+    return SimpleYesNoDialog(parent, title, msg).result
+
+
+def show_ok_cancel(parent_or_title, title_or_message=None, message=None, **kwargs):
+    """Mostra una conferma OK/Annulla con stile uniforme DataFlow."""
+    parent, title, msg = _parse_dialog_args(parent_or_title, title_or_message, message, **kwargs)
+    return SimpleOkCancelDialog(parent, title, msg).result

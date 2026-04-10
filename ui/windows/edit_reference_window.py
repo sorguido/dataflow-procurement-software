@@ -4,7 +4,7 @@ Estratta da dataflow.py per compatibilità con PyInstaller.
 """
 
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import ttk
 import logging
 
 from database_manager import DatabaseManager, DatabaseError
@@ -12,6 +12,7 @@ from services.app_paths import get_db_path
 from utils.window_utils import center_window
 from utils.resource_utils import set_window_icon
 from utils.i18n_utils import tr
+from ui.dialogs.common_dialogs import show_error, show_info
 
 logger = logging.getLogger(__name__)
 
@@ -54,15 +55,15 @@ class EditReferenceWindow(tk.Toplevel):
                 self.entry_riferimento.insert(0, result[0])
         except DatabaseError as e:
             logger.error(f"Errore database in load_current_reference: {e}", exc_info=True)
-            messagebox.showerror(tr("Errore"), tr("Impossibile caricare riferimento: {}").format(e), parent=self)
+            show_error(self, tr("Errore"), tr("Impossibile caricare riferimento: {}").format(e))
     
     def save_changes(self):
         try:
             # BUG #46 FIX: Usa context manager per garantire chiusura DB anche su eccezione
             with DatabaseManager(getattr(self, 'db_path', get_db_path())) as db_manager:
                 db_manager.update_riferimento(self.request_id, self.entry_riferimento.get().strip())
-            messagebox.showinfo(tr("Successo"), tr("Riferimento aggiornato."), parent=self.master)
+            show_info(self.master, tr("Successo"), tr("Riferimento aggiornato."))
             self.destroy()
         except DatabaseError as e:
             logger.error(f"Errore database in save_changes (EditReferenceWindow): {e}", exc_info=True)
-            messagebox.showerror(tr("Errore"), tr("Impossibile salvare: {}").format(e), parent=self)
+            show_error(self, tr("Errore"), tr("Impossibile salvare: {}").format(e))

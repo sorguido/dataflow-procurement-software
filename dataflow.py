@@ -27,7 +27,7 @@ if sys.platform == 'win32':
         logging.getLogger(__name__).debug(f"DPI awareness non disponibile: {e}")
 
 import tkinter as tk
-from tkinter import ttk, messagebox, filedialog, simpledialog
+from tkinter import ttk, filedialog, simpledialog
 from tksheet import Sheet
 import os
 from database_manager import DatabaseManager, DatabaseError
@@ -118,7 +118,8 @@ from ui.dialogs.common_dialogs import (
     SplashScreen,
     SimpleYesNoDialog,
     SimpleMessageDialog,
-    LicenseAcceptanceDialog
+    LicenseAcceptanceDialog,
+    show_error
 )
 
 # Esegui pulizia all'avvio
@@ -1329,7 +1330,7 @@ class MainWindow:
                 except Exception as e:
                     logger.error(f"Errore nel riavvio dell'applicazione: {e}")
                     try:
-                        messagebox.showerror(
+                        show_error(
                             tr("Errore"),
                             tr("Impossibile riavviare l'applicazione automaticamente.\n\nPerfavore, chiudi e riapri manualmente l'applicazione per applicare le modifiche.\n\nPercorso tentato: {}").format(script_path),
                             parent=None
@@ -1354,7 +1355,7 @@ class MainWindow:
         except Exception as e:
             # Se il riavvio fallisce, mostra un messaggio all'utente
             logger.error(f"Errore nel riavvio dell'applicazione: {e}")
-            messagebox.showerror(
+            show_error(
                 tr("Errore"),
                 tr("Impossibile riavviare l'applicazione automaticamente.\n\nPerfavore, chiudi e riapri manualmente l'applicazione per applicare le modifiche.\n\nPercorso tentato: {}").format(script_path),
                 parent=self.root if hasattr(self, 'root') else None

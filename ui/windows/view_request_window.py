@@ -4,7 +4,7 @@ Estratta da dataflow.py per migliore organizzazione del codice.
 """
 
 import tkinter as tk
-from tkinter import ttk, messagebox, filedialog
+from tkinter import ttk, filedialog
 from tksheet import Sheet
 import os
 from datetime import datetime, date
@@ -39,6 +39,14 @@ from ui.windows.notes_window import NotesWindow
 from ui.windows.purchase_order_window import PurchaseOrderWindow
 from ui.windows.attachment_window import AttachmentWindow
 from ui.windows.sqdc_analysis_window import SQDCAnalysisWindow
+from ui.dialogs.common_dialogs import (
+    LanguagePrompt,
+    show_error,
+    show_warning,
+    show_info,
+    show_confirm,
+    show_ok_cancel
+)
 
 logger = logging.getLogger(__name__)
 
@@ -477,7 +485,7 @@ class ViewRequestWindow(tk.Toplevel):
                         
                     except Exception as parse_error:
                         logger.error(f"Errore parsing file SQDC: {parse_error}", exc_info=True)
-                        messagebox.showwarning(
+                        show_warning(
                             tr("Avviso"),
                             tr("File SQDC trovato ma impossibile caricare i dati.\nVerrà aperta una nuova analisi vuota.\n\nErrore: {}").format(parse_error),
                             parent=self
@@ -524,12 +532,12 @@ class ViewRequestWindow(tk.Toplevel):
                 
         except DatabaseError as e:
             logger.error(f"Errore database in load_rdo_details: {e}", exc_info=True)
-            messagebox.showerror(tr("Errore"), tr("Impossibile caricare dettagli: {}").format(e), parent=self)
+            show_error(tr("Errore"), tr("Impossibile caricare dettagli: {}").format(e), parent=self)
 
     def open_edit_reference_window(self):
         """Apre la finestra di modifica riferimento."""
         if self.read_only:
-            messagebox.showwarning(
+            show_warning(
                 tr("Operazione Non Consentita"),
                 tr("Non puoi modificare il riferimento di RdO di altri utenti."),
                 parent=self
@@ -545,7 +553,7 @@ class ViewRequestWindow(tk.Toplevel):
     def open_po_window(self):
         """Apre la finestra di gestione numeri ordine di acquisto."""
         if self.read_only:
-            messagebox.showwarning(
+            show_warning(
                 tr("Operazione Non Consentita"),
                 tr("Non puoi modificare i numeri ordine di RdO di altri utenti."),
                 parent=self
@@ -584,7 +592,7 @@ class ViewRequestWindow(tk.Toplevel):
                 
         except Exception as e:
             logger.error(f"Errore database in auto_save_dates: {e}", exc_info=True)
-            messagebox.showerror(tr("Errore"), tr("Impossibile salvare le date: {}").format(e), parent=self)
+            show_error(tr("Errore"), tr("Impossibile salvare le date: {}").format(e), parent=self)
         finally:
             if hasattr(self, 'after'):
                 import weakref
@@ -603,26 +611,24 @@ class ViewRequestWindow(tk.Toplevel):
             new_date_em = format_date_for_db(self.entry_data_emissione.get())
             new_date_sc = format_date_for_db(self.entry_data_scadenza.get())
         except Exception as e:
-            messagebox.showerror(tr("Errore Formato Data"), tr("Date non valide: {}").format(e), parent=self)
+            show_error(tr("Errore Formato Data"), tr("Date non valide: {}").format(e), parent=self)
             return
 
         try:
             with self._get_db_manager() as db_manager:
                 db_manager.update_date_richiesta(self.request_id, new_date_em, new_date_sc)
             
-            messagebox.showinfo(tr("Successo"), tr("Date aggiornate."), parent=self)
+            show_info(tr("Successo"), tr("Date aggiornate."), parent=self)
             
             if hasattr(self.master, 'refresh_data'):
                 self.master.refresh_data()
                 
         except DatabaseError as e:
             logger.error(f"Errore database in save_dates: {e}", exc_info=True)
-            messagebox.showerror(tr("Errore Database"), tr("Impossibile salvare le date: {}").format(e), parent=self)
+            show_error(tr("Errore Database"), tr("Impossibile salvare le date: {}").format(e), parent=self)
 
     def export_to_excel(self):
         """Esporta i dati della RdO in Excel"""
-        from ui.dialogs.common_dialogs import LanguagePrompt
-        
         logger.info(f"Esportazione Excel per RdO {self.request_id}")
         
         prompt = LanguagePrompt(self)
@@ -639,12 +645,12 @@ class ViewRequestWindow(tk.Toplevel):
             with self._get_db_manager() as db_manager:
                 rdo_type_result = db_manager.get_tipo_rdo(self.request_id)
             if not rdo_type_result:
-                messagebox.showerror(tr("Errore"), tr("Tipo RdO non trovato."), parent=self)
+                show_error(tr("Errore"), tr("Tipo RdO non trovato."), parent=self)
                 return
             tipo_normalizzato = normalize_rfq_type(rdo_type_result[0])
             is_cl = tipo_normalizzato == 'Conto lavoro'
         except Exception as e:
-            messagebox.showerror(tr("Errore Database"), tr("Impossibile determinare il tipo di RdO: {}").format(e), parent=self)
+            show_error(tr("Errore Database"), tr("Impossibile determinare il tipo di RdO: {}").format(e), parent=self)
             return
 
         template_name = ""
@@ -677,7 +683,7 @@ class ViewRequestWindow(tk.Toplevel):
         template_path = resource_path(os.path.join("add_data", template_name))
 
         if not os.path.exists(template_path):
-            messagebox.showerror(tr("Errore"), tr("File modello non trovato!\nAssicurarsi che '{}' esista nella cartella 'add_data'.").format(template_name), parent=self)
+            show_error(tr("Errore"), tr("File modello non trovato!\nAssicurarsi che '{}' esista nella cartella 'add_data'.").format(template_name), parent=self)
             return
         
         wb = None
@@ -685,7 +691,7 @@ class ViewRequestWindow(tk.Toplevel):
             with self._get_db_manager() as db_manager:
                 rdo_det = db_manager.get_richiesta_full_data(self.request_id)
                 if not rdo_det:
-                    messagebox.showerror(tr("Errore"), tr("Dettagli RdO non trovati."), parent=self)
+                    show_error(tr("Errore"), tr("Dettagli RdO non trovati."), parent=self)
                     return
                 de_db, ds_db, rif, tipo = rdo_det
                 suppliers_rows = db_manager.get_fornitori_by_richiesta(self.request_id, order_by=True)
@@ -747,14 +753,14 @@ class ViewRequestWindow(tk.Toplevel):
             if filepath: 
                 wb.save(filepath)
                 logger.info(f"Excel esportato: {filepath}")
-                messagebox.showinfo(tr("Successo"), tr("File salvato in:\n{}").format(filepath), parent=self)
+                show_info(tr("Successo"), tr("File salvato in:\n{}").format(filepath), parent=self)
             else:
                 # BUG FIX: Se annullato, riporta focus a ViewRequestWindow
                 self.lift()
                 self.focus_force()
         except Exception as e: 
             logger.error(f"Errore esportazione Excel: {e}", exc_info=True)
-            messagebox.showerror(tr("Errore Esportazione"), tr("Errore: {}").format(e), parent=self)
+            show_error(tr("Errore Esportazione"), tr("Errore: {}").format(e), parent=self)
         finally:
             if wb is not None:
                 try:
@@ -835,7 +841,7 @@ class ViewRequestWindow(tk.Toplevel):
                 print(f"[ViewRequestWindow.build_grid] Primi 3 materiali: {materials[:3]}")
         except DatabaseError as e:
             logger.error(f"Errore database in build_grid: {e}", exc_info=True)
-            messagebox.showerror(tr("Errore Database"), tr("Impossibile caricare la griglia: {}").format(e), parent=self)
+            show_error(tr("Errore Database"), tr("Impossibile caricare la griglia: {}").format(e), parent=self)
             return
         
         self.suppliers = suppliers
@@ -1070,7 +1076,7 @@ class ViewRequestWindow(tk.Toplevel):
         if col_idx == 3:
             if new_value and new_value.strip():
                 if '.' in new_value and ',' not in new_value:
-                    messagebox.showwarning(
+                    show_warning(
                         tr("Separatore Decimale"),
                         tr("Hai usato il punto (.) come separatore decimale.\n\nIn questo programma si usa la VIRGOLA (,) come separatore decimale.\n\nEsempio corretto: 12,5 invece di 12.5"),
                         parent=self
@@ -1100,7 +1106,7 @@ class ViewRequestWindow(tk.Toplevel):
                 
         except DatabaseError as e:
             logger.error(f"Errore database in save_article_field: {e}", exc_info=True)
-            messagebox.showerror(tr("Errore Database"), 
+            show_error(tr("Errore Database"), 
                                tr("Impossibile salvare la modifica: {}").format(e), 
                                parent=self)
             return False
@@ -1122,7 +1128,7 @@ class ViewRequestWindow(tk.Toplevel):
                         price_float = parse_float_from_comma_string(price_str)
                         value_to_save = format_price_display(price_float)
                     except ValueError:
-                        messagebox.showerror(tr("Errore Formato"), tr("Il prezzo deve essere un numero valido (es. 123,45), 'X' o 'ND'.\nUsa la virgola come separatore decimale."), parent=self)
+                        show_error(tr("Errore Formato"), tr("Il prezzo deve essere un numero valido (es. 123,45), 'X' o 'ND'.\nUsa la virgola come separatore decimale."), parent=self)
                         return None
 
                 if price_str_upper == 'X' or price_str_upper == 'ND':
@@ -1135,7 +1141,7 @@ class ViewRequestWindow(tk.Toplevel):
                 
         except DatabaseError as e:
             logger.error(f"Errore database in save_price_in_db_no_refresh: {e}", exc_info=True)
-            messagebox.showerror(tr("Errore Database"), tr("Impossibile salvare il prezzo: {}").format(e), parent=self)
+            show_error(tr("Errore Database"), tr("Impossibile salvare il prezzo: {}").format(e), parent=self)
             return None
 
     def save_price_in_db(self, detail_id, supplier_name, price_str):
@@ -1159,7 +1165,7 @@ class ViewRequestWindow(tk.Toplevel):
                 
         except DatabaseError as e:
             logger.error(f"Errore database in add_new_article_row: {e}", exc_info=True)
-            messagebox.showerror(tr("Errore Database"), 
+            show_error(tr("Errore Database"), 
                                tr("Impossibile aggiungere l'articolo: {}").format(e), 
                                parent=self)
     
@@ -1169,20 +1175,20 @@ class ViewRequestWindow(tk.Toplevel):
         print(f"[ViewRequestWindow.remove_selected_article] Righe selezionate: {selected}")
         
         if not selected:
-            messagebox.showwarning(tr("Attenzione"), 
+            show_warning(tr("Attenzione"), 
                                   tr("Seleziona almeno un articolo da rimuovere."), 
                                   parent=self)
             return
         
         if not hasattr(self, 'materials') or not self.materials:
-            messagebox.showwarning(tr("Attenzione"), 
+            show_warning(tr("Attenzione"), 
                                   tr("Nessun articolo disponibile per l'eliminazione."), 
                                   parent=self)
             return
         
         print(f"[ViewRequestWindow.remove_selected_article] Numero materiali disponibili: {len(self.materials)}")
         
-        if not messagebox.askyesno(tr("Conferma Eliminazione"), 
+        if not show_confirm(tr("Conferma Eliminazione"), 
                                    tr("Sei sicuro di voler eliminare {} articolo/i selezionato/i?\nVerranno eliminati anche tutti i prezzi associati.").format(len(selected)), 
                                    parent=self):
             return
@@ -1208,14 +1214,14 @@ class ViewRequestWindow(tk.Toplevel):
             
             if invalid_indices:
                 logger.warning(f"remove_selected_article: {len(invalid_indices)} indici invalidi: {invalid_indices}")
-                messagebox.showwarning(
+                show_warning(
                     tr("Attenzione"),
                     tr("Alcuni indici selezionati non sono validi e verranno ignorati: {}").format(", ".join(invalid_indices)),
                     parent=self
                 )
             
             if not ids_to_delete:
-                messagebox.showwarning(tr("Attenzione"), 
+                show_warning(tr("Attenzione"), 
                                       tr("Nessun articolo valido selezionato per l'eliminazione."), 
                                       parent=self)
                 return
@@ -1229,13 +1235,13 @@ class ViewRequestWindow(tk.Toplevel):
             
             self.refresh_grid()
             
-            messagebox.showinfo(tr("Successo"), 
+            show_info(tr("Successo"), 
                                tr("{} articolo/i eliminato/i con successo.").format(count), 
                                parent=self)
             
         except DatabaseError as e:
             logger.error(f"Errore database in remove_selected_article: {e}", exc_info=True)
-            messagebox.showerror(tr("Errore Database"), 
+            show_error(tr("Errore Database"), 
                                tr("Impossibile eliminare l'articolo: {}").format(e), 
                                parent=self)
 
@@ -1245,12 +1251,12 @@ class ViewRequestWindow(tk.Toplevel):
             with DatabaseManager(get_db_path()) as db_manager:
                 result = db_manager.get_tipo_rdo(self.request_id)
             if not result:
-                messagebox.showerror(tr("Errore"), tr("RdO non trovata."), parent=self)
+                show_error(tr("Errore"), tr("RdO non trovata."), parent=self)
                 return
             tipo_rdo = result[0]
         except DatabaseError as e:
             logger.error(f"Errore database in import_from_excel: {e}", exc_info=True)
-            messagebox.showerror(tr("Errore Database"), tr("Impossibile determinare il tipo di RdO: {}").format(e), parent=self)
+            show_error(tr("Errore Database"), tr("Impossibile determinare il tipo di RdO: {}").format(e), parent=self)
             return
         
         is_cl = (tipo_rdo == "Conto lavoro")
@@ -1260,7 +1266,7 @@ class ViewRequestWindow(tk.Toplevel):
                + tr("A: Codice, B: Allegato, C: Descrizione, D: Quantità\n\n")
                + tr("TIPO '{}' (7 colonne):\n").format(tr("Conto lavoro"))
                + tr("A-D come sopra, E: Codice Grezzo, F: Allegato Grezzo, G: Materiale C/L"))
-        if not messagebox.askokcancel(tr("Istruzioni Importazione Excel"), msg, parent=self):
+        if not show_ok_cancel(tr("Istruzioni Importazione Excel"), msg, parent=self):
             return
 
         filepath = filedialog.askopenfilename(
@@ -1302,7 +1308,7 @@ class ViewRequestWindow(tk.Toplevel):
                     items_to_add.append((str(cod), str(allegato or ""), str(desc or ""), str(qta), "", "", ""))
             
             if not items_to_add:
-                messagebox.showwarning(tr("Attenzione"), tr("Nessun articolo valido trovato nel file Excel."), parent=self)
+                show_warning(tr("Attenzione"), tr("Nessun articolo valido trovato nel file Excel."), parent=self)
                 return
             
             db_manager = DatabaseManager(get_db_path())
@@ -1313,15 +1319,15 @@ class ViewRequestWindow(tk.Toplevel):
             print(f"[ViewRequestWindow.import_from_excel] Chiamata refresh_grid() dopo importazione di {count} articoli")
             self.refresh_grid()
             
-            messagebox.showinfo(tr("Importazione Completata"), 
+            show_info(tr("Importazione Completata"), 
                                tr("{} articoli importati.").format(count), 
                                parent=self)
             
         except ValueError as e:
-            messagebox.showerror(tr("Errore Formato File"), str(e), parent=self)
+            show_error(tr("Errore Formato File"), str(e), parent=self)
         except Exception as e:
             logger.error(f"Errore in import_from_excel: {e}", exc_info=True)
-            messagebox.showerror(tr("Errore Importazione"), 
+            show_error(tr("Errore Importazione"), 
                                tr("Impossibile leggere il file Excel.\n{}").format(e), 
                                parent=self)
         finally:
