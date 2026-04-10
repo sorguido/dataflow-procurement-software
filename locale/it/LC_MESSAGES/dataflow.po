@@ -3406,3 +3406,27 @@ msgstr "Qualificato"
 
 msgid "Scartato"
 msgstr "Scartato"
+
+msgid "No Selection"
+msgstr "Nessuna selezione"
+
+msgid "Please select a row to delete."
+msgstr "Seleziona una riga da eliminare."
+
+msgid "Required Field"
+msgstr "Campo obbligatorio"
+
+msgid "Please enter the PO number."
+msgstr "Inserire il numero ordine."
+
+msgid "Please select a supplier."
+msgstr "Selezionare un fornitore."
+
+msgid "Confirm Deletion"
+msgstr "Conferma eliminazione"
+
+msgid "Delete the selected PO number?"
+msgstr "Eliminare il numero ordine selezionato?"
+
+msgid "Cannot delete: invalid row index ({})"
+msgstr "Impossibile eliminare: indice riga non valido ({})."

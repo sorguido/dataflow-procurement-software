@@ -10,7 +10,7 @@ import os
 from utils.resource_utils import resource_path, set_window_icon
 from utils.window_utils import center_window
 from utils.string_utils import generate_username
-from utils.i18n_utils import get_current_language, _
+from utils.i18n_utils import get_current_language, tr
 
 
 class SimpleMessageDialog(tk.Toplevel):
@@ -40,7 +40,7 @@ class SimpleMessageDialog(tk.Toplevel):
         btn_frame.pack()
         ttk.Button(
             btn_frame,
-            text="OK",
+            text=tr("OK"),
             command=self.destroy,
             width=10
         ).pack()
@@ -83,14 +83,14 @@ class SimpleYesNoDialog(tk.Toplevel):
         
         ttk.Button(
             btn_frame,
-            text=_("Sì"),
+            text=tr("Sì"),
             command=self._on_yes,
             width=10
         ).pack(side="left", padx=5)
         
         ttk.Button(
             btn_frame,
-            text=_("No"),
+            text=tr("No"),
             command=self._on_no,
             width=10
         ).pack(side="left", padx=5)
@@ -115,7 +115,7 @@ class LanguagePrompt(tk.Toplevel):
         super().__init__(parent)
         self.withdraw()
         set_window_icon(self)
-        self.title(_("Scegli Lingua"))
+        self.title(tr("Scegli Lingua"))
         self.choice = None
         self.transient(parent)
         self.grab_set()
@@ -123,12 +123,12 @@ class LanguagePrompt(tk.Toplevel):
         frame = ttk.Frame(self, padding="20")
         frame.pack(fill="both", expand=True)
 
-        ttk.Label(frame, text=_("In quale lingua vuoi esportare il file Excel?"), font=(None, 10)).pack(pady=(0, 15))
+        ttk.Label(frame, text=tr("In quale lingua vuoi esportare il file Excel?"), font=(None, 10)).pack(pady=(0, 15))
 
         lang_frame = ttk.Frame(frame)
         lang_frame.pack(pady=10)
         
-        ttk.Label(lang_frame, text=_("Lingua:")).pack(side="left", padx=(0, 10))
+        ttk.Label(lang_frame, text=tr("Lingua:")).pack(side="left", padx=(0, 10))
         
         # Determina la lingua corrente dell'app
         current_lang = get_current_language()
@@ -145,10 +145,10 @@ class LanguagePrompt(tk.Toplevel):
         language_combo.current(0)
         language_combo.bind("<<ComboboxSelected>>", lambda e: self.on_language_selected())
         
-        btn_ok = ttk.Button(lang_frame, text="OK", command=self.confirm_choice)
+        btn_ok = ttk.Button(lang_frame, text=tr("OK"), command=self.confirm_choice)
         btn_ok.pack(side="left", padx=5)
         
-        btn_cancel = ttk.Button(lang_frame, text=_("❌ Annulla"), command=self.on_close)
+        btn_cancel = ttk.Button(lang_frame, text=tr("❌ Annulla"), command=self.on_close)
         btn_cancel.pack(side="left", padx=5)
 
         self.protocol("WM_DELETE_WINDOW", self.on_close)
@@ -181,7 +181,7 @@ class NewRdOTypeDialog(tk.Toplevel):
         self.withdraw()
         set_window_icon(self)
         
-        self.title(_("Nuova Richiesta di Offerta"))
+        self.title(tr("Nuova Richiesta di Offerta"))
         self.result = None
         
         # Frame principale
@@ -191,7 +191,7 @@ class NewRdOTypeDialog(tk.Toplevel):
         # Etichetta domanda
         ttk.Label(
             main_frame,
-            text=_("Che tipo di RdO vuoi creare?"),
+            text=tr("Che tipo di RdO vuoi creare?"),
             font=(None, 10)
         ).pack(pady=(0, 15))
         
@@ -201,14 +201,14 @@ class NewRdOTypeDialog(tk.Toplevel):
         
         ttk.Button(
             btn_frame,
-            text=_("📦 Fornitura piena"),
+            text=tr("📦 Fornitura piena"),
             command=lambda: self.set_result("Fornitura piena"),
             width=20
         ).pack(side="left", padx=5)
         
         ttk.Button(
             btn_frame,
-            text=_("🔧 Conto lavoro"),
+            text=tr("🔧 Conto lavoro"),
             command=lambda: self.set_result("Conto lavoro"),
             width=20
         ).pack(side="left", padx=5)
@@ -216,7 +216,7 @@ class NewRdOTypeDialog(tk.Toplevel):
         # Pulsante annulla
         ttk.Button(
             main_frame,
-            text=_("❌ Annulla"),
+            text=tr("❌ Annulla"),
             command=self.destroy
         ).pack()
         
@@ -236,7 +236,7 @@ class UserIdentityDialog(tk.Toplevel):
     def __init__(self, parent, first_name='', last_name=''):
         super().__init__(parent)
         self.withdraw()
-        self.title(_("Dati Utente Richiesti"))
+        self.title(tr("Dati Utente Richiesti"))
         self.transient(parent)
         self.resizable(False, False)
         self.grab_set()
@@ -246,32 +246,32 @@ class UserIdentityDialog(tk.Toplevel):
         
         self.first_var = tk.StringVar(value=first_name)
         self.last_var = tk.StringVar(value=last_name)
-        self.username_var = tk.StringVar(value=_("(in attesa dati)"))
+        self.username_var = tk.StringVar(value=tr("(in attesa dati)"))
         
         frame = ttk.Frame(self, padding=20)
         frame.pack(fill="both", expand=True)
         
         ttk.Label(
             frame,
-            text=_("Per procedere è necessario indicare il tuo nome e cognome."),
+            text=tr("Per procedere è necessario indicare il tuo nome e cognome."),
             font=(None, 10),
             wraplength=320,
             justify="left"
         ).grid(row=0, column=0, columnspan=2, sticky="w", pady=(0, 10))
         
-        ttk.Label(frame, text=_("Nome:")).grid(row=1, column=0, sticky="w", pady=5)
+        ttk.Label(frame, text=tr("Nome:")).grid(row=1, column=0, sticky="w", pady=5)
         first_entry = ttk.Entry(frame, textvariable=self.first_var, width=30)
         first_entry.grid(row=1, column=1, sticky="ew", pady=5)
         
-        ttk.Label(frame, text=_("Cognome:")).grid(row=2, column=0, sticky="w", pady=5)
+        ttk.Label(frame, text=tr("Cognome:")).grid(row=2, column=0, sticky="w", pady=5)
         last_entry = ttk.Entry(frame, textvariable=self.last_var, width=30)
         last_entry.grid(row=2, column=1, sticky="ew", pady=5)
         
-        ttk.Label(frame, text=_("Username generato:")).grid(row=3, column=0, sticky="w", pady=(10, 0))
+        ttk.Label(frame, text=tr("Username generato:")).grid(row=3, column=0, sticky="w", pady=(10, 0))
         username_display = ttk.Label(frame, textvariable=self.username_var, font=("Calibri", 12, "bold"), foreground="#005AA0")
         username_display.grid(row=3, column=1, sticky="w", pady=(10, 0))
         
-        confirm_btn = ttk.Button(frame, text=_("Conferma"), command=self._on_confirm)
+        confirm_btn = ttk.Button(frame, text=tr("Conferma"), command=self._on_confirm)
         confirm_btn.grid(row=4, column=0, columnspan=2, pady=(20, 0), sticky="ew")
         
         frame.columnconfigure(1, weight=1)
@@ -286,24 +286,24 @@ class UserIdentityDialog(tk.Toplevel):
         first = self.first_var.get().strip()
         last = self.last_var.get().strip()
         if not first or not last:
-            self.username_var.set(_("(in attesa dati)"))
+            self.username_var.set(tr("(in attesa dati)"))
             return
         try:
             username = generate_username(first, last)
             self.username_var.set(username)
         except ValueError:
-            self.username_var.set(_("Dati non validi"))
+            self.username_var.set(tr("Dati non validi"))
 
     def _on_confirm(self):
         first = self.first_var.get().strip()
         last = self.last_var.get().strip()
         if not first or not last:
-            messagebox.showerror(_("Campi obbligatori"), _("Inserisci sia il nome sia il cognome."), parent=self)
+            messagebox.showerror(tr("Campi obbligatori"), tr("Inserisci sia il nome sia il cognome."), parent=self)
             return
         try:
             username = generate_username(first, last)
         except ValueError as e:
-            messagebox.showerror(_("Formato non valido"), str(e), parent=self)
+            messagebox.showerror(tr("Formato non valido"), str(e), parent=self)
             return
         self.result = {
             'first_name': first,
@@ -314,7 +314,7 @@ class UserIdentityDialog(tk.Toplevel):
         self.destroy()
 
     def _prevent_close(self):
-        SimpleMessageDialog(self, _("Operazione necessaria"), _("Per utilizzare DataFlow è necessario completare i dati richiesti."), "warning")
+        SimpleMessageDialog(self, tr("Operazione necessaria"), tr("Per utilizzare DataFlow è necessario completare i dati richiesti."), "warning")
 
     def _center_window(self):
         self.update_idletasks()
@@ -391,7 +391,7 @@ class SplashScreen(tk.Toplevel):
         super().__init__(parent)
         self.withdraw()
         set_window_icon(self)
-        self.title(_("Avvio DataFlow"))
+        self.title(tr("Avvio DataFlow"))
         self.overrideredirect(True)
         
         frame = ttk.Frame(self, borderwidth=2, relief="raised")
@@ -407,11 +407,11 @@ class SplashScreen(tk.Toplevel):
                     ttk.Label(frame, image=self.logo_photo).pack(pady=(30, 20))
         except Exception as e:
             print(f"Errore logo splash: {e}")
-            ttk.Label(frame, text=_("DataFlow"), font=("Helvetica", 24, "bold")).pack(pady=(30, 20))
+            ttk.Label(frame, text=tr("DataFlow"), font=("Helvetica", 24, "bold")).pack(pady=(30, 20))
         
         self.status_label = ttk.Label(
             frame, 
-            text=_("Avvio in corso..."), 
+            text=tr("Avvio in corso..."), 
             font=("Helvetica", 10),
             width=40,
             anchor="center"
@@ -449,7 +449,7 @@ class LicenseAcceptanceDialog(tk.Toplevel):
         self.accepted = False
         self._url = url
         set_window_icon(self)
-        self.title(_("Accettazione Licenza"))
+        self.title(tr("Accettazione Licenza"))
         self.transient(parent)
         self.resizable(False, False)
         self.grab_set()
@@ -460,7 +460,7 @@ class LicenseAcceptanceDialog(tk.Toplevel):
 
         ttk.Label(
             frame,
-            text=_("Per utilizzare DataFlow Procurement Software è necessario accettare i termini e le condizioni d'uso."),
+            text=tr("Per utilizzare DataFlow Procurement Software è necessario accettare i termini e le condizioni d'uso."),
             font=(None, 10),
             wraplength=380,
             justify="left"
@@ -469,9 +469,9 @@ class LicenseAcceptanceDialog(tk.Toplevel):
         btn_frame = ttk.Frame(frame)
         btn_frame.pack()
 
-        ttk.Button(btn_frame, text=_("📄 Leggi la Licenza"), command=self._on_license, width=18).pack(side="left", padx=5)
-        ttk.Button(btn_frame, text=_("✅ Accetto"), command=self._on_accept, width=12).pack(side="left", padx=5)
-        ttk.Button(btn_frame, text=_("❌ Esci"), command=self._on_exit, width=12).pack(side="left", padx=5)
+        ttk.Button(btn_frame, text=tr("📄 Leggi la Licenza"), command=self._on_license, width=18).pack(side="left", padx=5)
+        ttk.Button(btn_frame, text=tr("✅ Accetto"), command=self._on_accept, width=12).pack(side="left", padx=5)
+        ttk.Button(btn_frame, text=tr("❌ Esci"), command=self._on_exit, width=12).pack(side="left", padx=5)
 
         center_window(self)
         self.deiconify()

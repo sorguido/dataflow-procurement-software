@@ -8,8 +8,9 @@ import os
 import polib
 
 # Directory base del progetto
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-LOCALE_DIR = os.path.join(BASE_DIR, 'locale')
+DEV_TOOLS_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.dirname(DEV_TOOLS_DIR)
+LOCALE_DIR = os.path.join(PROJECT_ROOT, 'locale')
 
 def compile_translations():
     """Compila tutti i file .po trovati in locale/*/LC_MESSAGES/"""

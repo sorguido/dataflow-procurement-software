@@ -13,7 +13,7 @@ from tksheet import Sheet
 from database_manager import DatabaseManager, DatabaseError
 from services.app_paths import get_db_path
 from utils.window_utils import center_window
-from utils.i18n_utils import _, get_current_language
+from utils.i18n_utils import tr
 from ui.dialogs.common_dialogs import SimpleMessageDialog, SimpleYesNoDialog
 
 logger = logging.getLogger(__name__)
@@ -25,11 +25,7 @@ class PurchaseOrderWindow(tk.Toplevel):
         self.request_id = request_id
         self.parent = parent
         
-        # Imposta titolo in base alla lingua
-        if get_current_language() == 'it':
-            self.title("Gestione Numeri Ordine")
-        else:
-            self.title("Purchase Order Management")
+        self.title(tr("Purchase Order Management"))
         
         # MODIFICA 2: Finestra 20% più corta (da 500 a 400)
         self.geometry("700x400")
@@ -43,41 +39,23 @@ class PurchaseOrderWindow(tk.Toplevel):
         bottom_frame = ttk.Frame(self)
         bottom_frame.pack(side=tk.BOTTOM, fill=tk.X, padx=10, pady=10)
         
-        # Pulsante Aggiungi con testo tradotto (a sinistra)
-        if get_current_language() == 'it':
-            add_text = "➕ Aggiungi"
-        else:
-            add_text = "➕ Add"
-        
         add_btn = ttk.Button(
             bottom_frame, 
-            text=add_text,
+            text=tr("➕ Add"),
             command=lambda: self.add_po_entry_safe()
         )
         add_btn.pack(side=tk.LEFT, padx=5)
         
-        # Pulsante Elimina con testo tradotto (a sinistra)
-        if get_current_language() == 'it':
-            delete_text = "❌ Elimina"
-        else:
-            delete_text = "❌ Delete"
-        
         delete_btn = ttk.Button(
             bottom_frame, 
-            text=delete_text,
+            text=tr("❌ Delete"),
             command=lambda: self.delete_selected_po_safe()
         )
         delete_btn.pack(side=tk.LEFT, padx=5)
         
-        # Pulsante Chiudi con testo tradotto (a destra)
-        if get_current_language() == 'it':
-            close_text = "Chiudi"
-        else:
-            close_text = "Close"
-        
         close_btn = ttk.Button(
             bottom_frame, 
-            text=close_text,
+            text=tr("Close"),
             command=self.on_closing
         )
         close_btn.pack(side=tk.RIGHT, padx=5)
@@ -87,15 +65,9 @@ class PurchaseOrderWindow(tk.Toplevel):
         info_frame = ttk.Frame(self)
         info_frame.pack(side=tk.TOP, fill=tk.X, padx=10, pady=10)
         
-        # Testo istruzioni tradotto
-        if get_current_language() == 'it':
-            info_text = "Associa numeri di ordine ai fornitori della RdO"
-        else:
-            info_text = "Associate purchase order numbers with RfQ suppliers"
-        
         info_label = ttk.Label(
             info_frame, 
-            text=info_text,
+            text=tr("Associate purchase order numbers with RfQ suppliers"),
             font=('Segoe UI', 10)
         )
         info_label.pack(anchor='w')
@@ -104,25 +76,13 @@ class PurchaseOrderWindow(tk.Toplevel):
         controls_frame = ttk.Frame(self)
         controls_frame.pack(side=tk.TOP, fill=tk.X, padx=10, pady=5)
         
-        # Campo numero ordine con label tradotta
-        if get_current_language() == 'it':
-            po_label_text = "Numero Ordine:"
-        else:
-            po_label_text = "PO Number:"
-        
-        po_label = ttk.Label(controls_frame, text=po_label_text)
+        po_label = ttk.Label(controls_frame, text=tr("PO Number:"))
         po_label.grid(row=0, column=0, sticky='w', padx=5, pady=5)
         
         self.po_entry = ttk.Entry(controls_frame, width=30)
         self.po_entry.grid(row=0, column=1, sticky='ew', padx=5, pady=5)
         
-        # ComboBox fornitore con label tradotta
-        if get_current_language() == 'it':
-            supplier_label_text = "Fornitore:"
-        else:
-            supplier_label_text = "Supplier:"
-        
-        supplier_label = ttk.Label(controls_frame, text=supplier_label_text)
+        supplier_label = ttk.Label(controls_frame, text=tr("Supplier:"))
         supplier_label.grid(row=0, column=2, sticky='w', padx=5, pady=5)
         
         self.supplier_combo = ttk.Combobox(controls_frame, state='readonly', width=25)
@@ -135,11 +95,7 @@ class PurchaseOrderWindow(tk.Toplevel):
         grid_frame = ttk.Frame(self)
         grid_frame.pack(side=tk.TOP, fill=tk.BOTH, expand=True, padx=10, pady=5)
         
-        # Headers tradotti per la griglia
-        if get_current_language() == 'it':
-            headers = ["Numero Ordine", "Fornitore"]
-        else:
-            headers = ["PO Number", "Supplier"]
+        headers = [tr("PO Number"), tr("Supplier")]
         
         # Crea il foglio tksheet
         self.sheet = Sheet(
@@ -297,7 +253,7 @@ class PurchaseOrderWindow(tk.Toplevel):
         
         # BUG #35 FIX: Validazione esplicita campo vuoto con feedback utente
         if not po_number:
-            SimpleMessageDialog(self, _("Attenzione"), _("Inserisci un numero ordine valido."), "warning")
+            SimpleMessageDialog(self, tr("Attenzione"), tr("Inserisci un numero ordine valido."), "warning")
             return
         
         # BUG #25 FIX: Previeni SQL injection e caratteri pericolosi
@@ -313,17 +269,11 @@ class PurchaseOrderWindow(tk.Toplevel):
             supplier = FORBIDDEN_CHARS.sub('', supplier)
         
         if not po_number:
-            if get_current_language() == 'it':
-                SimpleMessageDialog(self, "Campo obbligatorio", "Inserire il numero ordine.", "warning")
-            else:
-                SimpleMessageDialog(self, "Required Field", "Please enter the PO number.", "warning")
+            SimpleMessageDialog(self, tr("Required Field"), tr("Please enter the PO number."), "warning")
             return
         
         if not supplier:
-            if get_current_language() == 'it':
-                SimpleMessageDialog(self, "Campo obbligatorio", "Selezionare un fornitore.", "warning")
-            else:
-                SimpleMessageDialog(self, "Required Field", "Please select a supplier.", "warning")
+            SimpleMessageDialog(self, tr("Required Field"), tr("Please select a supplier."), "warning")
             return
         
         # Aggiungi alla griglia
@@ -345,10 +295,7 @@ class PurchaseOrderWindow(tk.Toplevel):
         selected = self.sheet.get_currently_selected()
         
         if not selected:
-            if get_current_language() == 'it':
-                SimpleMessageDialog(self, "Nessuna selezione", "Selezionare una riga da eliminare.", "warning")
-            else:
-                SimpleMessageDialog(self, "No Selection", "Please select a row to delete.", "warning")
+            SimpleMessageDialog(self, tr("No Selection"), tr("Please select a row to delete."), "warning")
             return
         
         # BUG #18 FIX: Validazione robusta dell'indice riga prima dell'accesso
@@ -363,17 +310,11 @@ class PurchaseOrderWindow(tk.Toplevel):
         # BUG #18 FIX: Verifica che l'indice sia valido PRIMA di mostrare il dialog
         if not (0 <= row_idx < len(current_data)):
             logger.error(f"delete_selected_po: Indice {row_idx} fuori range (0-{len(current_data)-1})")
-            if get_current_language() == 'it':
-                SimpleMessageDialog(self, "Errore", f"Impossibile eliminare: indice riga non valido ({row_idx}).", "error")
-            else:
-                SimpleMessageDialog(self, "Error", f"Cannot delete: invalid row index ({row_idx}).", "error")
+            SimpleMessageDialog(self, tr("Errore"), tr("Cannot delete: invalid row index ({})").format(row_idx), "error")
             return
         
         # Conferma eliminazione
-        if get_current_language() == 'it':
-            confirm = SimpleYesNoDialog(self, "Conferma eliminazione", "Eliminare il numero ordine selezionato?").result
-        else:
-            confirm = SimpleYesNoDialog(self, "Confirm Deletion", "Delete the selected PO number?").result
+        confirm = SimpleYesNoDialog(self, tr("Confirm Deletion"), tr("Delete the selected PO number?")).result
         
         if confirm:
             del current_data[row_idx]
@@ -404,4 +345,4 @@ class PurchaseOrderWindow(tk.Toplevel):
             logger.info(f"Numeri ordine salvati per RdO {self.request_id}: {len(po_list)} entries")
         except DatabaseError as e:
             logger.error(f"Errore nel salvataggio numeri ordine: {e}")
-            SimpleMessageDialog(self, _("Errore"), _("Errore nel salvataggio dei numeri ordine."), "error")
+            SimpleMessageDialog(self, tr("Errore"), tr("Errore nel salvataggio dei numeri ordine."), "error")

@@ -3417,3 +3417,27 @@ msgstr "Qualified"
 
 msgid "Scartato"
 msgstr "Rejected"
+
+msgid "No Selection"
+msgstr "No Selection"
+
+msgid "Please select a row to delete."
+msgstr "Please select a row to delete."
+
+msgid "Required Field"
+msgstr "Required Field"
+
+msgid "Please enter the PO number."
+msgstr "Please enter the PO number."
+
+msgid "Please select a supplier."
+msgstr "Please select a supplier."
+
+msgid "Confirm Deletion"
+msgstr "Confirm Deletion"
+
+msgid "Delete the selected PO number?"
+msgstr "Delete the selected PO number?"
+
+msgid "Cannot delete: invalid row index ({})"
+msgstr "Cannot delete: invalid row index ({})"

@@ -1,6 +1,9 @@
-"""
-Modulo per la gestione del sistema di internazionalizzazione (i18n).
-Gestisce l'inizializzazione di gettext e le funzioni helper per traduzioni condizionali.
+"""Servizi i18n centralizzati per DataFlow.
+
+Questo modulo espone il punto unico ufficiale per la localizzazione UI:
+- `tr(text)` per tradurre stringhe a runtime
+- `get_translation_service()` per accesso al service centralizzato
+- compatibilita' retro tramite `_` (alias di `tr`) per i moduli legacy
 """
 
 import os
@@ -9,118 +12,140 @@ import gettext
 import configparser
 import logging
 import builtins
+from typing import Callable
 
 # Logger locale per questo modulo
 logger = logging.getLogger(__name__)
 
-# Definisci _ come funzione wrapper che fa forward dinamico a builtins._
-# In questo modo, ogni volta che _ viene chiamato, usa il valore corrente in builtins
-# installato da init_i18n(), risolvendo il problema del binding statico degli import
-def _(text):
-    """
-    Funzione di traduzione che fa forward dinamico a builtins._.
-    Questo evita il problema del binding statico quando si fa 'from i18n_utils import _'.
-    """
-    if hasattr(builtins, '_') and callable(builtins._):
-        return builtins._(text)
-    # Fallback se builtins._ non è ancora stato installato
-    return text
+_ALLOWED_LANGUAGES = {"en", "it"}
 
 
-def init_i18n(language_code='en'):
+class TranslationService:
+    """Service centralizzato per gettext.
+
+    Mantiene un traduttore attivo a runtime e pubblica un'interfaccia stabile
+    (`translate`) da usare in tutti i moduli UI.
     """
-    Inizializza il sistema di internazionalizzazione (gettext).
-    Legge la lingua preferita dal config.ini o usa 'en' come default.
-    
-    La funzione installa la traduzione in builtins._, che viene poi usata
-    dalla funzione wrapper _() definita sopra.
-    """
-    # Import locale per evitare dipendenze circolari
-    from utils.user_utils import get_config_file
-    from utils.resource_utils import resource_path
-    
-    # Leggi la lingua dal config.ini (solo se esiste e ha la chiave)
-    try:
-        config_file = get_config_file()
-        if os.path.exists(config_file):
-            config = configparser.ConfigParser(interpolation=None)
-            config.read(config_file)
-            if 'Settings' in config and config.has_option('Settings', 'language'):
-                language_code = config.get('Settings', 'language', fallback='en')
-    except Exception as e:
-        logger.warning(f"Errore nel leggere config.ini per la lingua: {e}, uso default 'en'")
-        language_code = 'en'
-    
-    # Validazione: accetta solo 'en' o 'it', default sempre 'en'
-    if language_code not in ['en', 'it']:
-        language_code = 'en'
-    
-    # Determina il percorso dei file di traduzione
-    try:
-        # In PyInstaller, usa resource_path per trovare i file nella directory _MEIPASS
-        if getattr(sys, 'frozen', False):
-            locale_dir = resource_path('locale')
-        else:
-            # In sviluppo, usa la directory corrente del progetto (parent di utils/)
-            locale_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'locale')
-        
-        # Inizializza gettext
+
+    def __init__(self):
+        self._language_code = "en"
+        self._translator: Callable[[str], str] = lambda text: text
+
+    def __call__(self, text):
+        return self.translate(text)
+
+    def translate(self, text):
+        """Traduce `text` usando il catalogo attivo."""
         try:
-            logger.info(f"Tentativo di caricare traduzioni per '{language_code}' da: {locale_dir}")
-            mo_path = os.path.join(locale_dir, language_code, 'LC_MESSAGES', 'dataflow.mo')
-            
-            if os.path.exists(mo_path):
-                trans = gettext.translation('dataflow', localedir=locale_dir, languages=[language_code], fallback=False)
-                trans.install()  # Installa _ in builtins - la funzione wrapper _() lo usa
-                logger.info(f"✓ File traduzioni caricato con successo: {mo_path}")
-            else:
-                logger.warning(f"File .mo non trovato: {mo_path}, uso fallback")
-                trans = gettext.NullTranslations()
-                trans.install()  # Installa fallback in builtins
+            return self._translator(text)
+        except Exception:
+            return text
+
+    @staticmethod
+    def _normalize_language(language_code):
+        if language_code in _ALLOWED_LANGUAGES:
+            return language_code
+        return "en"
+
+    @staticmethod
+    def _read_language_from_config(default="en"):
+        # Import locale per evitare dipendenze circolari
+        from utils.user_utils import get_config_file
+
+        language_code = default
+        try:
+            config_file = get_config_file()
+            if os.path.exists(config_file):
+                config = configparser.ConfigParser(interpolation=None)
+                config.read(config_file, encoding="utf-8")
+                if "Settings" in config and config.has_option("Settings", "language"):
+                    language_code = config.get("Settings", "language", fallback=default)
         except Exception as e:
-            # Se il file .mo non esiste o c'è errore, usa gettext.NullTranslations (fallback silenzioso)
-            trans = gettext.NullTranslations()
-            trans.install()  # Installa fallback in builtins
-            logger.error(f"ERRORE nel caricare traduzioni per '{language_code}': {e}", exc_info=True)
-    except Exception as e:
-        # In caso di errore, usa NullTranslations come fallback
-        trans = gettext.NullTranslations()
-        trans.install()  # Installa fallback in builtins
-        logger.error(f"Errore nel caricamento delle traduzioni: {e}")
-    
-    return language_code
+            logger.warning("Errore lettura lingua da config.ini: %s", e)
+            language_code = default
+        return language_code
+
+    @staticmethod
+    def _resolve_locale_dir():
+        # Import locale per evitare dipendenze circolari
+        from utils.resource_utils import resource_path
+
+        if getattr(sys, "frozen", False):
+            return resource_path("locale")
+        return os.path.join(os.path.dirname(os.path.dirname(__file__)), "locale")
+
+    def initialize(self, language_code="en"):
+        """Inizializza gettext e installa il traduttore runtime."""
+        configured = self._read_language_from_config(default=language_code)
+        self._language_code = self._normalize_language(configured)
+        locale_dir = self._resolve_locale_dir()
+        mo_path = os.path.join(locale_dir, self._language_code, "LC_MESSAGES", "dataflow.mo")
+
+        try:
+            logger.info(
+                "Tentativo caricamento traduzioni '%s' da %s",
+                self._language_code,
+                locale_dir,
+            )
+            if os.path.exists(mo_path):
+                trans = gettext.translation(
+                    "dataflow",
+                    localedir=locale_dir,
+                    languages=[self._language_code],
+                    fallback=False,
+                )
+                self._translator = trans.gettext
+                logger.info("File traduzioni caricato con successo: %s", mo_path)
+            else:
+                logger.warning("File .mo non trovato: %s, uso fallback", mo_path)
+                self._translator = gettext.NullTranslations().gettext
+        except Exception as e:
+            logger.error(
+                "Errore nel caricamento traduzioni per '%s': %s",
+                self._language_code,
+                e,
+                exc_info=True,
+            )
+            self._translator = gettext.NullTranslations().gettext
+
+        # Retrocompatibilita': alcuni moduli legacy usano builtins._.
+        builtins._ = self.translate
+        return self._language_code
+
+    def get_current_language(self):
+        """Restituisce la lingua configurata corrente (`it` o `en`)."""
+        # Legge da config per allinearsi allo stato persistito applicativo.
+        configured = self._read_language_from_config(default=self._language_code)
+        self._language_code = self._normalize_language(configured)
+        return self._language_code
+
+
+_translation_service = TranslationService()
+
+
+def get_translation_service():
+    """Ritorna il singleton TranslationService."""
+    return _translation_service
+
+
+def tr(text):
+    """API ufficiale per tradurre testo UI."""
+    return _translation_service.translate(text)
+
+
+def _(text):
+    """Alias retrocompatibile di `tr`."""
+    return tr(text)
+
+
+def init_i18n(language_code="en"):
+    """Inizializza il service i18n centralizzato."""
+    return _translation_service.initialize(language_code=language_code)
 
 
 def get_current_language():
-    """Restituisce il codice lingua corrente ('it' o 'en').
-    Gestisce correttamente il caso in cui il config non esista ancora o non sia inizializzato.
-    """
-    # Import locale per evitare dipendenze circolari
-    from utils.user_utils import get_config_file
-    
-    try:
-        config_file = get_config_file()
-        if config_file and os.path.exists(config_file):
-            config = configparser.ConfigParser(interpolation=None)
-            config.read(config_file, encoding='utf-8')
-            if 'Settings' in config and config.has_option('Settings', 'language'):
-                lang = config.get('Settings', 'language', fallback='en')
-                # Validazione: accetta solo 'en' o 'it'
-                if lang in ['en', 'it']:
-                    return lang
-    except (configparser.Error, OSError, IOError, AttributeError) as e:
-        # Log solo se non è un errore di file non esistente (normale all'avvio)
-        try:
-            if config_file and os.path.exists(config_file):
-                logger.debug(f"Errore lettura config per lingua: {e}")
-        except (NameError, UnboundLocalError):
-            # config_file potrebbe non essere definito in caso di errore precoce
-            pass
-    except Exception as e:
-        # Log altri errori inattesi
-        logger.debug(f"Errore inatteso in get_current_language: {e}")
-    # Fallback sempre a 'en' se qualcosa va storto
-    return 'en'
+    """Restituisce il codice lingua corrente (`it` o `en`)."""
+    return _translation_service.get_current_language()
 
 
 def get_pos_column_text():

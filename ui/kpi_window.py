@@ -11,12 +11,12 @@ Fase 3: UI collegata al KPI engine.
 
 import tkinter as tk
 from tkinter import ttk, filedialog
-import builtins
 import logging
 from datetime import date, timedelta, datetime as _dt
 
 from utils.window_utils import center_window
 from utils.resource_utils import set_window_icon
+from utils.i18n_utils import tr, get_current_language
 from ui.dialogs.common_dialogs import LanguagePrompt, SimpleMessageDialog
 from services.kpi_engine import (
     get_rfq_kpi,
@@ -34,11 +34,6 @@ from services.kpi_chart_data import (
     get_derisking_chart_data,
 )
 from ui.kpi_chart import draw_bar_chart, draw_dual_bar_chart
-
-# Compatibilità: _() è installata in builtins da init_i18n().
-# Se non disponibile (es. test unitari), usa dummy.
-if not hasattr(builtins, '_'):
-    builtins._ = lambda x: x
 
 logger = logging.getLogger('DataFlow.KpiWindow')
 
@@ -75,7 +70,7 @@ def _fmt_pct(v) -> str:
 
 
 def _t_ui(is_ita, ita, eng):
-    """Helper bilingua per stringhe UI calcolate a runtime (fuori da _())."""
+    """Helper bilingua per stringhe UI calcolate a runtime (fuori da tr())."""
     return ita if is_ita else eng
 
 
@@ -93,7 +88,7 @@ class KpiExportScopeDialog(tk.Toplevel):
         super().__init__(parent)
         self.withdraw()
         set_window_icon(self)
-        self.title(_("Esporta KPI"))
+        self.title(tr("Esporta KPI"))
         self.scope = None        # 'current' | 'all' | None (annullato)
         self.transient(parent)
         self.resizable(False, False)
@@ -104,7 +99,7 @@ class KpiExportScopeDialog(tk.Toplevel):
 
         ttk.Label(
             frame,
-            text=_("Seleziona cosa esportare:"),
+            text=tr("Seleziona cosa esportare:"),
             font=(None, 10),
         ).pack(pady=(0, 15))
 
@@ -113,21 +108,21 @@ class KpiExportScopeDialog(tk.Toplevel):
 
         ttk.Button(
             btn_frame,
-            text=_("\U0001f4cb Sezione corrente"),
+            text=tr("\U0001f4cb Sezione corrente"),
             command=lambda: self._choose("current"),
             width=22,
         ).pack(side="left", padx=5)
 
         ttk.Button(
             btn_frame,
-            text=_("\U0001f4ca Tutte le sezioni"),
+            text=tr("\U0001f4ca Tutte le sezioni"),
             command=lambda: self._choose("all"),
             width=22,
         ).pack(side="left", padx=5)
 
         ttk.Button(
             frame,
-            text=_("\u274c Annulla"),
+            text=tr("\u274c Annulla"),
             command=self.destroy,
         ).pack(pady=(5, 0))
 
@@ -142,7 +137,7 @@ class KpiExportScopeDialog(tk.Toplevel):
 class KpiWindow(tk.Toplevel):
     """Finestra KPI Analysis — Fase 3 + Export Excel."""
 
-    _PERIOD_OPTIONS = ["1M", "3M", "12M", "3Y", "5Y", "10Y", _("All")]
+    _PERIOD_OPTIONS = ["1M", "3M", "12M", "3Y", "5Y", "10Y", "ALL"]
 
     # Giorni rolling per ogni preset periodo
     _ROLLING_DAYS = {
@@ -153,7 +148,7 @@ class KpiWindow(tk.Toplevel):
         super().__init__(parent)
         self.withdraw()
         set_window_icon(self)
-        self.title(_("KPI Analysis"))
+        self.title(tr("KPI Analysis"))
         self.resizable(True, True)
 
         # Variabili filtro
@@ -219,7 +214,7 @@ class KpiWindow(tk.Toplevel):
         # Titolo
         ttk.Label(
             header,
-            text=_("KPI Analysis"),
+            text=tr("KPI Analysis"),
             font=(None, 14, "bold"),
         ).pack(side="left", padx=(0, 20))
 
@@ -227,15 +222,16 @@ class KpiWindow(tk.Toplevel):
         ttk.Separator(header, orient="vertical").pack(side="left", fill="y", padx=(0, 12))
 
         # Label "Period:"
-        ttk.Label(header, text=_("Period:")).pack(side="left", padx=(0, 4))
+        ttk.Label(header, text=tr("Period:")).pack(side="left", padx=(0, 4))
 
         # Pulsanti periodo (radio-style) — mutuamente esclusivi con filtro anno
         period_frame = ttk.Frame(header)
         period_frame.pack(side="left", padx=(0, 12))
         for option in self._PERIOD_OPTIONS:
+            label = tr("All") if option == "ALL" else option
             btn = ttk.Radiobutton(
                 period_frame,
-                text=option,
+                text=label,
                 variable=self._selected_period,
                 value=option,
                 command=self._on_period_selected,
@@ -247,7 +243,7 @@ class KpiWindow(tk.Toplevel):
         ttk.Separator(header, orient="vertical").pack(side="left", fill="y", padx=(0, 12))
 
         # Label "Year:"
-        ttk.Label(header, text=_("Year:")).pack(side="left", padx=(0, 4))
+        ttk.Label(header, text=tr("Year:")).pack(side="left", padx=(0, 4))
 
         # Combobox anno — mutuamente esclusivo con preset periodo
         self._year_combo = ttk.Combobox(
@@ -263,7 +259,7 @@ class KpiWindow(tk.Toplevel):
         # Export Excel (placeholder — destra)
         ttk.Button(
             header,
-            text=_("📥 Export Excel"),
+            text=tr("📥 Export Excel"),
             command=self._on_export_excel,
         ).pack(side="right", padx=(8, 0))
 
@@ -284,10 +280,10 @@ class KpiWindow(tk.Toplevel):
         tab_ca = ttk.Frame(self._notebook)
         tab_derisking = ttk.Frame(self._notebook)
 
-        self._notebook.add(tab_rfq, text=_("  RFQ  "))
-        self._notebook.add(tab_saving, text=_("  Saving  "))
-        self._notebook.add(tab_ca, text=_("  Cost Avoidance  "))
-        self._notebook.add(tab_derisking, text=_("  Derisking  "))
+        self._notebook.add(tab_rfq, text=tr("  RFQ  "))
+        self._notebook.add(tab_saving, text=tr("  Saving  "))
+        self._notebook.add(tab_ca, text=tr("  Cost Avoidance  "))
+        self._notebook.add(tab_derisking, text=tr("  Derisking  "))
 
         self._build_tab_rfq(tab_rfq)
         self._build_tab_saving(tab_saving)
@@ -300,13 +296,13 @@ class KpiWindow(tk.Toplevel):
 
     def _build_tab_rfq(self, parent):
         items = [
-            (_("RFQ Active"),       "rfq_active"),
-            (_("RFQ Archived"),     "rfq_archived"),
-            (_("RFQ Total"),        "rfq_total"),
-            (_("RFQ Not Expired"),  "rfq_not_expired"),
-            (_("RFQ Expired"),      "rfq_expired"),
-            (_("Work Order"),       "work_order"),
-            (_("Full Supply"),      "full_supply"),
+            (tr("RFQ Active"),       "rfq_active"),
+            (tr("RFQ Archived"),     "rfq_archived"),
+            (tr("RFQ Total"),        "rfq_total"),
+            (tr("RFQ Not Expired"),  "rfq_not_expired"),
+            (tr("RFQ Expired"),      "rfq_expired"),
+            (tr("Work Order"),       "work_order"),
+            (tr("Full Supply"),      "full_supply"),
         ]
         self._rfq_labels = self._build_section(parent, items, section_key='rfq')
 
@@ -316,14 +312,14 @@ class KpiWindow(tk.Toplevel):
 
     def _build_tab_saving(self, parent):
         items = [
-            (_("Theoretical Saving"),   "theoretical_saving"),
-            (_("Actual Saving"),         "actual_saving"),
-            (_("Average Theoretical Saving %"), "average_saving_pct"),
-            (_("Best Saving %"),         "best_saving_pct"),
-            (_("Worst Saving %"),        "worst_saving_pct"),
-            (_("Median Saving %"),       "median_saving_pct"),
-            (_("Recurring Impact (€)"),     "recurring_impact"),
-            (_("Non-Recurring Impact (€)"),  "non_recurring_impact"),
+            (tr("Theoretical Saving"),   "theoretical_saving"),
+            (tr("Actual Saving"),         "actual_saving"),
+            (tr("Average Theoretical Saving %"), "average_saving_pct"),
+            (tr("Best Saving %"),         "best_saving_pct"),
+            (tr("Worst Saving %"),        "worst_saving_pct"),
+            (tr("Median Saving %"),       "median_saving_pct"),
+            (tr("Recurring Impact (€)"),     "recurring_impact"),
+            (tr("Non-Recurring Impact (€)"),  "non_recurring_impact"),
         ]
         self._saving_labels = self._build_section(parent, items, section_key='saving')
 
@@ -333,15 +329,15 @@ class KpiWindow(tk.Toplevel):
 
     def _build_tab_cost_avoidance(self, parent):
         items = [
-            (_("Theoretical Cost Avoidance"), "theoretical_cost_avoidance"),
-            (_("Actual Cost Avoidance"),       "actual_cost_avoidance"),
-            (_("Average Theoretical CA %"),    "average_pct"),
-            (_("Best %"),                      "best_pct"),
-            (_("Worst %"),                     "worst_pct"),
-            (_("Median %"),                    "median_pct"),
-            (_("Recurring (\u20ac)"),     "recurring"),
-            (_("Non-Recurring (\u20ac)"), "non_recurring"),
-            (_("Carry-over to next year (\u20ac)"), "carry_over_to_next_year"),
+            (tr("Theoretical Cost Avoidance"), "theoretical_cost_avoidance"),
+            (tr("Actual Cost Avoidance"),       "actual_cost_avoidance"),
+            (tr("Average Theoretical CA %"),    "average_pct"),
+            (tr("Best %"),                      "best_pct"),
+            (tr("Worst %"),                     "worst_pct"),
+            (tr("Median %"),                    "median_pct"),
+            (tr("Recurring (\u20ac)"),     "recurring"),
+            (tr("Non-Recurring (\u20ac)"), "non_recurring"),
+            (tr("Carry-over to next year (\u20ac)"), "carry_over_to_next_year"),
         ]
         self._ca_labels = self._build_section(parent, items, section_key='ca')
 
@@ -350,12 +346,12 @@ class KpiWindow(tk.Toplevel):
     # ------------------------------------------------------------------
 
     def _build_tab_derisking(self, parent):
-        is_ita = _("All") != "All"
+        is_ita = get_current_language() == "it"
         outer = ttk.Frame(parent, padding=(8, 8, 8, 8))
         outer.pack(fill="both", expand=True)
 
         # --- KPI cards ---
-        cards_lf = ttk.LabelFrame(outer, text=_("KPI"), padding=(10, 6))
+        cards_lf = ttk.LabelFrame(outer, text=tr("KPI"), padding=(10, 6))
         cards_lf.pack(side="top", fill="x", pady=(0, 8))
         self._derisking_cards_parent = cards_lf
 
@@ -383,7 +379,7 @@ class KpiWindow(tk.Toplevel):
         self._derisking_status_frame = status_wrapper
 
         # --- Chart ---
-        chart_lf = ttk.LabelFrame(outer, text=_("Chart"), padding=(4, 4))
+        chart_lf = ttk.LabelFrame(outer, text=tr("Chart"), padding=(4, 4))
         chart_lf.pack(side="top", fill="both", expand=True, pady=(0, 8))
         canvas = tk.Canvas(chart_lf, height=190, bg='#F8F8F8', highlightthickness=0)
         canvas.pack(fill="both", expand=True)
@@ -391,7 +387,7 @@ class KpiWindow(tk.Toplevel):
         canvas.bind('<Configure>', lambda e: self._on_chart_resize('derisking'))
 
         # --- Details table ---
-        table_lf = ttk.LabelFrame(outer, text=_("Details"), padding=(4, 4))
+        table_lf = ttk.LabelFrame(outer, text=tr("Details"), padding=(4, 4))
         table_lf.pack(side="top", fill="x")
         self._build_detail_table(table_lf, 'derisking')
 
@@ -416,13 +412,13 @@ class KpiWindow(tk.Toplevel):
         outer.pack(fill="both", expand=True)
 
         # --- 1. KPI Cards area ---
-        cards_label_frame = ttk.LabelFrame(outer, text=_("KPI"), padding=(10, 6))
+        cards_label_frame = ttk.LabelFrame(outer, text=tr("KPI"), padding=(10, 6))
         cards_label_frame.pack(side="top", fill="x", pady=(0, 8))
 
         label_refs = self._build_kpi_cards(cards_label_frame, items)
 
         # --- 2. Chart area ---
-        chart_label_frame = ttk.LabelFrame(outer, text=_("Chart"), padding=(4, 4))
+        chart_label_frame = ttk.LabelFrame(outer, text=tr("Chart"), padding=(4, 4))
         chart_label_frame.pack(side="top", fill="both", expand=True, pady=(0, 8))
 
         canvas = tk.Canvas(
@@ -441,7 +437,7 @@ class KpiWindow(tk.Toplevel):
             )
 
         # --- 3. Table area ---
-        table_label_frame = ttk.LabelFrame(outer, text=_("Details"), padding=(4, 4))
+        table_label_frame = ttk.LabelFrame(outer, text=tr("Details"), padding=(4, 4))
         table_label_frame.pack(side="top", fill="x")
 
         self._build_detail_table(table_label_frame, section_key)
@@ -513,7 +509,7 @@ class KpiWindow(tk.Toplevel):
         if not section_key:
             return
 
-        is_ita = _("All") != "All"
+        is_ita = get_current_language() == "it"
 
         if section_key == 'rfq':
             col_specs = [
@@ -706,10 +702,11 @@ class KpiWindow(tk.Toplevel):
         # 4. Etichetta filtro (dipende dalla lingua scelta)
         year_str = self._selected_year.get()
         period   = self._selected_period.get()
+        period_label = tr("All") if period == "ALL" else period
         if year_str:
             filter_label = (_t_ui(is_ita, "Anno: ", "Year: ")) + year_str
         elif period:
-            filter_label = (_t_ui(is_ita, "Periodo: ", "Period: ")) + period
+            filter_label = (_t_ui(is_ita, "Periodo: ", "Period: ")) + period_label
         else:
             filter_label = _t_ui(is_ita, "Tutti i dati", "All data")
 
@@ -729,8 +726,8 @@ class KpiWindow(tk.Toplevel):
         except Exception as e:
             logger.error("[KpiWindow] build_kpi_workbook failed: %s", e, exc_info=True)
             SimpleMessageDialog(
-                self, _("Errore Esportazione"),
-                _("Errore durante l'esportazione: {}").format(e), "error"
+                self, tr("Errore Esportazione"),
+                tr("Errore durante l'esportazione: {}").format(e), "error"
             )
             return
 
@@ -739,7 +736,7 @@ class KpiWindow(tk.Toplevel):
         default_name = f"KPI_DataFlow_{ts}.xlsx"
         save_path = filedialog.asksaveasfilename(
             parent=self,
-            title=_("Salva Export KPI"),
+            title=tr("Salva Export KPI"),
             defaultextension=".xlsx",
             initialfile=default_name,
             filetypes=[("Excel Files", "*.xlsx")],
@@ -755,15 +752,15 @@ class KpiWindow(tk.Toplevel):
         try:
             wb.save(save_path)
             SimpleMessageDialog(
-                self, _("Successo"),
-                _("Export KPI completato:\n{}").format(save_path), "info"
+                self, tr("Successo"),
+                tr("Export KPI completato:\n{}").format(save_path), "info"
             )
             logger.info("[KpiWindow] Export KPI salvato: %s", save_path)
         except Exception as e:
             logger.error("[KpiWindow] wb.save failed: %s", e, exc_info=True)
             SimpleMessageDialog(
-                self, _("Errore Esportazione"),
-                _("Errore durante l'esportazione: {}").format(e), "error"
+                self, tr("Errore Esportazione"),
+                tr("Errore durante l'esportazione: {}").format(e), "error"
             )
         finally:
             try:
@@ -924,7 +921,7 @@ class KpiWindow(tk.Toplevel):
             self._render_derisking_chart(canvas, data)
 
     def _render_rfq_chart(self, canvas, data: list) -> None:
-        is_ita = _("All") != "All"
+        is_ita = get_current_language() == "it"
         draw_bar_chart(
             canvas,
             [{'label': d['label'], 'value': d['count']} for d in data],
@@ -935,7 +932,7 @@ class KpiWindow(tk.Toplevel):
         )
 
     def _render_saving_chart(self, canvas, data: list) -> None:
-        is_ita = _("All") != "All"
+        is_ita = get_current_language() == "it"
         draw_dual_bar_chart(
             canvas,
             data,
@@ -948,7 +945,7 @@ class KpiWindow(tk.Toplevel):
         )
 
     def _render_ca_chart(self, canvas, data: list) -> None:
-        is_ita = _("All") != "All"
+        is_ita = get_current_language() == "it"
         draw_dual_bar_chart(
             canvas,
             data,
@@ -961,7 +958,7 @@ class KpiWindow(tk.Toplevel):
         )
 
     def _render_derisking_chart(self, canvas, data: list) -> None:
-        is_ita = _("All") != "All"
+        is_ita = get_current_language() == "it"
         draw_bar_chart(
             canvas,
             [{'label': d['label'], 'value': d['count']} for d in data],
@@ -1022,7 +1019,7 @@ class KpiWindow(tk.Toplevel):
 
     def _update_derisking_cards(self, data: dict):
         """Aggiorna le card Derisking con i dati restituiti dall'engine."""
-        is_ita = _("All") != "All"
+        is_ita = get_current_language() == "it"
 
         # Card fisse
         lbl = self._derisking_labels.get("total_suppliers")
