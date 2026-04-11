@@ -3833,3 +3833,19 @@ msgstr "🧾 RFQ PDF"
 
 msgid "Funzionalita RFQ PDF non disponibile: {}"
 msgstr "RFQ PDF feature not available: {}"
+
+
+msgid "🧾 RdO PDF"
+msgstr "🧾 RfQ PDF"
+
+
+msgid "Numero RdO"
+msgstr "RfQ Number"
+
+
+msgid "Material for Processing"
+msgstr "Material for Processing"
+
+
+msgid "Il file selezionato esiste gia. Vuoi sovrascriverlo?"
+msgstr "The selected file already exists. Do you want to overwrite it?"

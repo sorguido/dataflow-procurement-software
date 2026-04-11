@@ -1,4 +1,5 @@
 """Dialog export RFQ PDF con gestione logo persistente."""
+import os
 import tkinter as tk
 from tkinter import filedialog, ttk
 
@@ -184,9 +185,18 @@ class RfqPdfExportDialog(tk.Toplevel):
             defaultextension=".pdf",
             initialfile=initial_name,
             filetypes=[(tr("File PDF"), "*.pdf")],
+            confirmoverwrite=False,
         )
         if not save_path:
             return
+
+        if os.path.exists(save_path):
+            if not show_confirm(
+                self,
+                tr("Conferma"),
+                tr("Il file selezionato esiste gia. Vuoi sovrascriverlo?"),
+            ):
+                return
 
         logo_path = None
         logo_status = get_logo_status()

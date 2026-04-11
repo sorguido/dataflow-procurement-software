@@ -3816,7 +3816,7 @@ msgstr "Descrizione"
 
 
 msgid "Qty"
-msgstr "Q.ta"
+msgstr "Q.tà"
 
 
 msgid "Raw Code"
@@ -3861,3 +3861,19 @@ msgstr "🧾 RFQ PDF"
 
 msgid "Funzionalita RFQ PDF non disponibile: {}"
 msgstr "Funzionalita RFQ PDF non disponibile: {}"
+
+
+msgid "🧾 RdO PDF"
+msgstr "🧾 RdO PDF"
+
+
+msgid "Numero RdO"
+msgstr "Numero RdO"
+
+
+msgid "Material for Processing"
+msgstr "Materiale per Lavorazione"
+
+
+msgid "Il file selezionato esiste gia. Vuoi sovrascriverlo?"
+msgstr "Il file selezionato esiste gia. Vuoi sovrascriverlo?"

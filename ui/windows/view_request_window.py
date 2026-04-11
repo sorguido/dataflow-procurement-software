@@ -125,7 +125,7 @@ class ViewRequestWindow(tk.Toplevel):
         self.btn_notes.pack(side="left", padx=10)
         # --- FINE MODIFICA ---
         ttk.Button(frame_comandi, text=tr("📊 Esporta Excel"), command=self.export_to_excel).pack(side="left", padx=10)
-        ttk.Button(frame_comandi, text=tr("🧾 RFQ PDF"), command=self.open_rfq_pdf_export_dialog).pack(side="left", padx=10)
+        ttk.Button(frame_comandi, text=tr("🧾 RdO PDF"), command=self.open_rfq_pdf_export_dialog).pack(side="left", padx=10)
         # --- MODIFICA RICHIESTA: Aggiunta pulsante SQDC ---
         self.btn_sqdc = ttk.Button(frame_comandi, text="...", command=self.open_sqdc_analysis)
         self.btn_sqdc.pack(side="left", padx=10)

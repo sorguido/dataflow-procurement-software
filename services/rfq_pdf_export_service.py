@@ -12,7 +12,7 @@ from reportlab.platypus import Image, Paragraph, SimpleDocTemplate, Spacer, Tabl
 
 from database_manager import DatabaseManager
 from utils.format_utils import format_quantity_display
-from utils.i18n_utils import normalize_rfq_type, tr
+from utils.i18n_utils import normalize_rfq_type, tr, translate_rfq_type
 
 
 def _safe_text(value) -> str:
@@ -53,6 +53,7 @@ def _build_paragraph_styles() -> Dict[str, ParagraphStyle]:
             fontName="Helvetica-Bold",
             fontSize=16,
             leading=19,
+            alignment=0,
             textColor=colors.HexColor("#1f2937"),
             spaceAfter=6,
         ),
@@ -62,6 +63,7 @@ def _build_paragraph_styles() -> Dict[str, ParagraphStyle]:
             fontName="Helvetica",
             fontSize=10,
             leading=13,
+            alignment=0,
             textColor=colors.HexColor("#111827"),
         ),
         "body": ParagraphStyle(
@@ -116,8 +118,9 @@ def _build_table(
             tr("Qty"),
             tr("Raw Code"),
             tr("Raw Attachment"),
+            tr("Material for Processing"),
         ]
-        width_weights = [0.06, 0.12, 0.14, 0.34, 0.09, 0.1, 0.15]
+        width_weights = [0.055, 0.1, 0.13, 0.28, 0.08, 0.1, 0.13, 0.125]
     else:
         headers = [
             tr("Item #"),
@@ -134,7 +137,7 @@ def _build_table(
     table_data = [header_row]
 
     for idx, row in enumerate(details_rows, start=1):
-        _, code, attachment, description, qty, raw_code, raw_attachment, _mat_cl = row
+        _, code, attachment, description, qty, raw_code, raw_attachment, material_for_processing = row
         base_cells = [
             Paragraph(escape(str(idx)), styles["table_cell_center"]),
             Paragraph(escape(_safe_text(code)), styles["table_cell"]),
@@ -148,6 +151,7 @@ def _build_table(
                 [
                     Paragraph(escape(_safe_text(raw_code)), styles["table_cell"]),
                     Paragraph(escape(_safe_text(raw_attachment)), styles["table_cell"]),
+                    Paragraph(escape(_safe_text(material_for_processing)), styles["table_cell"]),
                 ]
             )
 
@@ -221,45 +225,22 @@ def export_rfq_pdf(
         warnings.append(tr("Logo configurato non valido: export eseguito senza logo."))
 
     title_text = tr("Richiesta di Offerta")
+    rfq_type_label = tr("Tipo RdO")
+    rfq_type_value = translate_rfq_type(dataset["rfq_type"])
     meta_html = "<br/>".join(
         [
-            f"<b>{escape(tr('Numero RFQ'))}:</b> {escape(str(dataset['request_id']))}",
+            f"<b>{escape(tr('Numero RdO'))}:</b> {escape(str(dataset['request_id']))}",
+            f"<b>{escape(rfq_type_label)}:</b> {escape(rfq_type_value)}",
             f"<b>{escape(tr('Issue Date'))}:</b> {escape(dataset['issue_date'])}",
             f"<b>{escape(tr('Expiry Date'))}:</b> {escape(dataset['expiry_date'])}",
         ]
     )
-
-    header_right = [
-        Paragraph(escape(title_text), styles["title"]),
-        Paragraph(meta_html, styles["meta"]),
-    ]
-
     if logo is not None:
-        header_table = Table(
-            [[logo, header_right]],
-            colWidths=[5.5 * cm, doc.width - (5.5 * cm)],
-            hAlign="LEFT",
-        )
-    else:
-        header_table = Table(
-            [["", header_right]],
-            colWidths=[5.5 * cm, doc.width - (5.5 * cm)],
-            hAlign="LEFT",
-        )
-
-    header_table.setStyle(
-        TableStyle(
-            [
-                ("VALIGN", (0, 0), (-1, -1), "TOP"),
-                ("LEFTPADDING", (0, 0), (-1, -1), 0),
-                ("RIGHTPADDING", (0, 0), (-1, -1), 0),
-                ("TOPPADDING", (0, 0), (-1, -1), 0),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
-            ]
-        )
-    )
-    story.append(header_table)
-    story.append(Spacer(1, 0.6 * cm))
+        story.append(logo)
+        story.append(Spacer(1, 0.35 * cm))
+    story.append(Paragraph(escape(title_text), styles["title"]))
+    story.append(Paragraph(meta_html, styles["meta"]))
+    story.append(Spacer(1, 0.5 * cm))
 
     story.append(
         Paragraph(
