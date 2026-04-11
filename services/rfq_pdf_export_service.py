@@ -39,6 +39,7 @@ def _build_logo(logo_path: Optional[str], max_width: float, max_height: float) -
         ratio = min(max_width / float(logo.imageWidth), max_height / float(logo.imageHeight), 1.0)
         logo.drawWidth = float(logo.imageWidth) * ratio
         logo.drawHeight = float(logo.imageHeight) * ratio
+        logo.hAlign = "LEFT"
         return logo
     except Exception:
         return None
