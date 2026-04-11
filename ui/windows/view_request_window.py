@@ -131,8 +131,8 @@ class ViewRequestWindow(tk.Toplevel):
         )
         self.btn_export.pack(side="left", padx=10)
         self.export_menu = tk.Menu(self.btn_export, tearoff=0)
-        self.export_menu.add_command(label=tr("Excel"), command=self.export_to_excel)
-        self.export_menu.add_command(label=tr("PDF"), command=self.open_rfq_pdf_export_dialog)
+        self.export_menu.add_command(label=tr("📗 Excel"), command=self.export_to_excel)
+        self.export_menu.add_command(label=tr("📄 PDF"), command=self.open_rfq_pdf_export_dialog)
         self.btn_export.config(menu=self.export_menu)
         # --- MODIFICA RICHIESTA: Aggiunta pulsante SQDC ---
         self.btn_sqdc = ttk.Button(frame_comandi, text="...", command=self.open_sqdc_analysis)
