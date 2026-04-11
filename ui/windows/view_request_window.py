@@ -124,8 +124,16 @@ class ViewRequestWindow(tk.Toplevel):
         self.btn_notes = ttk.Button(frame_comandi, text="...", command=self.open_notes_window)
         self.btn_notes.pack(side="left", padx=10)
         # --- FINE MODIFICA ---
-        ttk.Button(frame_comandi, text=tr("📊 Esporta Excel"), command=self.export_to_excel).pack(side="left", padx=10)
-        ttk.Button(frame_comandi, text=tr("🧾 RdO PDF"), command=self.open_rfq_pdf_export_dialog).pack(side="left", padx=10)
+        export_label = tr("Export") if get_current_language() == "en" else tr("Esporta")
+        self.btn_export = ttk.Menubutton(
+            frame_comandi,
+            text=f"📊 {export_label}"
+        )
+        self.btn_export.pack(side="left", padx=10)
+        self.export_menu = tk.Menu(self.btn_export, tearoff=0)
+        self.export_menu.add_command(label=tr("📊 Esporta Excel"), command=self.export_to_excel)
+        self.export_menu.add_command(label=tr("🧾 RdO PDF"), command=self.open_rfq_pdf_export_dialog)
+        self.btn_export.config(menu=self.export_menu)
         # --- MODIFICA RICHIESTA: Aggiunta pulsante SQDC ---
         self.btn_sqdc = ttk.Button(frame_comandi, text="...", command=self.open_sqdc_analysis)
         self.btn_sqdc.pack(side="left", padx=10)
@@ -239,7 +247,7 @@ class ViewRequestWindow(tk.Toplevel):
         if hasattr(self, 'btn_po'):
             self.btn_po.config(state='disabled')
         
-        # NON disabilitare i pulsanti "Gestisci Offerte/Documenti" e "Esporta Excel"
+        # NON disabilitare i pulsanti "Gestisci Offerte/Documenti" e "Export"
         # perché sono operazioni di sola lettura/visualizzazione
         
         # Disabilita date
