@@ -16,6 +16,7 @@ def collect_folder(folder_name):
 
 datas = []
 datas += collect_data_files("babel")
+datas += collect_data_files("reportlab")
 datas += collect_folder("add_data")
 datas += collect_folder("locale")
 

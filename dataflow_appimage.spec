@@ -19,6 +19,7 @@ datas = [
 
 # Babel (fondamentale)
 datas += collect_data_files('babel')
+datas += collect_data_files('reportlab')
 
 a = Analysis(
     ['dataflow.py'],

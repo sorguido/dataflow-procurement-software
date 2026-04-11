@@ -3651,3 +3651,185 @@ msgstr "Search Filters"
 
 msgid "No data available"
 msgstr "No data available"
+
+
+msgid "Esporta RFQ PDF"
+msgstr "Export RFQ PDF"
+
+
+msgid "Esporta la RFQ in PDF A4."
+msgstr "Export RFQ as an A4 PDF."
+
+
+msgid "Logo Aziendale"
+msgstr "Company Logo"
+
+
+msgid "Seleziona logo"
+msgstr "Select logo"
+
+
+msgid "Rimuovi logo"
+msgstr "Remove logo"
+
+
+msgid "Conferma Export PDF"
+msgstr "Confirm PDF Export"
+
+
+msgid "Formati supportati: PNG/JPG. Consigliata immagine orizzontale, max 8 MB. Il logo verra ridimensionato automaticamente nel PDF senza deformazioni."
+msgstr "Supported formats: PNG/JPG. A horizontal image is recommended, max 8 MB. The logo will be resized automatically in the PDF without distortion."
+
+
+msgid "Logo non configurato."
+msgstr "Logo not configured."
+
+
+msgid "Logo configurato: {}"
+msgstr "Configured logo: {}"
+
+
+msgid "Sostituisci logo"
+msgstr "Replace logo"
+
+
+msgid "Logo configurato ma non disponibile/corrotto. Puoi sostituirlo o rimuoverlo."
+msgstr "Logo is configured but unavailable/corrupted. You can replace or remove it."
+
+
+msgid "Seleziona Logo Aziendale"
+msgstr "Select Company Logo"
+
+
+msgid "Immagini PNG/JPG"
+msgstr "PNG/JPG Images"
+
+
+msgid "Logo aziendale salvato con successo."
+msgstr "Company logo saved successfully."
+
+
+msgid "Logo non valido"
+msgstr "Invalid logo"
+
+
+msgid "Impossibile usare il logo selezionato: {}"
+msgstr "Unable to use the selected logo: {}"
+
+
+msgid "Errore durante il salvataggio del logo: {}"
+msgstr "Error while saving logo: {}"
+
+
+msgid "Vuoi rimuovere il logo aziendale salvato?"
+msgstr "Do you want to remove the saved company logo?"
+
+
+msgid "Logo rimosso."
+msgstr "Logo removed."
+
+
+msgid "Impossibile rimuovere il logo: {}"
+msgstr "Unable to remove logo: {}"
+
+
+msgid "Salva RFQ PDF"
+msgstr "Save RFQ PDF"
+
+
+msgid "File PDF"
+msgstr "PDF Files"
+
+
+msgid "Errore durante la generazione PDF: {}"
+msgstr "Error during PDF generation: {}"
+
+
+msgid "Export completato con avvisi"
+msgstr "Export completed with warnings"
+
+
+msgid ""
+"PDF generato in:\n"
+"{}\n"
+"\n"
+"Avvisi:\n"
+"{}"
+msgstr ""
+"PDF generated at:\n"
+"{}\n"
+"\n"
+"Warnings:\n"
+"{}"
+
+
+msgid ""
+"PDF generato in:\n"
+"{}"
+msgstr ""
+"PDF generated at:\n"
+"{}"
+
+
+msgid "Item #"
+msgstr "Item #"
+
+
+msgid "Code"
+msgstr "Code"
+
+
+msgid "Attachment"
+msgstr "Attachment"
+
+
+msgid "Description"
+msgstr "Description"
+
+
+msgid "Qty"
+msgstr "Qty"
+
+
+msgid "Raw Code"
+msgstr "Raw Code"
+
+
+msgid "Raw Attachment"
+msgstr "Raw Attachment"
+
+
+msgid "Richiesta di Offerta"
+msgstr "Request for Quotation"
+
+
+msgid "Numero RFQ"
+msgstr "RFQ Number"
+
+
+msgid "Issue Date"
+msgstr "Issue Date"
+
+
+msgid "Expiry Date"
+msgstr "Expiry Date"
+
+
+msgid "Logo configurato non valido: export eseguito senza logo."
+msgstr "Configured logo is invalid: export completed without logo."
+
+
+msgid "Gentile Fornitore, con la presente sono a richiedere la Vs. migliore quotazione per il seguente materiale:"
+msgstr "Dear Supplier, I kindly ask you to provide your best quotation for the following items:"
+
+
+msgid "In attesa di un Vs. gentile riscontro, porgo cordiali saluti."
+msgstr "I look forward to your kind reply. Best regards."
+
+
+msgid "🧾 RFQ PDF"
+msgstr "🧾 RFQ PDF"
+
+
+msgid "Funzionalita RFQ PDF non disponibile: {}"
+msgstr "RFQ PDF feature not available: {}"

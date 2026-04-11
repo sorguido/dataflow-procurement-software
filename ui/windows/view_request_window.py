@@ -125,6 +125,7 @@ class ViewRequestWindow(tk.Toplevel):
         self.btn_notes.pack(side="left", padx=10)
         # --- FINE MODIFICA ---
         ttk.Button(frame_comandi, text=tr("📊 Esporta Excel"), command=self.export_to_excel).pack(side="left", padx=10)
+        ttk.Button(frame_comandi, text=tr("🧾 RFQ PDF"), command=self.open_rfq_pdf_export_dialog).pack(side="left", padx=10)
         # --- MODIFICA RICHIESTA: Aggiunta pulsante SQDC ---
         self.btn_sqdc = ttk.Button(frame_comandi, text="...", command=self.open_sqdc_analysis)
         self.btn_sqdc.pack(side="left", padx=10)
@@ -768,6 +769,29 @@ class ViewRequestWindow(tk.Toplevel):
                     logger.debug(f"Workbook Excel chiuso: {template_path}")
                 except Exception as close_error:
                     logger.warning(f"Errore chiusura workbook Excel: {close_error}")
+
+    def open_rfq_pdf_export_dialog(self):
+        """Apre il dialog di export RFQ PDF."""
+        try:
+            from ui.dialogs.rfq_pdf_export_dialog import RfqPdfExportDialog
+        except Exception as e:
+            logger.error(f"Errore import dialog RFQ PDF: {e}", exc_info=True)
+            show_error(
+                tr("Errore"),
+                tr("Funzionalita RFQ PDF non disponibile: {}").format(e),
+                parent=self
+            )
+            return
+
+        dialog = RfqPdfExportDialog(
+            parent=self,
+            request_id=self.request_id,
+            db_path=self.db_path,
+            read_only=self.read_only,
+        )
+        self.wait_window(dialog)
+        self.lift()
+        self.focus_force()
 
     def open_edit_suppliers_window(self):
         """Apre la finestra di modifica fornitori"""
