@@ -10,8 +10,9 @@ from services.rfq_pdf_logo_service import (
     remove_persisted_logo,
     save_logo_from_source,
 )
+from services.rfq_pdf_template_service import open_template_with_system_app
 from ui.dialogs.common_dialogs import show_confirm, show_error, show_info, show_warning
-from utils.i18n_utils import tr
+from utils.i18n_utils import get_current_language, tr
 from utils.resource_utils import set_window_icon
 from utils.window_utils import center_window
 
@@ -86,6 +87,28 @@ class RfqPdfExportDialog(tk.Toplevel):
             width=18,
         )
         self.btn_remove_logo.pack(side="left", padx=(8, 0))
+
+        self.btn_edit_pdf_template = ttk.Button(
+            logo_btn_row,
+            text=tr("Modifica PDF") if get_current_language() == "it" else tr("Edit PDF"),
+            command=self._edit_pdf_template,
+            width=18,
+        )
+        self.btn_edit_pdf_template.pack(side="left", padx=(8, 0))
+
+        note_text = (
+            tr('Usa "Modifica PDF" per personalizzare il template del messaggio PDF (file .txt).')
+            if get_current_language() == "it"
+            else tr('Use "Edit PDF" to customize the PDF message template (.txt file).')
+        )
+        ttk.Label(
+            main,
+            text=note_text,
+            font=(None, 9),
+            justify="left",
+            wraplength=460,
+            foreground="#777777",
+        ).pack(anchor="w", pady=(0, 12))
 
         action_row = ttk.Frame(main)
         action_row.pack(fill="x", pady=(4, 0))
@@ -172,6 +195,12 @@ class RfqPdfExportDialog(tk.Toplevel):
             show_info(self, tr("Successo"), tr("Logo rimosso."))
         except Exception as exc:
             show_error(self, tr("Errore"), tr("Impossibile rimuovere il logo: {}").format(exc))
+
+    def _edit_pdf_template(self):
+        try:
+            open_template_with_system_app(language_code=get_current_language())
+        except Exception as exc:
+            show_error(self, tr("Errore"), tr("Impossibile aprire il template PDF: {}").format(exc))
 
     def _on_export(self):
         self.lift()

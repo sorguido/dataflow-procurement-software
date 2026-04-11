@@ -11,8 +11,9 @@ from reportlab.lib.units import cm
 from reportlab.platypus import Image, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
 from database_manager import DatabaseManager
+from services.rfq_pdf_template_service import load_template_parts
 from utils.format_utils import format_quantity_display
-from utils.i18n_utils import normalize_rfq_type, tr, translate_rfq_type
+from utils.i18n_utils import get_current_language, normalize_rfq_type, tr, translate_rfq_type
 
 
 def _safe_text(value) -> str:
@@ -179,6 +180,23 @@ def _build_table(
     return table
 
 
+def _append_template_text_blocks(story: list, text: str, style: ParagraphStyle, spacer_cm: float) -> bool:
+    normalized = (text or "").replace("\r\n", "\n").replace("\r", "\n")
+    if not normalized.strip():
+        return False
+
+    blocks = [block.strip() for block in normalized.split("\n\n")]
+    appended = False
+    for block in blocks:
+        if not block:
+            continue
+        html = escape(block).replace("\n", "<br/>")
+        story.append(Paragraph(html, style))
+        story.append(Spacer(1, spacer_cm * cm))
+        appended = True
+    return appended
+
+
 def _load_rfq_dataset(db_path: str, request_id: int, read_only: bool = False) -> dict:
     with DatabaseManager(db_path, read_only=read_only) as db_manager:
         request_data = db_manager.get_richiesta_full_data(request_id)
@@ -208,6 +226,7 @@ def export_rfq_pdf(
     dataset = _load_rfq_dataset(db_path=db_path, request_id=request_id, read_only=read_only)
     styles = _build_paragraph_styles()
     warnings: List[str] = []
+    template_parts = load_template_parts(language_code=get_current_language())
 
     doc = SimpleDocTemplate(
         output_path,
@@ -243,13 +262,12 @@ def export_rfq_pdf(
     story.append(Paragraph(meta_html, styles["meta"]))
     story.append(Spacer(1, 0.5 * cm))
 
-    story.append(
-        Paragraph(
-            escape(tr("Gentile Fornitore, con la presente sono a richiedere la Vs. migliore quotazione per il seguente materiale:")),
-            styles["body"],
-        )
+    _append_template_text_blocks(
+        story=story,
+        text=str(template_parts.get("before_text", "")),
+        style=styles["body"],
+        spacer_cm=0.28,
     )
-    story.append(Spacer(1, 0.35 * cm))
 
     is_conto_lavoro = dataset["rfq_type"] == "Conto lavoro"
     table = _build_table(
@@ -261,16 +279,38 @@ def export_rfq_pdf(
     story.append(table)
     story.append(Spacer(1, 0.45 * cm))
 
-    story.append(
-        Paragraph(
-            escape(tr("In attesa di un Vs. gentile riscontro, porgo cordiali saluti.")),
-            styles["body"],
-        )
+    _append_template_text_blocks(
+        story=story,
+        text=str(template_parts.get("after_text", "")),
+        style=styles["body"],
+        spacer_cm=0.28,
     )
+
+    fallback_reason = template_parts.get("fallback_reason")
+    if fallback_reason:
+        if get_current_language() == "it":
+            if fallback_reason == "missing_placeholder":
+                warnings.append(
+                    tr("Template PDF esterno non valido: manca il placeholder {{TABLE}}. E stato usato il template interno.")
+                )
+            else:
+                warnings.append(
+                    tr("Template PDF esterno non valido o vuoto. E stato usato il template interno.")
+                )
+        else:
+            if fallback_reason == "missing_placeholder":
+                warnings.append(
+                    tr("External PDF template is invalid: missing {{TABLE}} placeholder. Internal template was used.")
+                )
+            else:
+                warnings.append(
+                    tr("External PDF template is invalid or empty. Internal template was used.")
+                )
 
     doc.build(story)
     return {
         "output_path": output_path,
         "warnings": warnings,
         "rfq_type": dataset["rfq_type"],
+        "template_fallback_reason": fallback_reason,
     }
