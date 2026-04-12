@@ -12,6 +12,8 @@ import re
 _MULTISPACE_RE = re.compile(r"\s+")
 _PUNCT_RE = re.compile(r"[^\w\s]", re.UNICODE)
 _SUFFIXES = {"srl", "srls", "spa", "snc", "sas", "sapa"}
+_DOTTED_SRL_RE = re.compile(r"\bs\.\s*r\.\s*l\.?\b", re.IGNORECASE)
+_DOTTED_SPA_RE = re.compile(r"\bs\.\s*p\.\s*a\.?\b", re.IGNORECASE)
 
 
 def normalize_supplier_name_for_match(value: str) -> str:
@@ -29,6 +31,12 @@ def normalize_supplier_name_for_match(value: str) -> str:
     text = str(value).strip().lower()
     if not text:
         return ""
+
+    # Micro-fix conservativo: converte varianti puntate comuni prima della
+    # pulizia punteggiatura, così "s.r.l." e "s.p.a." convergono a token canonici.
+    text = _DOTTED_SRL_RE.sub("srl", text)
+    text = _DOTTED_SPA_RE.sub("spa", text)
+
     text = _PUNCT_RE.sub(" ", text)
     text = _MULTISPACE_RE.sub(" ", text).strip()
     return text
