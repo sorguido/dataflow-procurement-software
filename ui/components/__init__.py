@@ -5,5 +5,6 @@
 
 from ui.components.main_dashboard_toolbar import MainDashboardToolbar
 from ui.components.collapsible_filters import CollapsibleFilters
+from ui.components.supplier_name_suggest import SupplierNameSuggestController
 
-__all__ = ['MainDashboardToolbar', 'CollapsibleFilters']
+__all__ = ['MainDashboardToolbar', 'CollapsibleFilters', 'SupplierNameSuggestController']

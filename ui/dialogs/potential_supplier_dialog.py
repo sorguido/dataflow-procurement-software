@@ -18,6 +18,7 @@ from services.supplier_persistence import (
     get_supplier_by_id,
     SupplierError,
 )
+from services.supplier_name_suggestion_service import SupplierNameSuggestionService
 from services.supplier_category_persistence import (
     get_all_supplier_categories,
     ensure_supplier_category_exists,
@@ -58,6 +59,7 @@ from utils.resource_utils import set_window_icon
 from utils.window_utils import center_window
 from utils.validation_utils import is_valid_email, is_valid_website
 from ui.dialogs.common_dialogs import SimpleMessageDialog
+from ui.components.supplier_name_suggest import SupplierNameSuggestController
 
 logger = logging.getLogger(__name__)
 
@@ -90,6 +92,8 @@ class PotentialSupplierDialog(tk.Toplevel):
         self.read_only = read_only
         self._refresh_derisking_cb = refresh_derisking_cb
         self.result = None  # True dopo salvataggio riuscito
+        self._supplier_index = None
+        self._suggest_controller = None
 
         # Nascondi durante costruzione UI
         self.withdraw()
@@ -120,6 +124,7 @@ class PotentialSupplierDialog(tk.Toplevel):
 
         # Costruisci UI
         self._build_ui()
+        self._init_supplier_suggestions()
 
         # Popola campo Utente (sempre disabled, auto-valorizzato)
         self._entry_username.configure(state="normal")
@@ -139,6 +144,12 @@ class PotentialSupplierDialog(tk.Toplevel):
         self.wait_visibility()
         self.grab_set()
         self.deiconify()
+
+    def destroy(self):
+        if self._suggest_controller is not None:
+            self._suggest_controller.destroy()
+            self._suggest_controller = None
+        super().destroy()
 
     # -----------------------------------------------------------------------
     # UI BUILDING
@@ -297,6 +308,45 @@ class PotentialSupplierDialog(tk.Toplevel):
         # Chiusura con X
         self.protocol("WM_DELETE_WINDOW", self.destroy)
 
+    def _init_supplier_suggestions(self):
+        # In read-only non attiviamo interazioni suggerimento.
+        if self.read_only:
+            return
+        try:
+            self._supplier_index = SupplierNameSuggestionService.build_index(get_db_path())
+            self._suggest_controller = SupplierNameSuggestController(
+                self,
+                self._entry_supplier_name,
+                self._get_supplier_suggestions,
+                min_chars=2,
+                max_items=8,
+            )
+        except Exception as e:
+            logger.warning("Suggerimenti fornitori non disponibili nel dialog Derisking: %s", e)
+            self._supplier_index = None
+            self._suggest_controller = None
+
+    def _get_supplier_suggestions(self, query: str) -> list:
+        if not self._supplier_index:
+            return []
+        return self._supplier_index.suggest(query, limit=8)
+
+    def _show_soft_duplicate_warning_if_needed(self, supplier_name: str):
+        if not self._supplier_index:
+            return
+        candidates = self._supplier_index.get_soft_duplicate_candidates(supplier_name, limit=3)
+        if not candidates:
+            return
+        SimpleMessageDialog(
+            self,
+            tr("Possibile Duplicato Fornitore"),
+            tr(
+                "Il nome inserito puo riferirsi a un fornitore gia presente.\n"
+                "Possibili corrispondenze:\n\n{}"
+            ).format("\n".join(candidates)),
+            "warning",
+        )
+
     # -----------------------------------------------------------------------
     # DATA LOADING (modalità EDIT)
     # -----------------------------------------------------------------------
@@ -372,6 +422,9 @@ class PotentialSupplierDialog(tk.Toplevel):
             self._entry_supplier_name.focus_set()
             return
 
+        # Warning soft non bloccante per nomi semanticamente simili.
+        self._show_soft_duplicate_warning_if_needed(supplier_name)
+
         email_value = self.var_email.get().strip()
         if not is_valid_email(email_value):
             SimpleMessageDialog(self, tr("Validazione"), tr("Formato e-mail non valido."), "error")
@@ -425,6 +478,16 @@ class PotentialSupplierDialog(tk.Toplevel):
             return
 
         self.result = True
+
+        # Aggiorna indice locale per coerenza in edit consecutivi nello stesso dialog.
+        if self._supplier_index is not None:
+            try:
+                self._supplier_index = SupplierNameSuggestionService.build_index(get_db_path())
+                if self._suggest_controller is not None:
+                    self._suggest_controller.refresh()
+            except Exception as idx_err:
+                logger.warning("Impossibile aggiornare indice suggerimenti Derisking: %s", idx_err)
+
         self.destroy()
 
     # -----------------------------------------------------------------------

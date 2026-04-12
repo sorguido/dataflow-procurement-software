@@ -9,9 +9,11 @@ import logging
 
 from database_manager import DatabaseManager, DatabaseError
 from services.app_paths import get_db_path
+from services.supplier_name_suggestion_service import SupplierNameSuggestionService
 from utils.window_utils import center_window
 from utils.resource_utils import set_window_icon
 from utils.i18n_utils import tr
+from ui.components.supplier_name_suggest import SupplierNameSuggestController
 from ui.dialogs.common_dialogs import show_error, show_info, show_warning
 
 logger = logging.getLogger(__name__)
@@ -41,9 +43,90 @@ class EditSuppliersWindow(tk.Toplevel):
         ttk.Label(frame, text=tr("Modifica elenco fornitori (nomi separati da virgola):")).pack(anchor="w")
         self.entry_suppliers = ttk.Entry(frame, width=70)
         self.entry_suppliers.pack(fill="x", expand=True, pady=5)
+
+        self._supplier_index = None
+        self._suggest_controller = None
+        self._init_supplier_suggestions()
         
         self.load_current_suppliers()
         center_window(self)
+
+    def destroy(self):
+        if self._suggest_controller is not None:
+            self._suggest_controller.destroy()
+            self._suggest_controller = None
+        super().destroy()
+
+    def _init_supplier_suggestions(self):
+        try:
+            self._supplier_index = SupplierNameSuggestionService.build_index(
+                getattr(self, "db_path", get_db_path())
+            )
+            self._suggest_controller = SupplierNameSuggestController(
+                self,
+                self.entry_suppliers,
+                self._get_supplier_suggestions,
+                get_query_text=self._get_current_supplier_token,
+                apply_suggestion=self._apply_supplier_suggestion,
+                min_chars=2,
+                max_items=8,
+            )
+        except Exception as e:
+            logger.warning("Suggerimenti fornitori non disponibili: %s", e)
+            self._supplier_index = None
+            self._suggest_controller = None
+
+    def _get_supplier_suggestions(self, query: str) -> list:
+        if not self._supplier_index:
+            return []
+        return self._supplier_index.suggest(query, limit=8)
+
+    def _get_current_supplier_token(self) -> str:
+        text = self.entry_suppliers.get()
+        cursor = self.entry_suppliers.index(tk.INSERT)
+        left = text[:cursor]
+        return left.split(",")[-1].strip()
+
+    def _apply_supplier_suggestion(self, suggestion: str):
+        text = self.entry_suppliers.get()
+        cursor = self.entry_suppliers.index(tk.INSERT)
+        start = text.rfind(",", 0, cursor) + 1
+        end = text.find(",", cursor)
+        if end < 0:
+            end = len(text)
+
+        current_token = text[start:end]
+        leading_ws_len = len(current_token) - len(current_token.lstrip())
+        trailing_ws_len = len(current_token) - len(current_token.rstrip())
+        replacement = (" " * leading_ws_len) + suggestion + (" " * trailing_ws_len)
+
+        updated = text[:start] + replacement + text[end:]
+        self.entry_suppliers.delete(0, tk.END)
+        self.entry_suppliers.insert(0, updated)
+        self.entry_suppliers.icursor(start + leading_ws_len + len(suggestion))
+
+    def _show_soft_duplicate_warning_if_needed(self, supplier_names: list):
+        if not self._supplier_index:
+            return
+
+        warnings = []
+        for name in supplier_names:
+            candidates = self._supplier_index.get_soft_duplicate_candidates(name, limit=3)
+            if not candidates:
+                continue
+            warnings.append(f"{name} -> {', '.join(candidates)}")
+
+        if not warnings:
+            return
+
+        show_warning(
+            self,
+            tr("Possibile Duplicato Fornitore"),
+            tr(
+                "Alcuni nomi possono riferirsi a fornitori gia presenti.\n"
+                "Verifica prima di salvare:\n\n{}"
+            ).format("\n".join(warnings)),
+        )
     
     def load_current_suppliers(self):
         try:
@@ -76,6 +159,9 @@ class EditSuppliersWindow(tk.Toplevel):
                     tr("Hai inserito lo stesso fornitore più volte:\n\n{}\n\nOgni fornitore deve essere inserito una sola volta.").format(', '.join(sorted(set(duplicati_unici))))
                 )
                 return
+
+        # Warning soft non bloccante per varianti simili.
+        self._show_soft_duplicate_warning_if_needed(new_suppliers)
         
         try:
             # Recupera i fornitori PRIMA di eliminarli e gli id_dettaglio
@@ -96,6 +182,17 @@ class EditSuppliersWindow(tk.Toplevel):
                 verify_count = len(verify_rows)
                 print(f"[EditSuppliersWindow] VERIFICA POST-SALVATAGGIO: {verify_count} fornitori trovati nel DB (attesi: {len(new_suppliers)})")
                 print(f"[EditSuppliersWindow] Fornitori salvati: {[r[0] for r in verify_rows]}")
+
+            # Refresh indice suggerimenti dopo salvataggio per mantenere risultati coerenti.
+            if self._supplier_index is not None:
+                try:
+                    self._supplier_index = SupplierNameSuggestionService.build_index(
+                        getattr(self, "db_path", get_db_path())
+                    )
+                    if self._suggest_controller is not None:
+                        self._suggest_controller.refresh()
+                except Exception as idx_err:
+                    logger.warning("Impossibile aggiornare indice suggerimenti: %s", idx_err)
             
             # Context manager ha già chiuso il DB qui
             print(f"[EditSuppliersWindow] DB chiuso dal context manager")

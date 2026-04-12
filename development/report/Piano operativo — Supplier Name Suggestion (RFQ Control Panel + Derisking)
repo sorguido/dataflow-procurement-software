@@ -1,0 +1,182 @@
+# Piano operativo — Supplier Name Suggestion (RFQ Control Panel + Derisking)
+
+## Summary
+Feature proposta: suggerimento assistito e warning soft su nomi fornitore in due punti UI:
+- RFQ Control Panel: `EditSuppliersWindow` (campo unico con nomi separati da virgola)
+- Derisking: `PotentialSupplierDialog` (campo singolo fornitore)
+
+Obiettivo: ridurre duplicati semantici (`Rossi` / `Rossi srl` / `Rossi s.r.l.`) con rollout conservativo, reversibile, senza dipendenze esterne, senza regressioni layout, senza crescita di logica in `dataflow.py`.
+
+Decisioni confermate:
+- sorgenti ufficiali v1: RFQ (attive + archiviate) + anagrafica Derisking
+- ranking: RFQ prioritaria, Derisking secondaria
+- quasi-duplicati: warning non bloccante
+
+## 1) Scopo della feature
+Problema concreto:
+- oggi in RFQ il nome fornitore viene inserito manualmente come testo libero in blocco, con rischio alto di varianti.
+- in Derisking il nome fornitore è libero e può divergere dal naming usato in RFQ.
+
+Valore pratico:
+- RFQ: più velocità di inserimento e meno colonne duplicate nella griglia prezzi.
+- Derisking: coerenza anagrafica e migliore riuso quando il fornitore passa da scouting a RFQ.
+
+## 2) Mappatura punti UI coinvolti
+Punti reali di input nome fornitore:
+- RFQ: [ui/windows/edit_suppliers_window.py](/home/guido/Repository/dataflow-procurement-software/ui/windows/edit_suppliers_window.py) (`EditSuppliersWindow.entry_suppliers`, `save_changes`) — contesto RFQ.
+- Entry RFQ al Control Panel: [ui/windows/view_request_window.py](/home/guido/Repository/dataflow-procurement-software/ui/windows/view_request_window.py) (`open_edit_suppliers_window`, `build_grid`) — contesto RFQ.
+- Derisking: [ui/dialogs/potential_supplier_dialog.py](/home/guido/Repository/dataflow-procurement-software/ui/dialogs/potential_supplier_dialog.py) (`_entry_supplier_name`, `_on_save`) — contesto Derisking.
+- Routing Derisking dialog: [dataflow.py](/home/guido/Repository/dataflow-procurement-software/dataflow.py) (`open_new_event` branch `vsm_derisking`, `_on_supplier_sheet_double_click`) — contesto Derisking.
+
+Nota importante:
+- esiste campo legacy `vsm_events.new_supplier` in [ui/dialogs/vsm_event_dialog.py](/home/guido/Repository/dataflow-procurement-software/ui/dialogs/vsm_event_dialog.py), ma il tab Derisking attuale usa anagrafica `potential_suppliers`; in v1 non sarà fonte primaria.
+
+## 3) Flusso dati attuale
+Origine/salvataggio RFQ:
+- tabella `richiesta_fornitori(nome_fornitore, id_richiesta)` in [database_manager.py](/home/guido/Repository/dataflow-procurement-software/database_manager.py).
+- stato RFQ (`attiva`/`archiviata`) in `richieste_offerta.stato`; join già usato in search avanzata.
+- salvataggio lista fornitori via `save_suppliers_with_transaction`.
+
+Origine/salvataggio Derisking:
+- tabella `potential_suppliers.supplier_name` (CRUD via `services/supplier_persistence.py`).
+
+Fonti suggerimenti v1 (con priorità):
+- primaria: RFQ attive + archiviate (`richiesta_fornitori` + `richieste_offerta.stato`).
+- secondaria: Derisking anagrafica (`potential_suppliers`).
+
+Fonti escluse v1:
+- `vsm_events.new_supplier` (legacy/event-based, più rumore).
+- tabella `fornitori` (non è il flusso operativo attuale dei due contesti).
+
+## 4) Proposta architetturale minimale
+Scelta consigliata a basso rischio:
+- nuovo servizio dedicato, es. `services/supplier_name_suggestion_service.py`, con API read-only per:
+  - raccolta candidati da RFQ + Derisking
+  - normalizzazione soft per matching
+  - ranking semplice e stabile
+- nuova utility isolata, es. `utils/supplier_name_normalization.py`, per regole di confronto.
+- componente UI riusabile minima, es. `ui/components/supplier_name_suggest.py`, per mostrare dropdown non invasivo ancorato all’entry.
+
+Integrazione UI:
+- RFQ: [ui/windows/edit_suppliers_window.py](/home/guido/Repository/dataflow-procurement-software/ui/windows/edit_suppliers_window.py), suggerimenti sul token corrente dopo ultima virgola.
+- Derisking: [ui/dialogs/potential_supplier_dialog.py](/home/guido/Repository/dataflow-procurement-software/ui/dialogs/potential_supplier_dialog.py), suggerimenti sul valore completo.
+
+Come evitare `dataflow.py`:
+- nessuna logica di ranking/normalizzazione in `dataflow.py`.
+- al massimo riuso dei flussi già esistenti di apertura dialog, senza nuove responsabilità applicative.
+
+Dipendenze:
+- nessuna nuova dipendenza esterna.
+
+## 5) Strategia di normalizzazione soft
+Regole conservative solo per matching (non riscrittura dati storici):
+- trim + lowercase/case-insensitive
+- normalizzazione spazi multipli a spazio singolo
+- rimozione punteggiatura lieve (`.` `,`) per equivalenze legali
+- mapping suffissi societari comuni:
+  - `s.r.l.` ↔ `srl`
+  - `s.p.a.` ↔ `spa`
+- confronto su stringa normalizzata, mantenendo sempre il nome originale per display/salvataggio.
+
+Limiti anti-falsi-positivi:
+- nessun fuzzy matching “aggressivo”.
+- nessun merge automatico.
+- warning solo quando somiglianza è forte (es. uguaglianza normalizzata o prefisso molto vicino).
+
+## 6) Ranking suggerimenti
+Metodo semplice e robusto:
+- score base da frequenza RFQ (`count` su `richiesta_fornitori`).
+- bonus RFQ attive > RFQ archiviate.
+- bonus secondario per presenza in `potential_suppliers`.
+- ordinamento finale: punteggio desc, poi nome asc (stabile).
+
+Comportamento atteso:
+- fornitori usati spesso in RFQ appaiono in alto.
+- nomi presenti solo in Derisking restano visibili ma sotto.
+- risposta veloce perché dataset è testuale e query aggregate semplici.
+
+## 7) UX proposta
+Regole UX:
+- mostrare suggerimenti dopo 2-3 caratteri del token attivo.
+- niente popup modali; usare dropdown leggero associato all’entry.
+- selezione con mouse o tastiera (`↑/↓`, `Enter`, `Esc`).
+- nessun autocompletamento forzato/aggressivo.
+- warning non bloccante su quasi-duplicato al salvataggio.
+
+RFQ (campo CSV):
+- parse del testo fino all’ultima virgola.
+- suggerimento solo del token in editing; conferma sostituisce solo quel token.
+
+Derisking (campo singolo):
+- dropdown classico sotto il campo fornitore.
+- in caso di match ambiguo, mostra top suggerimenti e lascia libertà all’utente.
+
+Layout:
+- zero layout shift: pannello floating/Toplevel non altera geometria dei frame.
+
+## 8) Rischi e casi limite
+Rischi:
+- falsi positivi su nomi brevi.
+- omonimie reali tra aziende diverse.
+- dataset grandi: potenziale latenza se query ad ogni keypress.
+- differenze font/rendering Win/Linux nel posizionamento dropdown.
+- regressioni i18n se si usano stringhe non passate da `tr(...)`.
+
+Mitigazioni:
+- debounce leggero input.
+- soglia minima caratteri.
+- warning non bloccante.
+- test cross-platform su focus, tastiera, chiusura dialog.
+- tutte le nuove stringhe UI via `tr(...)`; nessun `_()`.
+
+## 9) Piano implementativo step-by-step (micro, reversibile)
+Step 1 — Utility normalizzazione
+- File: nuovo `utils/supplier_name_normalization.py` + test unitari dedicati.
+- UX: nessun impatto.
+- Rischio: basso.
+- Rollback: rimozione file utility senza effetti collaterali.
+
+Step 2 — Indice/sorgenti suggerimenti
+- File: nuovo `services/supplier_name_suggestion_service.py`; eventuale estensione read-only minima in [database_manager.py](/home/guido/Repository/dataflow-procurement-software/database_manager.py) con query aggregate.
+- UX: nessun impatto.
+- Rischio: basso-medio (query correctness).
+- Rollback: disattivazione service, UI invariata.
+
+Step 3 — Warning duplicati soft (salvataggio)
+- File: [ui/windows/edit_suppliers_window.py](/home/guido/Repository/dataflow-procurement-software/ui/windows/edit_suppliers_window.py), [ui/dialogs/potential_supplier_dialog.py](/home/guido/Repository/dataflow-procurement-software/ui/dialogs/potential_supplier_dialog.py).
+- UX: nuovo warning non bloccante.
+- Rischio: medio (soglia warning).
+- Rollback: feature-flag locale o rimozione check prima del save.
+
+Step 4 — Suggerimenti UI base
+- File: nuovo `ui/components/supplier_name_suggest.py` + hook nei 2 dialog sopra.
+- UX: dropdown suggerimenti non invasivo.
+- Rischio: medio (focus/keyboard).
+- Rollback: disabilitazione binding input.
+
+Step 5 — Ranking frequenza RFQ + bonus Derisking
+- File: service suggerimenti + query aggregate.
+- UX: qualità ordine suggerimenti migliorata.
+- Rischio: basso.
+- Rollback: fallback a ordinamento alfabetico.
+
+Step 6 — Rifiniture UX e hardening
+- File: stessi moduli UI/service + locale `dataflow.po` se nuove stringhe.
+- UX: stabilità interazione, testi warning.
+- Rischio: basso.
+- Rollback: rimozione rifiniture non essenziali.
+
+## 10) Raccomandazione finale
+Proposta consigliata:
+- implementare v1 su RFQ + Derisking anagrafica, ranking RFQ-first, warning non bloccante, no auto-merge, no autocompletamento aggressivo.
+- mantenere `dataflow.py` invariato nella logica feature.
+- introdurre logica in nuovi moduli service/utils/component separati.
+
+Alternativa più prudente:
+- fase 1 solo warning soft + indice suggerimenti senza dropdown (solo suggerimenti statici/tooltip).
+- fase 2 attivazione dropdown UI.
+
+Ordine consigliato:
+- prima normalizzazione + indice + warning soft.
+- poi suggerimenti interattivi.
+- rimandare fonti legacy (`vsm_events.new_supplier`) a una v2 con telemetria qualitativa.
