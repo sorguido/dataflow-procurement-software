@@ -8,6 +8,7 @@ from tkinter import ttk, filedialog
 from tksheet import Sheet
 import os
 from datetime import datetime, date
+from copy import copy
 import openpyxl
 import time
 import logging
@@ -52,6 +53,11 @@ logger = logging.getLogger(__name__)
 
 
 class ViewRequestWindow(tk.Toplevel):
+    # Export RFQ Excel: tuning conservativo per colonne testuali del template
+    _EXPORT_TEXT_MIN_WIDTH = 12
+    _EXPORT_TEXT_MAX_WIDTH = 45
+    _EXPORT_WRAP_THRESHOLD = 40
+
     def __init__(self, parent, request_id, read_only=False, source_db_path=None):
         super().__init__(parent)
         self.withdraw()
@@ -751,6 +757,13 @@ class ViewRequestWindow(tk.Toplevel):
                             p_cell.number_format = '@'
                     p_cell.border = border
 
+            self._apply_export_text_layout_tuning(
+                ws=ws,
+                suppliers_count=len(suppliers),
+                item_count=len(items),
+                is_cl=is_cl
+            )
+
             # BUG FIX: Assicura che ViewRequestWindow sia in primo piano prima di aprire il file dialog
             # Questo previene che asksaveasfilename si apra dietro altre finestre
             self.lift()
@@ -777,6 +790,98 @@ class ViewRequestWindow(tk.Toplevel):
                     logger.debug(f"Workbook Excel chiuso: {template_path}")
                 except Exception as close_error:
                     logger.warning(f"Errore chiusura workbook Excel: {close_error}")
+
+    def _apply_export_text_layout_tuning(self, ws, suppliers_count, item_count, is_cl):
+        """Migliora la leggibilita' del template RFQ su colonne testuali mirate."""
+        row_start = 4
+        row_end = row_start + max(0, item_count) - 1
+
+        column_rules = {
+            2: {"min_width": 15, "max_width": 28, "wrap_threshold": 35},  # Allegato
+            5: {"min_width": 35, "max_width": 52, "wrap_threshold": 55},  # Descrizione
+            12: {"min_width": 16, "max_width": 36, "wrap_threshold": 42},  # Riferimento
+        }
+        if is_cl:
+            column_rules[6] = {"min_width": 15, "max_width": 24, "wrap_threshold": 30}  # Cod Grezzo
+            column_rules[7] = {"min_width": 15, "max_width": 26, "wrap_threshold": 32}  # Dis Grezzo
+            column_rules[8] = {"min_width": 20, "max_width": 30, "wrap_threshold": 36}  # Mat CL
+
+        self._tune_export_text_columns(
+            ws=ws,
+            row_start=row_start,
+            row_end=row_end,
+            column_rules=column_rules
+        )
+
+        if suppliers_count > 0:
+            supplier_rules = {
+                14 + i: {"min_width": 12, "max_width": 28, "wrap_threshold": 24}
+                for i in range(suppliers_count)
+            }
+            self._tune_export_text_columns(
+                ws=ws,
+                row_start=3,
+                row_end=3,
+                column_rules=supplier_rules
+            )
+
+    def _tune_export_text_columns(self, ws, row_start, row_end, column_rules):
+        """Applica stima larghezza + wrap su range/colonne specifiche, senza autofit globale."""
+        if row_end < row_start:
+            return
+
+        for col_idx, rule in column_rules.items():
+            col_letter = openpyxl.utils.get_column_letter(col_idx)
+            col_dim = ws.column_dimensions[col_letter]
+            current_width = col_dim.width
+            if current_width is None:
+                current_width = rule.get("min_width", self._EXPORT_TEXT_MIN_WIDTH)
+
+            max_text_len = 0
+            wrap_threshold = rule.get("wrap_threshold", self._EXPORT_WRAP_THRESHOLD)
+
+            for row_idx in range(row_start, row_end + 1):
+                cell = ws.cell(row=row_idx, column=col_idx)
+                text_len = self._estimate_export_text_len(cell.value)
+                max_text_len = max(max_text_len, text_len)
+
+                if text_len > wrap_threshold:
+                    self._set_wrap_text_preserving_alignment(cell)
+
+            estimated_width = max_text_len + 2
+            min_width = max(rule.get("min_width", self._EXPORT_TEXT_MIN_WIDTH), current_width)
+            max_width = max(rule.get("max_width", self._EXPORT_TEXT_MAX_WIDTH), min_width)
+            bounded_width = min(max(estimated_width, min_width), max_width)
+
+            if bounded_width > current_width:
+                col_dim.width = bounded_width
+
+    @staticmethod
+    def _estimate_export_text_len(value):
+        if value is None:
+            return 0
+        text = str(value).strip()
+        if not text:
+            return 0
+        return max(len(line) for line in text.splitlines())
+
+    @staticmethod
+    def _set_wrap_text_preserving_alignment(cell):
+        """Abilita wrap_text senza perdere gli altri attributi di allineamento."""
+        if cell.coordinate in cell.parent.merged_cells:
+            return
+
+        current_alignment = cell.alignment
+        if current_alignment and current_alignment.wrap_text:
+            return
+
+        if current_alignment:
+            new_alignment = copy(current_alignment)
+            new_alignment.wrap_text = True
+            cell.alignment = new_alignment
+            return
+
+        cell.alignment = openpyxl.styles.Alignment(wrap_text=True)
 
     def open_rfq_pdf_export_dialog(self):
         """Apre il dialog di export RFQ PDF."""
