@@ -36,6 +36,7 @@ from tkcalendar import DateEntry
 from datetime import datetime, date
 import openpyxl
 from openpyxl.styles import Border, Side, Font, Alignment, PatternFill
+from copy import copy
 import shutil
 import configparser
 import re
@@ -3904,15 +3905,53 @@ class MainWindow:
         bold_font = Font(bold=True)
         header_fill = PatternFill(start_color='DDDDDD', end_color='DDDDDD', fill_type='solid')  # Grigio chiaro
         best_price_fill = PatternFill(start_color='90EE90', end_color='90EE90', fill_type='solid')  # Verde
-        
-        # Setup larghezze colonne
-        ws.column_dimensions['A'].width = 15  # Codice
-        ws.column_dimensions['B'].width = 15  # Allegato
-        ws.column_dimensions['C'].width = 10  # Qta
-        ws.column_dimensions['D'].width = 35  # Descrizione
-        ws.column_dimensions['E'].width = 15  # Cod Grezzo
-        ws.column_dimensions['F'].width = 15  # Dis Grezzo
-        ws.column_dimensions['G'].width = 20  # Mat CL
+
+        # Sizing mirato mega export (workbook generato da codice, no template):
+        # valori per tipologia colonna + clamp min/max per evitare estremi.
+        _COL_RULES = {
+            1: {"min_width": 15, "max_width": 18},  # Codice / RFQ id
+            2: {"min_width": 15, "max_width": 28, "wrap_threshold": 34},  # Allegato
+            3: {"min_width": 10, "max_width": 12},  # Qta (numerica)
+            4: {"min_width": 35, "max_width": 52, "wrap_threshold": 46},  # Descrizione (testo lungo)
+            5: {"min_width": 15, "max_width": 24, "wrap_threshold": 32},  # Cod. Grezzo
+            6: {"min_width": 15, "max_width": 24, "wrap_threshold": 32},  # Dis. Grezzo
+            7: {"min_width": 20, "max_width": 30, "wrap_threshold": 36},  # Mat. C/L
+            8: {"min_width": 16, "max_width": 24, "wrap_threshold": 24},  # VS BEST / YOUR BEST
+        }
+        _SUPPLIER_MIN_WIDTH = 11
+        _SUPPLIER_MAX_WIDTH = 24
+        _SUPPLIER_WRAP_THRESHOLD = 22
+        _TEXT_PADDING = 2
+
+        def _text_len(value):
+            if value is None:
+                return 0
+            text = str(value).strip()
+            if not text:
+                return 0
+            return max(len(line) for line in text.splitlines())
+
+        def _enable_wrap_text(cell):
+            if cell.alignment and cell.alignment.wrap_text:
+                return
+            if cell.alignment:
+                new_alignment = copy(cell.alignment)
+                new_alignment.wrap_text = True
+                cell.alignment = new_alignment
+            else:
+                cell.alignment = Alignment(wrap_text=True)
+
+        col_text_max = {
+            1: len(headers_map['cod']),
+            2: len(headers_map['att']),
+            3: len(headers_map['qty']),
+            4: len(headers_map['desc']),
+            5: len(headers_map['cod_g']),
+            6: len(headers_map['dis_g']),
+            7: len(headers_map['mat_cl']),
+            8: len(headers_map['vs_best']),
+        }
+        supplier_col_text_max = {}
         
         current_row = 1
         
@@ -3964,20 +4003,27 @@ class MainWindow:
                     c.border = thin_border
                     c.fill = header_fill
                     c.alignment = Alignment(horizontal='center')
+                    col_text_max[i] = max(col_text_max.get(i, 0), _text_len(h_text))
 
                 # Colonna separatore
                 c_sep = ws.cell(row=current_row, column=8, value=headers_map['vs_best'])
                 c_sep.font = bold_font
                 c_sep.border = thin_border
                 c_sep.alignment = Alignment(horizontal='center')
+                col_text_max[8] = max(col_text_max.get(8, 0), _text_len(headers_map['vs_best']))
 
                 # Colonne Fornitori
                 start_supplier_col = 9
                 for i, sup in enumerate(suppliers):
-                    c = ws.cell(row=current_row, column=start_supplier_col + i, value=sup)
+                    supplier_col = start_supplier_col + i
+                    c = ws.cell(row=current_row, column=supplier_col, value=sup)
                     c.font = bold_font
                     c.border = thin_border
                     c.alignment = Alignment(horizontal='center')
+                    sup_len = _text_len(sup)
+                    supplier_col_text_max[supplier_col] = max(supplier_col_text_max.get(supplier_col, 0), sup_len)
+                    if sup_len > _SUPPLIER_WRAP_THRESHOLD:
+                        _enable_wrap_text(c)
                 
                 current_row += 1
 
@@ -3985,14 +4031,52 @@ class MainWindow:
                 for item in items:
                     id_d, cod, all_file, desc, qta, c_g, d_g, m_cl = item
                     
-                    ws.cell(row=current_row, column=1, value=cod).border = thin_border
-                    ws.cell(row=current_row, column=2, value=all_file).border = thin_border
-                    ws.cell(row=current_row, column=3, value=format_quantity_display(qta)).border = thin_border
-                    ws.cell(row=current_row, column=4, value=desc).border = thin_border
+                    c_cod = ws.cell(row=current_row, column=1, value=cod)
+                    c_cod.border = thin_border
+                    col_text_max[1] = max(col_text_max.get(1, 0), _text_len(cod))
+
+                    c_att = ws.cell(row=current_row, column=2, value=all_file)
+                    c_att.border = thin_border
+                    att_len = _text_len(all_file)
+                    col_text_max[2] = max(col_text_max.get(2, 0), att_len)
+                    if att_len > _COL_RULES[2]["wrap_threshold"]:
+                        _enable_wrap_text(c_att)
+
+                    qty_text = format_quantity_display(qta)
+                    c_qty = ws.cell(row=current_row, column=3, value=qty_text)
+                    c_qty.border = thin_border
+                    col_text_max[3] = max(col_text_max.get(3, 0), _text_len(qty_text))
+
+                    c_desc = ws.cell(row=current_row, column=4, value=desc)
+                    c_desc.border = thin_border
+                    desc_len = _text_len(desc)
+                    col_text_max[4] = max(col_text_max.get(4, 0), desc_len)
+                    if desc_len > _COL_RULES[4]["wrap_threshold"]:
+                        _enable_wrap_text(c_desc)
                     
-                    ws.cell(row=current_row, column=5, value=c_g if is_cl else "").border = thin_border
-                    ws.cell(row=current_row, column=6, value=d_g if is_cl else "").border = thin_border
-                    ws.cell(row=current_row, column=7, value=m_cl if is_cl else "").border = thin_border
+                    val_cg = c_g if is_cl else ""
+                    c_cg = ws.cell(row=current_row, column=5, value=val_cg)
+                    c_cg.border = thin_border
+                    cg_len = _text_len(val_cg)
+                    col_text_max[5] = max(col_text_max.get(5, 0), cg_len)
+                    if cg_len > _COL_RULES[5]["wrap_threshold"]:
+                        _enable_wrap_text(c_cg)
+
+                    val_dg = d_g if is_cl else ""
+                    c_dg = ws.cell(row=current_row, column=6, value=val_dg)
+                    c_dg.border = thin_border
+                    dg_len = _text_len(val_dg)
+                    col_text_max[6] = max(col_text_max.get(6, 0), dg_len)
+                    if dg_len > _COL_RULES[6]["wrap_threshold"]:
+                        _enable_wrap_text(c_dg)
+
+                    val_mcl = m_cl if is_cl else ""
+                    c_mcl = ws.cell(row=current_row, column=7, value=val_mcl)
+                    c_mcl.border = thin_border
+                    mcl_len = _text_len(val_mcl)
+                    col_text_max[7] = max(col_text_max.get(7, 0), mcl_len)
+                    if mcl_len > _COL_RULES[7]["wrap_threshold"]:
+                        _enable_wrap_text(c_mcl)
                     
                     ws.cell(row=current_row, column=8, value="").border = thin_border
                     # Prezzi
@@ -4022,10 +4106,33 @@ class MainWindow:
                             except:
                                 cell.value = price_val
                                 cell.alignment = Alignment(horizontal='right')
+                            supplier_col_text_max[col_idx] = max(
+                                supplier_col_text_max.get(col_idx, 0),
+                                _text_len(cell.value)
+                            )
                         cell.border = thin_border
                     current_row += 1
                 
                 current_row += 3
+
+            # Applica larghezze finali alle colonne principali (1..8)
+            for col_idx, rule in _COL_RULES.items():
+                col_letter = openpyxl.utils.get_column_letter(col_idx)
+                measured = col_text_max.get(col_idx, 0) + _TEXT_PADDING
+                min_w = rule["min_width"]
+                max_w = max(rule["max_width"], min_w)
+                ws.column_dimensions[col_letter].width = min(max(measured, min_w), max_w)
+
+            # Applica larghezze finali alle colonne fornitori (9+ effettivamente usate)
+            for col_idx, measured_len in supplier_col_text_max.items():
+                if col_idx < 9:
+                    continue
+                col_letter = openpyxl.utils.get_column_letter(col_idx)
+                measured = measured_len + _TEXT_PADDING
+                ws.column_dimensions[col_letter].width = min(
+                    max(measured, _SUPPLIER_MIN_WIDTH),
+                    _SUPPLIER_MAX_WIDTH
+                )
 
             # 6. Salvataggio
             default_name = f"Export_DataFlow_{datetime.now().strftime('%Y%m%d')}.xlsx"
