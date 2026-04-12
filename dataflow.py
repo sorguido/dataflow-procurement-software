@@ -4134,6 +4134,24 @@ class MainWindow:
                     _SUPPLIER_MAX_WIDTH
                 )
 
+            # Normalizzazione finale: centra verticalmente le celle gia' popolate,
+            # preservando orizzontale, wrap_text e gli altri attributi di alignment.
+            max_used_row = max(1, current_row - 1)
+            max_used_col = max(1, ws.max_column)
+            for row_cells in ws.iter_rows(min_row=1, max_row=max_used_row, min_col=1, max_col=max_used_col):
+                for cell in row_cells:
+                    if cell.value is None:
+                        continue
+                    alignment = cell.alignment
+                    if alignment:
+                        if alignment.vertical == 'center':
+                            continue
+                        new_alignment = copy(alignment)
+                        new_alignment.vertical = 'center'
+                        cell.alignment = new_alignment
+                    else:
+                        cell.alignment = Alignment(vertical='center')
+
             # 6. Salvataggio
             default_name = f"Export_DataFlow_{datetime.now().strftime('%Y%m%d')}.xlsx"
             save_path = filedialog.asksaveasfilename(
