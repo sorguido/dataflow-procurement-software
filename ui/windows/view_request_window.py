@@ -799,6 +799,7 @@ class ViewRequestWindow(tk.Toplevel):
         column_rules = {
             2: {"min_width": 15, "max_width": 28, "wrap_threshold": 35},  # Allegato
             5: {"min_width": 35, "max_width": 52, "wrap_threshold": 55},  # Descrizione
+            10: {"min_width": 18, "max_width": 24, "wrap_threshold": 24},  # Delivery required / VS. MIGLIORE
             12: {"min_width": 16, "max_width": 36, "wrap_threshold": 42},  # Riferimento
         }
         if is_cl:
