@@ -31,7 +31,7 @@ class RfqPdfExportDialog(tk.Toplevel):
         self.read_only = read_only
         self.result_path = None
 
-        self.title(tr("Esporta RFQ PDF"))
+        self.title(tr("Export RFQ PDF"))
         self.transient(parent)
         self.resizable(False, False)
         self.grab_set()
@@ -41,12 +41,12 @@ class RfqPdfExportDialog(tk.Toplevel):
 
         ttk.Label(
             main,
-            text=tr("Esporta la RFQ in PDF A4."),
+            text=tr("Export RFQ as an A4 PDF."),
             font=(None, 10),
             justify="left",
         ).pack(anchor="w", pady=(0, 10))
 
-        logo_frame = ttk.LabelFrame(main, text=tr("Logo Aziendale"), padding=10)
+        logo_frame = ttk.LabelFrame(main, text=tr("Company Logo"), padding=10)
         logo_frame.pack(fill="x", pady=(0, 12))
 
         self.logo_status_var = tk.StringVar(value="")
@@ -74,7 +74,7 @@ class RfqPdfExportDialog(tk.Toplevel):
 
         self.btn_choose_logo = ttk.Button(
             logo_btn_row,
-            text=tr("Seleziona logo"),
+            text=tr("Select logo"),
             command=self._choose_logo,
             width=18,
         )
@@ -82,7 +82,7 @@ class RfqPdfExportDialog(tk.Toplevel):
 
         self.btn_remove_logo = ttk.Button(
             logo_btn_row,
-            text=tr("Rimuovi logo"),
+            text=tr("Remove logo"),
             command=self._remove_logo,
             width=18,
         )
@@ -90,17 +90,13 @@ class RfqPdfExportDialog(tk.Toplevel):
 
         self.btn_edit_pdf_template = ttk.Button(
             logo_btn_row,
-            text=tr("Modifica PDF") if get_current_language() == "it" else tr("Edit PDF"),
+            text=tr("Edit PDF"),
             command=self._edit_pdf_template,
             width=18,
         )
         self.btn_edit_pdf_template.pack(side="left", padx=(8, 0))
 
-        note_text = (
-            tr('Usa "Modifica PDF" per personalizzare il template del messaggio PDF (file .txt).')
-            if get_current_language() == "it"
-            else tr('Use "Edit PDF" to customize the PDF message template (.txt file).')
-        )
+        note_text = tr('Use "Edit PDF" to customize the PDF message template (.txt file).')
         ttk.Label(
             main,
             text=note_text,
@@ -115,14 +111,14 @@ class RfqPdfExportDialog(tk.Toplevel):
 
         ttk.Button(
             action_row,
-            text=tr("❌ Annulla"),
+            text=tr("❌ Cancel"),
             command=self._on_cancel,
             width=14,
         ).pack(side="right")
 
         ttk.Button(
             action_row,
-            text=tr("Conferma Export PDF"),
+            text=tr("Confirm PDF Export"),
             command=self._on_export,
             width=20,
         ).pack(side="right", padx=(0, 8))
@@ -137,27 +133,27 @@ class RfqPdfExportDialog(tk.Toplevel):
     def _refresh_logo_status(self):
         status = get_logo_status()
         self.logo_note_var.set(
-            tr("Formati supportati: PNG/JPG. Consigliata immagine orizzontale, max 8 MB. Il logo verra ridimensionato automaticamente nel PDF senza deformazioni.")
+            tr("Supported formats: PNG/JPG. A horizontal image is recommended, max 8 MB. The logo will be resized automatically in the PDF without distortion.")
         )
 
         if not status["configured"]:
-            self.logo_status_var.set(tr("Logo non configurato."))
-            self.btn_choose_logo.config(text=tr("Seleziona logo"))
+            self.logo_status_var.set(tr("Logo not configured."))
+            self.btn_choose_logo.config(text=tr("Select logo"))
             self.btn_remove_logo.config(state="disabled")
             return
 
         if status["available"]:
             self.logo_status_var.set(
-                tr("Logo configurato: {}").format(status["filename"])
+                tr("Configured logo: {}").format(status["filename"])
             )
-            self.btn_choose_logo.config(text=tr("Sostituisci logo"))
+            self.btn_choose_logo.config(text=tr("Replace logo"))
             self.btn_remove_logo.config(state="normal")
             return
 
         self.logo_status_var.set(
-            tr("Logo configurato ma non disponibile/corrotto. Puoi sostituirlo o rimuoverlo.")
+            tr("Logo is configured but unavailable/corrupted. You can replace or remove it.")
         )
-        self.btn_choose_logo.config(text=tr("Sostituisci logo"))
+        self.btn_choose_logo.config(text=tr("Replace logo"))
         self.btn_remove_logo.config(state="normal")
 
     def _choose_logo(self):
@@ -167,10 +163,10 @@ class RfqPdfExportDialog(tk.Toplevel):
 
         selected_path = filedialog.askopenfilename(
             parent=self,
-            title=tr("Seleziona Logo Aziendale"),
+            title=tr("Select Company Logo"),
             filetypes=[
-                (tr("Immagini PNG/JPG"), "*.png *.jpg *.jpeg"),
-                (tr("Tutti i file"), "*.*"),
+                (tr("PNG/JPG Images"), "*.png *.jpg *.jpeg"),
+                (tr("All files"), "*.*"),
             ],
         )
         if not selected_path:
@@ -179,28 +175,28 @@ class RfqPdfExportDialog(tk.Toplevel):
         try:
             save_logo_from_source(selected_path)
             self._refresh_logo_status()
-            show_info(self, tr("Successo"), tr("Logo aziendale salvato con successo."))
+            show_info(self, tr("Success"), tr("Company logo saved successfully."))
         except LogoValidationError as exc:
-            show_warning(self, tr("Logo non valido"), tr("Impossibile usare il logo selezionato: {}").format(exc))
+            show_warning(self, tr("Invalid logo"), tr("Unable to use the selected logo: {}").format(exc))
         except Exception as exc:
-            show_error(self, tr("Errore"), tr("Errore durante il salvataggio del logo: {}").format(exc))
+            show_error(self, tr("Error"), tr("Error while saving logo: {}").format(exc))
 
     def _remove_logo(self):
-        if not show_confirm(self, tr("Conferma"), tr("Vuoi rimuovere il logo aziendale salvato?")):
+        if not show_confirm(self, tr("Confirm"), tr("Do you want to remove the saved company logo?")):
             return
 
         try:
             remove_persisted_logo()
             self._refresh_logo_status()
-            show_info(self, tr("Successo"), tr("Logo rimosso."))
+            show_info(self, tr("Success"), tr("Logo removed."))
         except Exception as exc:
-            show_error(self, tr("Errore"), tr("Impossibile rimuovere il logo: {}").format(exc))
+            show_error(self, tr("Error"), tr("Unable to remove logo: {}").format(exc))
 
     def _edit_pdf_template(self):
         try:
             open_template_with_system_app(language_code=get_current_language())
         except Exception as exc:
-            show_error(self, tr("Errore"), tr("Impossibile aprire il template PDF: {}").format(exc))
+            show_error(self, tr("Error"), tr("Unable to open PDF template: {}").format(exc))
 
     def _on_export(self):
         self.lift()
@@ -210,10 +206,10 @@ class RfqPdfExportDialog(tk.Toplevel):
         initial_name = f"RFQ_{self.request_id}.pdf"
         save_path = filedialog.asksaveasfilename(
             parent=self,
-            title=tr("Salva RFQ PDF"),
+            title=tr("Save RFQ PDF"),
             defaultextension=".pdf",
             initialfile=initial_name,
-            filetypes=[(tr("File PDF"), "*.pdf")],
+            filetypes=[(tr("PDF Files"), "*.pdf")],
             confirmoverwrite=False,
         )
         if not save_path:
@@ -222,8 +218,8 @@ class RfqPdfExportDialog(tk.Toplevel):
         if os.path.exists(save_path):
             if not show_confirm(
                 self,
-                tr("Conferma"),
-                tr("Il file selezionato esiste gia. Vuoi sovrascriverlo?"),
+                tr("Confirm"),
+                tr("The selected file already exists. Do you want to overwrite it?"),
             ):
                 return
 
@@ -241,7 +237,7 @@ class RfqPdfExportDialog(tk.Toplevel):
                 read_only=self.read_only,
             )
         except Exception as exc:
-            show_error(self, tr("Errore Esportazione"), tr("Errore durante la generazione PDF: {}").format(exc))
+            show_error(self, tr("Export Error"), tr("Error during PDF generation: {}").format(exc))
             return
 
         warnings = export_result.get("warnings", [])
@@ -249,11 +245,11 @@ class RfqPdfExportDialog(tk.Toplevel):
             warning_text = "\n".join(warnings)
             show_warning(
                 self,
-                tr("Export completato con avvisi"),
-                tr("PDF generato in:\n{}\n\nAvvisi:\n{}").format(save_path, warning_text),
+                tr("Export completed with warnings"),
+                tr("PDF generated at:\n{}\n\nWarnings:\n{}").format(save_path, warning_text),
             )
         else:
-            show_info(self, tr("Successo"), tr("PDF generato in:\n{}").format(save_path))
+            show_info(self, tr("Success"), tr("PDF generated at:\n{}").format(save_path))
 
         self.result_path = save_path
         self.destroy()

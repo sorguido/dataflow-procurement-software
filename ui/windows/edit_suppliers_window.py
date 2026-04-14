@@ -25,7 +25,7 @@ class EditSuppliersWindow(tk.Toplevel):
         self.withdraw()
         set_window_icon(self)
         self.request_id = request_id
-        self.title(tr("Modifica Fornitori - RdO N°{}").format(request_id))
+        self.title(tr("Modify Suppliers - RfQ N°{}").format(request_id))
         self.db_path = get_db_path()
         self.transient(parent)
         self.grab_set()
@@ -33,14 +33,14 @@ class EditSuppliersWindow(tk.Toplevel):
         # Frame pulsanti (sempre in fondo)
         btn_frame = ttk.Frame(self)
         btn_frame.pack(side="bottom", fill="x", padx=10, pady=10)
-        ttk.Button(btn_frame, text=tr("💾 Salva"), command=self.save_changes).pack(side="right")
-        ttk.Button(btn_frame, text=tr("❌ Annulla"), command=self.destroy).pack(side="right", padx=10)
+        ttk.Button(btn_frame, text=tr("💾 Save"), command=self.save_changes).pack(side="right")
+        ttk.Button(btn_frame, text=tr("❌ Cancel"), command=self.destroy).pack(side="right", padx=10)
         
         # Frame contenuto (espandibile)
         frame = ttk.Frame(self, padding="10")
         frame.pack(side="top", fill="both", expand=True)
         
-        ttk.Label(frame, text=tr("Modifica elenco fornitori (nomi separati da virgola):")).pack(anchor="w")
+        ttk.Label(frame, text=tr("Modify supplier list (names separated by comma):")).pack(anchor="w")
         self.entry_suppliers = ttk.Entry(frame, width=70)
         self.entry_suppliers.pack(fill="x", expand=True, pady=5)
 
@@ -121,10 +121,10 @@ class EditSuppliersWindow(tk.Toplevel):
 
         show_warning(
             self,
-            tr("Possibile Duplicato Fornitore"),
+            tr("Possible Supplier Duplicate"),
             tr(
-                "Alcuni nomi possono riferirsi a fornitori gia presenti.\n"
-                "Verifica prima di salvare:\n\n{}"
+                "Some names may refer to existing suppliers.\n"
+                "Please verify before saving:\n\n{}"
             ).format("\n".join(warnings)),
         )
     
@@ -136,12 +136,12 @@ class EditSuppliersWindow(tk.Toplevel):
             self.entry_suppliers.insert(0, ", ".join([r[0] for r in rows]))
         except DatabaseError as e:
             logger.error(f"Errore database in load_current_suppliers: {e}", exc_info=True)
-            show_error(self, tr("Errore"), tr("Impossibile caricare i fornitori: {}").format(e))
+            show_error(self, tr("Error"), tr("Unable to load suppliers: {}").format(e))
     
     def save_changes(self):
         # Blocca se in modalità read-only
         if getattr(self, 'read_only', False):
-            show_warning(self, tr("Operazione Non Consentita"), tr("Non puoi modificare i fornitori di RdO di altri utenti."))
+            show_warning(self, tr("Operation Not Allowed"), tr("You cannot edit suppliers for other users' RfQs."))
             return
         
         new_suppliers = [n.strip() for n in self.entry_suppliers.get().split(',') if n.strip()]
@@ -155,8 +155,8 @@ class EditSuppliersWindow(tk.Toplevel):
             if duplicati_unici:
                 show_warning(
                     self,
-                    tr("Fornitori Duplicati"),
-                    tr("Hai inserito lo stesso fornitore più volte:\n\n{}\n\nOgni fornitore deve essere inserito una sola volta.").format(', '.join(sorted(set(duplicati_unici))))
+                    tr("Duplicate Suppliers"),
+                    tr("You have entered the same supplier multiple times:\n\n{}\n\nEach supplier must be entered only once.").format(', '.join(sorted(set(duplicati_unici))))
                 )
                 return
 
@@ -199,12 +199,12 @@ class EditSuppliersWindow(tk.Toplevel):
             
             # Messaggio di successo personalizzato
             if new_suppliers:
-                show_info(self.master, tr("Successo"), tr("Elenco fornitori aggiornato."))
+                show_info(self.master, tr("Success"), tr("Supplier list updated."))
             else:
-                show_info(self.master, tr("Successo"), tr("Tutti i fornitori sono stati rimossi."))
+                show_info(self.master, tr("Success"), tr("All suppliers have been removed."))
             
             self.destroy()
             
         except DatabaseError as e:
             logger.error(f"Errore database in save_changes (EditSuppliersWindow): {e}", exc_info=True)
-            show_error(self, tr("Errore"), tr("Impossibile salvare: {}").format(e))
+            show_error(self, tr("Error"), tr("Unable to save: {}").format(e))

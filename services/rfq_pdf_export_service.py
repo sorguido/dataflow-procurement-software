@@ -201,7 +201,7 @@ def _load_rfq_dataset(db_path: str, request_id: int, read_only: bool = False) ->
     with DatabaseManager(db_path, read_only=read_only) as db_manager:
         request_data = db_manager.get_richiesta_full_data(request_id)
         if not request_data:
-            raise ValueError(tr("Dettagli RdO non trovati."))
+            raise ValueError(tr("RfQ details not found."))
 
         issue_date_db, expiry_date_db, _reference, rfq_type = request_data
         details_rows = db_manager.get_dettagli_by_richiesta(request_id)
@@ -235,21 +235,21 @@ def export_rfq_pdf(
         rightMargin=2 * cm,
         topMargin=2 * cm,
         bottomMargin=2 * cm,
-        title=tr("Richiesta di Offerta") + f" {request_id}",
+        title=tr("Request for Quotation") + f" {request_id}",
     )
 
     story = []
 
     logo = _build_logo(logo_path=logo_path, max_width=5.0 * cm, max_height=2.4 * cm)
     if logo_path and logo is None:
-        warnings.append(tr("Logo configurato non valido: export eseguito senza logo."))
+        warnings.append(tr("Configured logo is invalid: export completed without logo."))
 
-    title_text = tr("Richiesta di Offerta")
-    rfq_type_label = tr("Tipo RdO")
+    title_text = tr("Request for Quotation")
+    rfq_type_label = tr("RfQ Type")
     rfq_type_value = translate_rfq_type(dataset["rfq_type"])
     meta_html = "<br/>".join(
         [
-            f"<b>{escape(tr('Numero RdO'))}:</b> {escape(str(dataset['request_id']))}",
+            f"<b>{escape(tr("RfQ Number"))}:</b> {escape(str(dataset['request_id']))}",
             f"<b>{escape(rfq_type_label)}:</b> {escape(rfq_type_value)}",
             f"<b>{escape(tr('Issue Date'))}:</b> {escape(dataset['issue_date'])}",
             f"<b>{escape(tr('Expiry Date'))}:</b> {escape(dataset['expiry_date'])}",
@@ -291,11 +291,11 @@ def export_rfq_pdf(
         if get_current_language() == "it":
             if fallback_reason == "missing_placeholder":
                 warnings.append(
-                    tr("Template PDF esterno non valido: manca il placeholder {{TABLE}}. E stato usato il template interno.")
+                    tr("External PDF template is invalid: missing {{TABLE}} placeholder. Internal template was used.")
                 )
             else:
                 warnings.append(
-                    tr("Template PDF esterno non valido o vuoto. E stato usato il template interno.")
+                    tr("External PDF template is invalid or empty. Internal template was used.")
                 )
         else:
             if fallback_reason == "missing_placeholder":

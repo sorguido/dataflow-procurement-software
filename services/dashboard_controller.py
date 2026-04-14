@@ -163,7 +163,7 @@ class DashboardController:
         # Controlla che nessun campo di ricerca sia troppo lungo
         for field_name, value in crit.items():
             if value and len(value) > MAX_SEARCH_LENGTH:
-                SimpleMessageDialog(self.app.root, tr("Input Troppo Lungo"), tr("Il testo di ricerca nel campo '{}' è troppo lungo (max {} caratteri)").format(field_name, MAX_SEARCH_LENGTH), "warning")
+                SimpleMessageDialog(self.app.root, tr("Input Too Long"), tr("The search text in field '{}' is too long (max {} characters)").format(field_name, MAX_SEARCH_LENGTH), "warning")
                 return
                 return
 
@@ -178,7 +178,7 @@ class DashboardController:
                 # Avvisa l'utente una sola volta per tutti i campi
                 if not hasattr(self.app, '_sql_injection_warning_shown'):
                     self.app._sql_injection_warning_shown = True
-                    SimpleMessageDialog(self.app.root, tr("Input Sanitizzato"), tr("Alcuni caratteri speciali sono stati rimossi dai campi di ricerca per motivi di sicurezza."), "info")
+                    SimpleMessageDialog(self.app.root, tr("Input Sanitized"), tr("Some special characters have been removed from search fields for security reasons."), "info")
                     # Reset flag dopo 2 secondi - BUG #48 FIX: cancella timer precedente per evitare memory leak
                     if self.app._sql_warning_after_id is not None:
                         try:
@@ -198,7 +198,7 @@ class DashboardController:
         clauses, params = ["ro.stato=?"], [status]
 
         # Filtri strutturali (tipo, username)
-        if self.app.search_tipo.get() != tr("Tutte"):
+        if self.app.search_tipo.get() != tr("All"):
             # Normalizza il valore di ricerca al valore canonico per il confronto nel database
             tipo_canonico = normalize_rfq_type(self.app.search_tipo.get())
             clauses.append("ro.tipo_rdo=?")
@@ -269,7 +269,7 @@ class DashboardController:
 
             # Gestione tipo RdO
             tipo_rdo = None
-            if self.app.search_tipo.get() != tr("Tutte"):
+            if self.app.search_tipo.get() != tr("All"):
                 tipo_rdo = normalize_rfq_type(self.app.search_tipo.get())
 
             # FIX: La ricerca deve usare aggregazione multi-database quando si filtra per altri utenti o "All users"
@@ -444,11 +444,11 @@ class DashboardController:
             self.app.update_treeview(tree, results)
         except DatabaseError as e:
             logger.error(f"Errore ricerca richieste: {e}", exc_info=True)
-            SimpleMessageDialog(self.app.root, tr("Errore"), tr("Errore ricerca: {}").format(e), "error")
+            SimpleMessageDialog(self.app.root, tr("Error"), tr("Search error: {}").format(e), "error")
 
     def clear_filters(self):
         for var in self.app.search_vars.values(): var.set("")
-        self.app.search_tipo.set(tr("Tutte"))
+        self.app.search_tipo.set(tr("All"))
         for de in self.app.date_entries.values(): de.delete(0, 'end')
         if self.app.username_filter_var:
             self.app.username_filter_var.set(self.app.current_username or self.app.all_users_placeholder)

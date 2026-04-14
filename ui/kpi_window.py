@@ -91,7 +91,7 @@ class KpiExportScopeDialog(tk.Toplevel):
         super().__init__(parent)
         self.withdraw()
         set_window_icon(self)
-        self.title(tr("Esporta KPI"))
+        self.title(tr("Export KPI"))
         self.scope = None        # 'current' | 'all' | None (annullato)
         self.transient(parent)
         self.resizable(False, False)
@@ -102,7 +102,7 @@ class KpiExportScopeDialog(tk.Toplevel):
 
         ttk.Label(
             frame,
-            text=tr("Seleziona cosa esportare:"),
+            text=tr("Select what to export:"),
             font=(None, 10),
         ).pack(pady=(0, 15))
 
@@ -111,21 +111,21 @@ class KpiExportScopeDialog(tk.Toplevel):
 
         ttk.Button(
             btn_frame,
-            text=tr("\U0001f4cb Sezione corrente"),
+            text=tr("📋 Current section"),
             command=lambda: self._choose("current"),
             width=22,
         ).pack(side="left", padx=5)
 
         ttk.Button(
             btn_frame,
-            text=tr("\U0001f4ca Tutte le sezioni"),
+            text=tr("📊 All sections"),
             command=lambda: self._choose("all"),
             width=22,
         ).pack(side="left", padx=5)
 
         ttk.Button(
             frame,
-            text=tr("\u274c Annulla"),
+            text=tr("❌ Cancel"),
             command=self.destroy,
         ).pack(pady=(5, 0))
 
@@ -729,8 +729,8 @@ class KpiWindow(tk.Toplevel):
         except Exception as e:
             logger.error("[KpiWindow] build_kpi_workbook failed: %s", e, exc_info=True)
             SimpleMessageDialog(
-                self, tr("Errore Esportazione"),
-                tr("Errore durante l'esportazione: {}").format(e), "error"
+                self, tr("Export Error"),
+                tr("Error during export: {}").format(e), "error"
             )
             return
 
@@ -739,7 +739,7 @@ class KpiWindow(tk.Toplevel):
         default_name = f"KPI_DataFlow_{ts}.xlsx"
         save_path = filedialog.asksaveasfilename(
             parent=self,
-            title=tr("Salva Export KPI"),
+            title=tr("Save KPI Export"),
             defaultextension=".xlsx",
             initialfile=default_name,
             filetypes=[("Excel Files", "*.xlsx")],
@@ -755,15 +755,15 @@ class KpiWindow(tk.Toplevel):
         try:
             wb.save(save_path)
             SimpleMessageDialog(
-                self, tr("Successo"),
-                tr("Export KPI completato:\n{}").format(save_path), "info"
+                self, tr("Success"),
+                tr("Export KPI completed:\n{}").format(save_path), "info"
             )
             logger.info("[KpiWindow] Export KPI salvato: %s", save_path)
         except Exception as e:
             logger.error("[KpiWindow] wb.save failed: %s", e, exc_info=True)
             SimpleMessageDialog(
-                self, tr("Errore Esportazione"),
-                tr("Errore durante l'esportazione: {}").format(e), "error"
+                self, tr("Export Error"),
+                tr("Error during export: {}").format(e), "error"
             )
         finally:
             try:

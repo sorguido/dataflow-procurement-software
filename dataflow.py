@@ -152,10 +152,10 @@ class SettingsWindow(tk.Toplevel):
             
             self.main_app = main_app
             try:
-                self.title(tr("Impostazioni e Manutenzione"))
+                self.title(tr("Settings and Maintenance"))
             except Exception as e:
                 logger.error(f"Errore nel settare il titolo: {e}")
-                self.title(tr("Impostazioni e Manutenzione"))
+                self.title(tr("Settings and Maintenance"))
             self.transient(parent)
             self.grab_set()
             
@@ -172,12 +172,12 @@ class SettingsWindow(tk.Toplevel):
             main_frame.pack(fill="both", expand=True)
 
             # --- Sezione Posizione DataFlow Standard ---
-            dataflow_frame = ttk.LabelFrame(main_frame, text=tr("Posizione DataFlow Standard"), padding=10)
+            dataflow_frame = ttk.LabelFrame(main_frame, text=tr("Standard DataFlow Location"), padding=10)
             dataflow_frame.pack(fill="x", pady=(0, 15), padx=5)
             
             dataflow_label = ttk.Label(
                 dataflow_frame, 
-                text=tr("Scegli dove salvare la cartella DataFlow (richiede riavvio)."),
+                text=tr("Choose where to save the DataFlow folder (requires restart)."),
                 font=(None, 10),
                 wraplength=480,
                 justify="left"
@@ -186,7 +186,7 @@ class SettingsWindow(tk.Toplevel):
             
             ttk.Button(
                 dataflow_frame, 
-                text=tr("📁 Cambia Posizione DataFlow..."), 
+                text=tr("📁 Change DataFlow Location..."), 
                 command=self.select_standard_dataflow_location
             ).pack(anchor="w")
             
@@ -194,7 +194,7 @@ class SettingsWindow(tk.Toplevel):
                 current_dataflow = get_user_documents_dataflow_dir()
                 ttk.Label(
                     dataflow_frame,
-                    text=tr("Cartella DataFlow attuale: {}").format(current_dataflow),
+                    text=tr("Current DataFlow folder: {}").format(current_dataflow),
                     font=(None, 9),
                     foreground="gray",
                     wraplength=480,
@@ -204,48 +204,48 @@ class SettingsWindow(tk.Toplevel):
                 logger.error(f"Errore visualizzazione posizione DataFlow corrente: {e}")
 
             # --- Sezione Backup Manuale ---
-            backup_frame = ttk.LabelFrame(main_frame, text=tr("Backup Manuale"), padding="10")
+            backup_frame = ttk.LabelFrame(main_frame, text=tr("Manual Backup"), padding="10")
             backup_frame.pack(fill="x", pady=(0, 15), padx=5)
-            ttk.Label(backup_frame, text=tr("Crea una copia di sicurezza immediata del database."), font=(None, 10), wraplength=500).pack(anchor="w", pady=(0, 10))
-            ttk.Button(backup_frame, text=tr("💾 Backup Manuale..."), command=self.backup_database).pack(anchor="w")
+            ttk.Label(backup_frame, text=tr("Create an immediate backup of the database."), font=(None, 10), wraplength=500).pack(anchor="w", pady=(0, 10))
+            ttk.Button(backup_frame, text=tr("💾 Manual Backup..."), command=self.backup_database).pack(anchor="w")
 
             # --- Sezione Backup Automatico ---
-            autobackup_frame = ttk.LabelFrame(main_frame, text=tr("Backup Automatico Giornaliero"), padding="10")
+            autobackup_frame = ttk.LabelFrame(main_frame, text=tr("Daily Automatic Backup"), padding="10")
             autobackup_frame.pack(fill="x", pady=(0, 15), padx=5)
 
-            ttk.Checkbutton(autobackup_frame, text=tr("Abilita backup automatico giornaliero (max 3 copie)"), variable=self.autobackup_enabled).pack(anchor="w", pady=(0, 10))
+            ttk.Checkbutton(autobackup_frame, text=tr("Enable daily automatic backup (max 3 copies)"), variable=self.autobackup_enabled).pack(anchor="w", pady=(0, 10))
             
             hour_frame = ttk.Frame(autobackup_frame)
             hour_frame.pack(fill="x", pady=5)
-            ttk.Label(hour_frame, text=tr("Ora:")).pack(side="left", padx=(0, 5))
+            ttk.Label(hour_frame, text=tr("Time:")).pack(side="left", padx=(0, 5))
             ttk.Combobox(hour_frame, textvariable=self.autobackup_hour, values=[f"{h:02}" for h in range(24)], width=5, state="readonly").pack(side="left")
 
             path_frame = ttk.Frame(autobackup_frame)
             path_frame.pack(fill="x", pady=5)
-            ttk.Label(path_frame, text=tr("Salva in:")).pack(anchor="w")
+            ttk.Label(path_frame, text=tr("Save to:")).pack(anchor="w")
             
             path_entry_frame = ttk.Frame(autobackup_frame)
             path_entry_frame.pack(fill="x")
             ttk.Entry(path_entry_frame, textvariable=self.autobackup_path, state="readonly", width=50).pack(side="left", fill="x", expand=True, pady=(0, 5))
-            ttk.Button(path_entry_frame, text=tr("📁 Scegli..."), command=self.select_autobackup_path).pack(side="left", padx=(5,0), pady=(0,5))
+            ttk.Button(path_entry_frame, text=tr("📁 Choose..."), command=self.select_autobackup_path).pack(side="left", padx=(5,0), pady=(0,5))
 
-            ttk.Button(autobackup_frame, text=tr("💾 Salva Impostazioni Backup"), command=self.save_autobackup_settings).pack(pady=(10,0))
+            ttk.Button(autobackup_frame, text=tr("💾 Save Backup Settings"), command=self.save_autobackup_settings).pack(pady=(10,0))
 
             # --- Sezione Lingua ---
-            language_frame = ttk.LabelFrame(main_frame, text=tr("Lingua"), padding="10")
+            language_frame = ttk.LabelFrame(main_frame, text=tr("Language"), padding="10")
             language_frame.pack(fill="x", pady=(0, 15), padx=5)
             
-            ttk.Label(language_frame, text=tr("Seleziona la lingua dell'interfaccia. Il cambio richiede il riavvio dell'applicazione."), font=(None, 10), wraplength=500).pack(anchor="w", pady=(0, 15))
+            ttk.Label(language_frame, text=tr("Select the interface language. The change requires restarting the application."), font=(None, 10), wraplength=500).pack(anchor="w", pady=(0, 15))
             
             # Riga per il controllo della lingua
             lang_row = ttk.Frame(language_frame)
             lang_row.pack(fill="x", pady=(0, 5))
             
-            ttk.Label(lang_row, text=tr("Lingua:")).pack(side="left", padx=(0, 10))
+            ttk.Label(lang_row, text=tr("Language:")).pack(side="left", padx=(0, 10))
             language_combo = ttk.Combobox(lang_row, textvariable=self.language_var, values=["English", "Italiano"], state="readonly", width=20)
             language_combo.pack(side="left", padx=(0, 10))
             self.language_combo = language_combo  # Salva riferimento per aggiornamento successivo
-            ttk.Button(lang_row, text=tr("💾 Salva Lingua"), command=self.save_language_settings).pack(side="left")
+            ttk.Button(lang_row, text=tr("💾 Save Language"), command=self.save_language_settings).pack(side="left")
             
             # Assicura che il valore nel combobox corrisponda al codice lingua
             def on_language_change(event):
@@ -347,7 +347,7 @@ class SettingsWindow(tk.Toplevel):
             # Converte "English"/"Italiano" in "en"/"it"
             selected_lang = self.language_var.get()
             if not selected_lang:
-                SimpleMessageDialog(self, tr("Attenzione"), tr("Seleziona una lingua."), "warning")
+                SimpleMessageDialog(self, tr("Warning"), tr("Select a language."), "warning")
                 return
             
             lang_code = "en" if selected_lang == "English" else "it"
@@ -359,18 +359,18 @@ class SettingsWindow(tk.Toplevel):
             
             dialog = SimpleYesNoDialog(
                 self,
-                tr("Successo"),
-                tr("Impostazione lingua salvata.\nRiavviare ora l'applicazione per applicare le modifiche?")
+                tr("Success"),
+                tr("Language setting saved.\nRestart the application now to apply the changes?")
             )
             if dialog.result:
                 # Riavvia l'applicazione
                 self.main_app.restart_program()
         except Exception as e:
             logger.error(f"Errore nel salvare la lingua: {e}", exc_info=True)
-            SimpleMessageDialog(self, tr("Errore"), tr("Impossibile salvare l'impostazione della lingua: {}").format(e), "error")
+            SimpleMessageDialog(self, tr("Error"), tr("Unable to save language setting: {}").format(e), "error")
 
     def select_autobackup_path(self):
-        path = filedialog.askdirectory(title=tr("Seleziona cartella per backup automatici"), parent=self)
+        path = filedialog.askdirectory(title=tr("Select folder for automatic backups"), parent=self)
         if path: self.autobackup_path.set(path)
 
     def save_autobackup_settings(self):
@@ -380,27 +380,27 @@ class SettingsWindow(tk.Toplevel):
         config['AutoBackup']['hour'] = self.autobackup_hour.get()
         config['AutoBackup']['path'] = self.autobackup_path.get()
         if self.autobackup_enabled.get() and not self.autobackup_path.get():
-            SimpleMessageDialog(self, tr("Attenzione"), tr("Per abilitare il backup automatico specificare un percorso."), "warning")
+            SimpleMessageDialog(self, tr("Warning"), tr("To enable automatic backup, specify a path."), "warning")
             return
         try:
             # BUG #49 FIX: Usa encoding UTF-8 per gestire caratteri speciali
             with open(get_config_file(), 'w', encoding='utf-8') as f: config.write(f)
-            SimpleMessageDialog(self, tr("Successo"), tr("Impostazioni backup salvate."), "info")
+            SimpleMessageDialog(self, tr("Success"), tr("Backup settings saved."), "info")
         except Exception as e:
-            SimpleMessageDialog(self, tr("Errore"), tr("Impossibile salvare: {}").format(e), "error")
+            SimpleMessageDialog(self, tr("Error"), tr("Unable to save: {}").format(e), "error")
 
     def backup_database(self):
         """Crea backup manuale copiando i file del database (db, wal, shm)."""
         db_file = get_db_path()
         if not os.path.exists(db_file):
-            SimpleMessageDialog(self, tr("Errore"), tr("File database '{}' non trovato!").format(db_file), "error")
+            SimpleMessageDialog(self, tr("Error"), tr("Database file '{}' not found!").format(db_file), "error")
             return
         
         dest = filedialog.asksaveasfilename(
-            title=tr("Salva backup come..."), 
+            title=tr("Save backup as..."), 
             initialfile=f"backup_manuale_{datetime.now().strftime('%Y%m%d_%H%M%S')}.db", 
             defaultextension=".db", 
-            filetypes=[(tr("Database SQLite"), "*.db"), (tr("Tutti i file"), "*.*")], 
+            filetypes=[(tr("Database SQLite"), "*.db"), (tr("All files"), "*.*")], 
             parent=self
         )
         
@@ -472,8 +472,8 @@ class SettingsWindow(tk.Toplevel):
                 logger.warning(f"Backup manuale potenzialmente incompleto: {backup_size} vs {original_size} bytes")
                 dialog = SimpleYesNoDialog(
                     self,
-                    tr("Attenzione Dimensione"), 
-                    tr("Il backup creato è significativamente più piccolo del database originale.\n\nOriginale: {:.2f} MB\nBackup: {:.2f} MB\n\nVuoi conservarlo comunque?").format(original_size / (1024*1024), backup_size / (1024*1024))
+                    tr("Size Warning"), 
+                    tr("The created backup is significantly smaller than the original database.\n\nOriginal: {:.2f} MB\nBackup: {:.2f} MB\n\nDo you want to keep it anyway?").format(original_size / (1024*1024), backup_size / (1024*1024))
                 )
                 if not dialog.result:
                     try:
@@ -500,8 +500,8 @@ class SettingsWindow(tk.Toplevel):
             
             SimpleMessageDialog(
                 self,
-                tr("Successo"), 
-                tr("Backup creato con successo:\n\nFile copiati:\n{}\n\nDimensione totale: {:.2f} MB").format(
+                tr("Success"), 
+                tr("Backup created successfully:\n\nFiles copied:\n{}\n\nTotal size: {:.2f} MB").format(
                     '\n'.join(f'  • {f}' for f in files_copied),
                     sum(os.path.getsize(f) for f in [dest] + 
                         ([wal_dest] if os.path.exists(wal_dest) else []) + 
@@ -515,8 +515,8 @@ class SettingsWindow(tk.Toplevel):
             logger.error(f"Errore backup manuale: {e}", exc_info=True)
             SimpleMessageDialog(
                 self,
-                tr("Errore"), 
-                tr("Impossibile creare backup:\n{}").format(e),
+                tr("Error"), 
+                tr("Unable to create backup:\n{}").format(e),
                 "error"
             )
             # Rimuovi backup parziale/corrotto
@@ -543,8 +543,8 @@ class SettingsWindow(tk.Toplevel):
                     logger.error(f"Errore nella riapertura connessione MainWindow: {e}")
                     SimpleMessageDialog(
                         self,
-                        tr("Attenzione"),
-                        tr("Il backup è stato completato, ma non è stato possibile riaprire la connessione principale.\nSi consiglia di riavviare l'applicazione."),
+                        tr("Warning"),
+                        tr("The backup has been completed, but it was not possible to reopen the main connection.\nIt is recommended to restart the application."),
                         "warning"
                     )
 
@@ -564,18 +564,12 @@ class SettingsWindow(tk.Toplevel):
         current_dataflow_dir = get_user_documents_dataflow_dir()
         
         warning_text = tr(
-            "⚠️ ATTENZIONE: stai per cambiare la posizione della cartella DataFlow.\n\n"
-            "La cartella attuale verrà copiata automaticamente nella nuova posizione "
-            "selezionata, inclusi database e allegati. "
-            "L'operazione potrebbe richiedere alcuni istanti.\n\n"
-            "Al termine, l'applicazione verrà riavviata.\n\n"
-            "Posizione attuale:\n{}\n\n"
-            "Vuoi procedere?"
+            "⚠️ WARNING: you are about to change the DataFlow folder location.\n\nThe current folder will be automatically copied to the new selected location, including the database and attachments. This operation may take a moment.\n\nThe application will restart when it is complete.\n\nCurrent location:\n{}\n\nDo you want to proceed?"
         ).format(current_dataflow_dir)
         
         dialog = SimpleYesNoDialog(
             self,
-            tr("Conferma Cambio Posizione"), 
+            tr("Confirm Location Change"), 
             warning_text,
             icon='warning'
         )
@@ -590,7 +584,7 @@ class SettingsWindow(tk.Toplevel):
         
         try:
             selected_dir = filedialog.askdirectory(
-                title=tr("Seleziona la nuova posizione della cartella DataFlow"),
+                title=tr("Select the new DataFlow folder location"),
                 initialdir=initial_dir,
                 parent=self
             )
@@ -598,8 +592,8 @@ class SettingsWindow(tk.Toplevel):
             logger.error(f"Errore apertura dialog selezione cartella: {e}")
             SimpleMessageDialog(
                 self,
-                tr("Errore"),
-                tr("Errore durante la selezione della cartella: {}").format(e),
+                tr("Error"),
+                tr("Error selecting folder: {}").format(e),
                 "error"
             )
             return
@@ -610,7 +604,7 @@ class SettingsWindow(tk.Toplevel):
         
         normalized_dir = os.path.normpath(os.path.abspath(selected_dir.strip()))
         if not normalized_dir:
-            SimpleMessageDialog(self, tr("Errore"), tr("Percorso non valido."), "error")
+            SimpleMessageDialog(self, tr("Error"), tr("Invalid path."), "error")
             return
         
         # ✅ CORREZIONE: NON aggiungere "DataFlow" - useremo DataFlow_{username}
@@ -624,8 +618,8 @@ class SettingsWindow(tk.Toplevel):
             logger.error(f"Impossibile creare/accedere alla cartella parent: {e}")
             SimpleMessageDialog(
                 self,
-                tr("Errore"),
-                tr("Impossibile accedere alla cartella selezionata:\n{}\n\nDettagli: {}").format(normalized_dir, e),
+                tr("Error"),
+                tr("Unable to access the selected folder:\n{}\n\nDetails: {}").format(normalized_dir, e),
                 "error"
             )
             return
@@ -649,8 +643,8 @@ class SettingsWindow(tk.Toplevel):
             logger.error(f"Test permessi fallito per {normalized_dir}: {e}")
             SimpleMessageDialog(
                 self,
-                tr("Errore Permessi"),
-                tr("Impossibile scrivere nella cartella selezionata:\n{}\n\nDettagli: {}").format(normalized_dir, e),
+                tr("Permission Error"),
+                tr("Cannot write to the selected folder:\n{}\n\nDetails: {}").format(normalized_dir, e),
                 "error"
             )
             return
@@ -659,13 +653,11 @@ class SettingsWindow(tk.Toplevel):
         if len(normalized_dir) > 240:
             logger.warning(f"Percorso DataFlow troppo lungo ({len(normalized_dir)} caratteri)")
             length_warning = tr(
-                "Il percorso selezionato è molto lungo ({} caratteri).\n"
-                "Windows potrebbe avere problemi nell'accesso ai file.\n"
-                "Vuoi procedere comunque?"
+                "The selected path is very long ({} characters).\nWindows may have issues accessing files.\nDo you want to continue anyway?"
             ).format(len(normalized_dir))
             dialog = SimpleYesNoDialog(
                 self,
-                tr("Percorso Molto Lungo"),
+                tr("Path Too Long"),
                 length_warning
             )
             if not dialog.result:
@@ -678,10 +670,9 @@ class SettingsWindow(tk.Toplevel):
             if drive_letter and drive_letter.upper() not in ['C:', 'D:', 'E:']:
                 logger.warning(f"Unità potenzialmente rimovibile: {drive_letter}")
                 removable_warning = tr(
-                    "⚠️ L'unità selezionata ({}) potrebbe essere rimovibile.\n"
-                    "Se viene scollegata, DataFlow non potrà accedere ai dati."
+                    "⚠️ The selected drive ({}) might be removable.\nIf disconnected, DataFlow will not be able to access the data."
                 ).format(drive_letter)
-                SimpleMessageDialog(self, tr("Unità Rimovibile?"), removable_warning, "warning")
+                SimpleMessageDialog(self, tr("Removable Drive?"), removable_warning, "warning")
         except Exception as e:
             logger.error(f"Errore durante controllo unità rimovibile: {e}")
         
@@ -694,8 +685,8 @@ class SettingsWindow(tk.Toplevel):
             logger.error("Username corrente non trovato nel config")
             SimpleMessageDialog(
                 self,
-                tr("Errore"),
-                tr("Impossibile determinare l'utente corrente. Riavvia DataFlow."),
+                tr("Error"),
+                tr("Unable to determine the current user. Restart DataFlow."),
                 "error"
             )
             return
@@ -741,17 +732,12 @@ class SettingsWindow(tk.Toplevel):
             if folder_exists or db_exists:
                 # Conflitto rilevato: chiedi se vuole cambiare username
                 conflict_message = tr(
-                    "⚠️ CONFLITTO UTENTE RILEVATO\n\n"
-                    "Nella cartella di destinazione selezionata esiste già un database \n"
-                    "associato all'utente '{}'.\n\n"
-                    "Per evitare conflitti e perdita dati, è necessario cambiare \n"
-                    "il tuo username prima di procedere.\n\n"
-                    "Vuoi procedere con il cambio username?"
+                    "⚠️ USER CONFLICT DETECTED\n\nA database associated with user '{}' already exists \nin the selected destination folder.\n\nTo avoid conflicts and data loss, you need to change \nyour username before proceeding.\n\nDo you want to proceed with the username change?"
                 ).format(final_username)
                 
                 dialog = SimpleYesNoDialog(
                     self,
-                    tr("Conflitto Username"),
+                    tr("Username Conflict"),
                     conflict_message,
                     icon='warning'
                 )
@@ -793,8 +779,8 @@ class SettingsWindow(tk.Toplevel):
             logger.error(f"Cartella sorgente non esiste: {source_folder}")
             SimpleMessageDialog(
                 self,
-                tr("Errore"),
-                tr("Cartella DataFlow di origine non trovata:\n{}").format(source_folder),
+                tr("Error"),
+                tr("Source DataFlow folder not found:\n{}").format(source_folder),
                 "error"
             )
             return
@@ -810,8 +796,8 @@ class SettingsWindow(tk.Toplevel):
             logger.warning(f"Errore chiusura DatabaseManager: {e}")
         
         # Mostra finestra progresso copia
-        progress_win = CopyProgressWindow(self, title=tr("Copia DataFlow in corso..."))
-        progress_win.update_progress(0, tr("Preparazione copia..."))
+        progress_win = CopyProgressWindow(self, title=tr("Copying DataFlow..."))
+        progress_win.update_progress(0, tr("Preparing copy..."))
         
         # Backup config originale (per rollback)
         config_backup = None
@@ -828,7 +814,7 @@ class SettingsWindow(tk.Toplevel):
             logger.info(f"Inizio copia da '{source_folder}' a '{dest_folder}'")
             
             # Conta file totali per barra progresso
-            progress_win.update_progress(5, tr("Analisi file da copiare..."))
+            progress_win.update_progress(5, tr("Analyzing files to copy..."))
             total_files = 0
             for root, dirs, files in os.walk(source_folder):
                 total_files += len(files)
@@ -836,7 +822,7 @@ class SettingsWindow(tk.Toplevel):
             logger.info(f"File totali da copiare: {total_files}")
             
             if total_files == 0:
-                raise Exception(tr("Nessun file da copiare nella cartella sorgente"))
+                raise Exception(tr("No files to copy in source folder"))
             
             # Copia ricorsiva con aggiornamento progressione
             files_copied = 0
@@ -861,18 +847,18 @@ class SettingsWindow(tk.Toplevel):
                         file_name = os.path.basename(s)
                         progress_win.update_progress(
                             progress_pct,
-                            tr("Copia file {}/{}: {}").format(files_copied, total_files, file_name[:40])
+                            tr("Copying file {}/{}: {}").format(files_copied, total_files, file_name[:40])
                         )
             
             copy_with_progress(source_folder, dest_folder)
             
             logger.info(f"Copia file completata: {files_copied} file copiati")
-            progress_win.update_progress(85, tr("Copia completata, aggiornamento configurazione..."))
+            progress_win.update_progress(85, tr("Copy completed, updating configuration..."))
             
             # === AGGIORNA USERNAME NEL DATABASE (SOLO SE CAMBIATO) ===
             if username_changed:
                 logger.info(f"Username cambiato da '{current_username}' a '{final_username}', aggiorno database")
-                progress_win.update_progress(90, tr("Aggiornamento username nel database..."))
+                progress_win.update_progress(90, tr("Updating username in database..."))
                 
                 # Percorso nuovo database
                 new_db_path = os.path.join(dest_folder, 'Database', f'dataflow_db_{final_username}.db')
@@ -896,7 +882,7 @@ class SettingsWindow(tk.Toplevel):
                     raise
             
             # === AGGIORNA CONFIG.INI ===
-            progress_win.update_progress(95, tr("Salvataggio configurazione..."))
+            progress_win.update_progress(95, tr("Saving configuration..."))
             
             config = configparser.ConfigParser(interpolation=None)
             config_file = get_config_file()
@@ -927,25 +913,17 @@ class SettingsWindow(tk.Toplevel):
             
             logger.info(f"Config aggiornato con nuovo percorso: {dest_parent}")
             
-            progress_win.update_progress(100, tr("Operazione completata!"))
+            progress_win.update_progress(100, tr("Operation completed!"))
             time.sleep(0.5)
             progress_win.destroy()
             
             # === MESSAGGIO SUCCESSO ===
             username_info = ""
             if username_changed:
-                username_info = tr("\n\n✓ Username aggiornato da '{}' a '{}'").format(current_username, final_username)
+                username_info = tr("\n\n✓ Username updated from '{}' to '{}'").format(current_username, final_username)
             
             success_msg = tr(
-                "✓ OPERAZIONE COMPLETATA CON SUCCESSO\n\n"
-                "La cartella DataFlow è stata copiata con successo in:\n"
-                "{dest}\n"
-                "\nFile copiati: {count}{username_change}\n\n"
-                "⚠️ IMPORTANTE:\n"
-                "- La cartella ORIGINALE in '{src}' NON è stata eliminata.\n"
-                "- Prima di eliminarla manualmente, TESTA il corretto funzionamento \n"
-                "  del database copiato.\n"
-                "- DataFlow verrà riavviato automaticamente."
+                "✓ OPERATION COMPLETED SUCCESSFULLY\n\nThe DataFlow folder has been successfully copied to:\n{dest}\n\nFiles copied: {count}{username_change}\n\n⚠️ IMPORTANT:\n- The ORIGINAL folder in '{src}' has NOT been deleted.\n- Before deleting it manually, TEST the correct operation \n  of the copied database.\n- DataFlow will restart automatically."
             ).format(
                 dest=dest_folder,
                 count=files_copied,
@@ -953,7 +931,7 @@ class SettingsWindow(tk.Toplevel):
                 src=source_folder
             )
             
-            SimpleMessageDialog(self, tr("Operazione Completata"), success_msg, "info")
+            SimpleMessageDialog(self, tr("Operation Completed"), success_msg, "info")
             
             # ✅ SALVA ESPLICITAMENTE LA NUOVA IDENTITÀ (se cambiata)
             if username_changed:
@@ -993,14 +971,10 @@ class SettingsWindow(tk.Toplevel):
                     logger.error(f"Impossibile eliminare cartella parziale: {cleanup_err}")
             
             error_msg = tr(
-                "❌ OPERAZIONE FALLITA\n\n"
-                "Impossibile completare lo spostamento della cartella DataFlow.\n\n"
-                "Dettaglio errore:\n{error}\n\n"
-                "Le impostazioni originali sono state ripristinate.\n"
-                "Consulta il file di log per maggiori dettagli."
+                "❌ OPERATION FAILED\n\nUnable to complete moving the DataFlow folder.\n\nError details:\n{error}\n\nOriginal settings have been restored.\nSee the log file for more details."
             ).format(error=str(e))
             
-            SimpleMessageDialog(self, tr("Errore Spostamento"), error_msg, "error")
+            SimpleMessageDialog(self, tr("Move Error"), error_msg, "error")
 
 # ------------------------------------------------------------------------------------
 # FINESTRA PRINCIPALE
@@ -1009,7 +983,7 @@ class MainWindow:
     def __init__(self, root):
         self.root = root;
         set_window_icon(self.root)
-        self.root.title(tr("DataFlow Procurement Software - Cruscotto Principale"))
+        self.root.title(tr("DataFlow Procurement Software - Main Dashboard"))
         
         # Windows: la normal size di default è troppo piccola; imposta base minima
         # esplicita prima del maximize per evitare restore/normal size minuscola.
@@ -1029,7 +1003,7 @@ class MainWindow:
                 # Fallback: se nessuno dei due funziona, ignora
                 pass
         
-        self.all_users_placeholder = tr("Tutti gli utenti")
+        self.all_users_placeholder = tr("All users")
         self.username_filter_var = None
         self.user_filter_combo = None
         self.vsm_username_filter_var = None
@@ -1107,7 +1081,7 @@ class MainWindow:
             if not result:
                 if not self.root.winfo_exists():
                     return False
-                SimpleMessageDialog(self.root, tr("Dati mancanti"), tr("Per utilizzare DataFlow devi inserire nome e cognome."), "warning")
+                SimpleMessageDialog(self.root, tr("Missing Data"), tr("To use DataFlow, you must enter your first and last name."), "warning")
                 continue
             try:
                 save_user_identity(result['first_name'], result['last_name'], result['username'])
@@ -1116,7 +1090,7 @@ class MainWindow:
                 return True
             except Exception as e:
                 logger.error(f"Errore salvataggio identità utente: {e}", exc_info=True)
-                SimpleMessageDialog(self.root, tr("Errore"), tr("Impossibile salvare i dati utente: {}").format(e), "error")
+                SimpleMessageDialog(self.root, tr("Error"), tr("Unable to save user data: {}").format(e), "error")
                 identity_kwargs = result
 
     def apply_user_identity_to_ui(self):
@@ -1214,7 +1188,7 @@ class MainWindow:
                 return True
         
         # Controlla filtro tipo RdO
-        if self.search_tipo.get() != tr("Tutte"):
+        if self.search_tipo.get() != tr("All"):
             return True
         
         # Controlla filtri data
@@ -1332,8 +1306,8 @@ class MainWindow:
                     logger.error(f"Errore nel riavvio dell'applicazione: {e}")
                     try:
                         show_error(
-                            tr("Errore"),
-                            tr("Impossibile riavviare l'applicazione automaticamente.\n\nPerfavore, chiudi e riapri manualmente l'applicazione per applicare le modifiche.\n\nPercorso tentato: {}").format(script_path),
+                            tr("Error"),
+                            tr("Unable to restart the application automatically.\n\nPlease close and reopen the application manually to apply the changes.\n\nAttempted path: {}").format(script_path),
                             parent=None
                         )
                     except:
@@ -1357,8 +1331,8 @@ class MainWindow:
             # Se il riavvio fallisce, mostra un messaggio all'utente
             logger.error(f"Errore nel riavvio dell'applicazione: {e}")
             show_error(
-                tr("Errore"),
-                tr("Impossibile riavviare l'applicazione automaticamente.\n\nPerfavore, chiudi e riapri manualmente l'applicazione per applicare le modifiche.\n\nPercorso tentato: {}").format(script_path),
+                tr("Error"),
+                tr("Unable to restart the application automatically.\n\nPlease close and reopen the application manually to apply the changes.\n\nAttempted path: {}").format(script_path),
                 parent=self.root if hasattr(self, 'root') else None
             )
 
@@ -1538,7 +1512,7 @@ class MainWindow:
                      theme="light blue",
                      header_font=("Calibri", 11, "bold"),
                      font=("Calibri", 11, "normal"),
-                     headers=[tr("Num RdO"), tr("Tipo RdO"), tr("Data Emiss."), tr("Data Scad."), tr("Riferimento"), tr("Utente")],
+                     headers=[tr("RfQ No."), tr("RfQ Type"), tr("Issue Date"), tr("Expiry Date"), tr("Reference"), tr("User")],
                      show_header=True,
                      show_row_index=False)
         
@@ -1609,17 +1583,17 @@ class MainWindow:
         # Intestazioni e layout dipendono dal tab
         if event_type == "Saving":
             headers = [
-                tr("Data"), tr("Tipo"), tr("Azione"), tr("Descrizione"),
+                tr("Date"), tr("Type"), tr("Action"), tr("Description"),
                 tr("Theoretical Savings"), tr("Actual Savings"),
-                tr("Realizzo %"), tr("Variance %"), tr("Ripetitivo"), tr("Utente")
+                tr("Realization %"), tr("Variance %"), tr("Repetitive"), tr("User")
             ]
             align_cols = [0, 1, 2, 4, 5, 6, 7, 8, 9]
             n_cols = 10
         elif event_type == "Cost Avoidance":
             headers = [
-                tr("Data"), tr("Tipo"), tr("Azione"), tr("Descrizione"),
+                tr("Date"), tr("Type"), tr("Action"), tr("Description"),
                 tr("CA Theoretical"), tr("CA Actual"),
-                tr("Realizzo %"), tr("Variance %"), tr("Ripetitivo"), tr("Utente")
+                tr("Realization %"), tr("Variance %"), tr("Repetitive"), tr("User")
             ]
             align_cols = [0, 1, 2, 4, 5, 6, 7, 8, 9]
             n_cols = 10
@@ -1630,8 +1604,8 @@ class MainWindow:
             # NON rimuovere finché non si completa la verifica dell'intero step cleanup.
             # Da rimuovere nello step successivo (created_at + KPI temporali).
             headers = [
-                tr("Data"), tr("Nuovo Fornitore"), tr("Descrizione"),
-                tr("Ripetitivo"), tr("Utente")
+                tr("Date"), tr("New Supplier"), tr("Description"),
+                tr("Repetitive"), tr("User")
             ]
             align_cols = [0, 3, 4]
             n_cols = 5
@@ -1658,8 +1632,8 @@ class MainWindow:
             # - "Tipo" deve contenere "Derisking" → larghezza ≥ colonna "Realizzo %"
             # - "Nuovo Fornitore" ha contenuto medio → larghezza ≥ colonna "Valore Teorico"
             _date_min = _cfont.measure("dd/mm/YYYY") + _HEADER_PADDING
-            _type_min = _hfont.measure(tr("Realizzo %")) + _HEADER_PADDING
-            _new_supplier_min = _hfont.measure(tr("Valore Teorico")) + _HEADER_PADDING
+            _type_min = _hfont.measure(tr("Realization %")) + _HEADER_PADDING
+            _new_supplier_min = _hfont.measure(tr("Theoretical Value")) + _HEADER_PADDING
             col_widths = [
                 _DESC_COL_WIDTH if i == _DESC_COL_IDX
                 else max(_date_min, _hfont.measure(h) + _HEADER_PADDING) if i == _DATE_COL_IDX
@@ -1744,9 +1718,9 @@ class MainWindow:
         frame.pack(fill="both", expand=True)
 
         headers = [
-            tr("Fornitore"), tr("Categoria"),
-            tr("Stato"), tr("Contatto"), tr("E-mail"),
-            tr("Telefono"), tr("Web"), tr("Note"), tr("Utente"),
+            tr("Supplier"), tr("Category"),
+            tr("Status"), tr("Contact"), tr("E-mail"),
+            tr("Phone"), tr("Web"), tr("Notes"), tr("User"),
         ]
         # Colonne da centrare: Stato, Telefono, Utente
         align_cols = [2, 5, 8]
@@ -1849,7 +1823,7 @@ class MainWindow:
                 self._load_potential_suppliers(sheet)
         except Exception as e:
             logger.error("Errore apertura dialog fornitore: %s", e, exc_info=True)
-            SimpleMessageDialog(self.root, tr("Errore"), tr("Impossibile aprire il form: {}").format(e), "error")
+            SimpleMessageDialog(self.root, tr("Error"), tr("Unable to open the form: {}").format(e), "error")
         finally:
             self.root.after(300, lambda: setattr(self, '_opening_supplier_edit', False))
 
@@ -1888,7 +1862,7 @@ class MainWindow:
             
         except DatabaseError as e:
             logger.error(f"Errore caricamento eventi VSM {event_type}: {e}")
-            SimpleMessageDialog(self.root, tr("Errore Database"), tr("Impossibile caricare gli eventi VSM: {}\n").format(e), "error")
+            SimpleMessageDialog(self.root, tr("Database Error"), tr("Unable to load VSM events: {}\n").format(e), "error")
 
     def _load_potential_suppliers(self, sheet):
         """
@@ -1908,8 +1882,8 @@ class MainWindow:
             logger.error(f"Errore caricamento fornitori potenziali: {e}")
             SimpleMessageDialog(
                 self.root,
-                tr("Errore Database"),
-                tr("Impossibile caricare i fornitori potenziali: {}\n").format(e),
+                tr("Database Error"),
+                tr("Unable to load potential suppliers: {}\n").format(e),
                 "error",
             )
 
@@ -1928,7 +1902,7 @@ class MainWindow:
             return
 
         # Identifica la colonna Note tramite header (non indice hardcoded)
-        _note_header = tr("Note")
+        _note_header = tr("Notes")
         note_idx = next((i for i, h in enumerate(headers) if h == _note_header), None)
 
         try:
@@ -2137,7 +2111,7 @@ class MainWindow:
 
             # Filtro ripetitivo
             if repetitive_filter:
-                want = repetitive_filter == tr("Sì")
+                want = repetitive_filter == tr("Yes")
                 if event.opex_ripetitivo != want:
                     continue
 
@@ -2272,7 +2246,7 @@ class MainWindow:
                 import tkinter.font as tkfont
                 _cfont = tkfont.Font(family="Calibri", size=11)
                 _hfont = tkfont.Font(family="Calibri", size=11, weight="bold")
-                _header_w = _hfont.measure(tr("Nuovo Fornitore")) + 30
+                _header_w = _hfont.measure(tr("New Supplier")) + 30
                 _longest = max((row[_NEW_SUPPLIER_COL] for row in data_rows if row[_NEW_SUPPLIER_COL]), key=len, default="")
                 _content_w = _cfont.measure(_longest) + _CELL_PADDING if _longest else 0
                 col_widths[_NEW_SUPPLIER_COL] = max(_header_w, _content_w)
@@ -2309,11 +2283,11 @@ class MainWindow:
         selected_rows = self._get_selected_row_indices(sheet)
         
         if not selected_rows:
-            SimpleMessageDialog(self.root, tr("Nessuna Selezione"), tr("Seleziona un evento da modificare."), "warning")
+            SimpleMessageDialog(self.root, tr("No Selection"), tr("Select an event to edit."), "warning")
             return
         
         if len(selected_rows) > 1:
-            SimpleMessageDialog(self.root, tr("Selezione Multipla"), tr("Seleziona un solo evento per la modifica."), "warning")
+            SimpleMessageDialog(self.root, tr("Multiple Selection"), tr("Select only one event for editing."), "warning")
             return
         
         # Ottieni event_id e ownership
@@ -2374,7 +2348,7 @@ class MainWindow:
         
         except Exception as e:
             logger.error(f"Errore apertura dialog modifica evento VSM: {e}", exc_info=True)
-            SimpleMessageDialog(self.root, tr("Errore"), tr("Impossibile aprire il form: {}").format(e), "error")
+            SimpleMessageDialog(self.root, tr("Error"), tr("Unable to open the form: {}").format(e), "error")
     
     def _delete_vsm_events(self):
         """Handler per eliminazione eventi VSM o fornitori potenziali.
@@ -2396,7 +2370,7 @@ class MainWindow:
         selected_rows = self._get_selected_row_indices(sheet)
         
         if not selected_rows:
-            SimpleMessageDialog(self.root, tr("Nessuna Selezione"), tr("Seleziona uno o più eventi da eliminare."), "warning")
+            SimpleMessageDialog(self.root, tr("No Selection"), tr("Select one or more events to delete."), "warning")
             return
         
         # Raccolta event_id e validazione ownership
@@ -2409,7 +2383,7 @@ class MainWindow:
             
             # Valida ownership
             if not metadata['is_mine']:
-                SimpleMessageDialog(self.root, tr("Operazione Non Consentita"), tr("Puoi eliminare solo i tuoi eventi VSM.\nAlcuni eventi selezionati appartengono ad altri utenti."), "error")
+                SimpleMessageDialog(self.root, tr("Operation Not Allowed"), tr("You can only delete your own VSM events.\nSome selected events belong to other users."), "error")
                 return
             
             events_to_delete.append(metadata['event_id'])
@@ -2419,7 +2393,7 @@ class MainWindow:
         
         # Conferma eliminazione
         count = len(events_to_delete)
-        if not SimpleYesNoDialog(self.root, tr("Conferma Eliminazione"), tr("Sei sicuro di voler eliminare {} evento(i) VSM?\nQuesta operazione non può essere annullata.").format(count)).result:
+        if not SimpleYesNoDialog(self.root, tr("Delete Confirmation"), tr("Are you sure you want to delete {} VSM event(s)?\nThis operation cannot be undone.").format(count)).result:
             return
         
         # Determina event_type da status
@@ -2439,7 +2413,7 @@ class MainWindow:
                 for event_id in events_to_delete:
                     delete_event_and_impacts(db_manager, event_id)
             
-            SimpleMessageDialog(self.root, tr("Successo"), tr("{} evento(i) VSM eliminato(i) con successo.").format(count), "info")
+            SimpleMessageDialog(self.root, tr("Success"), tr("{} VSM event(s) successfully deleted.").format(count), "info")
             
             # Refresh
             self._load_vsm_events(event_type, sheet)
@@ -2447,7 +2421,7 @@ class MainWindow:
         
         except (DatabaseError, VSMError) as e:
             logger.error(f"Errore eliminazione eventi VSM: {e}")
-            SimpleMessageDialog(self.root, tr("Errore Eliminazione"), tr("Impossibile eliminare gli eventi:\n{}").format(e), "error")
+            SimpleMessageDialog(self.root, tr("Deletion Error"), tr("Unable to delete events:\n{}").format(e), "error")
 
     def _delete_supplier(self):
         """Handler per eliminazione fornitori potenziali dal tab Derisking.
@@ -2459,7 +2433,7 @@ class MainWindow:
 
         selected_rows = self._get_selected_row_indices(sheet)
         if not selected_rows:
-            SimpleMessageDialog(self.root, tr("Nessuna Selezione"), tr("Seleziona uno o più fornitori da eliminare."), "warning")
+            SimpleMessageDialog(self.root, tr("No Selection"), tr("Select one or more suppliers to delete."), "warning")
             return
 
         # Raccolta supplier_id e validazione ownership
@@ -2471,8 +2445,8 @@ class MainWindow:
             if not metadata.get('is_mine', False):
                 SimpleMessageDialog(
                     self.root,
-                    tr("Operazione Non Consentita"),
-                    tr("Puoi eliminare solo i tuoi fornitori.\nAlcuni fornitori selezionati appartengono ad altri utenti."),
+                    tr("Operation Not Allowed"),
+                    tr("You can delete only your suppliers.\nSome selected suppliers belong to other users."),
                     "error",
                 )
                 return
@@ -2486,8 +2460,8 @@ class MainWindow:
         count = len(suppliers_to_delete)
         if not SimpleYesNoDialog(
             self.root,
-            tr("Conferma Eliminazione"),
-            tr("Sei sicuro di voler eliminare {} fornitore(i)?\nQuesta operazione non può essere annullata.").format(count),
+            tr("Delete Confirmation"),
+            tr("Are you sure you want to delete {} supplier(s)?\nThis operation cannot be undone.").format(count),
         ).result:
             return
 
@@ -2499,8 +2473,8 @@ class MainWindow:
 
             SimpleMessageDialog(
                 self.root,
-                tr("Successo"),
-                tr("{} fornitore(i) eliminato(i) con successo.").format(count),
+                tr("Success"),
+                tr("{} supplier(s) deleted successfully.").format(count),
                 "info",
             )
             self._load_potential_suppliers(self.sheet_derisking)
@@ -2510,8 +2484,8 @@ class MainWindow:
             logger.error("Errore eliminazione fornitori: %s", e)
             SimpleMessageDialog(
                 self.root,
-                tr("Errore Eliminazione"),
-                tr("Impossibile eliminare i fornitori:\n{}").format(e),
+                tr("Deletion Error"),
+                tr("Unable to delete suppliers:\n{}").format(e),
                 "error",
             )
 
@@ -2571,11 +2545,11 @@ class MainWindow:
         selected_rows = self._get_selected_row_indices(sheet)
         
         if not selected_rows:
-            SimpleMessageDialog(self.root, tr("Selezione mancante"), tr("Selezionare un evento VSM da duplicare."), "warning")
+            SimpleMessageDialog(self.root, tr("Missing selection"), tr("Select a VSM event to duplicate."), "warning")
             return
         
         if len(selected_rows) > 1:
-            SimpleMessageDialog(self.root, tr("Selezione non valida"), tr("Seleziona un solo evento VSM per duplicarlo."), "warning")
+            SimpleMessageDialog(self.root, tr("Invalid selection"), tr("Select only one VSM event to duplicate it."), "warning")
             return
         
         row_idx = selected_rows[0]
@@ -2583,21 +2557,21 @@ class MainWindow:
         # Validazione ownership
         if row_idx >= len(sheet._event_metadata):
             logger.error(f"Indice VSM {row_idx} fuori range metadata")
-            SimpleMessageDialog(self.root, tr("Errore"), tr("Impossibile identificare l'evento selezionato."), "error")
+            SimpleMessageDialog(self.root, tr("Error"), tr("Unable to identify the selected event."), "error")
             return
         
         metadata = sheet._event_metadata[row_idx]
         is_mine = metadata.get('is_mine', False)
         
         if not is_mine:
-            SimpleMessageDialog(self.root, tr("Operazione Non Consentita"), tr("Non puoi duplicare eventi VSM di altri utenti.\nPuoi operare solo sui tuoi eventi."), "error")
+            SimpleMessageDialog(self.root, tr("Operation Not Allowed"), tr("You cannot duplicate VSM events from other users.\nYou can only work on your own events."), "error")
             logger.warning(f"Tentativo duplicazione evento VSM altrui bloccato: utente={self.current_username}")
             return
         
         event_id = metadata.get('event_id')
         if not event_id:
             logger.error(f"event_id mancante in metadata per riga {row_idx}")
-            SimpleMessageDialog(self.root, tr("Errore"), tr("Impossibile identificare l'evento selezionato."), "error")
+            SimpleMessageDialog(self.root, tr("Error"), tr("Unable to identify the selected event."), "error")
             return
         
         # Recupero evento completo dal backend
@@ -2662,20 +2636,20 @@ class MainWindow:
                 self._load_vsm_events(event_type, sheet)
                 
                 # Success feedback
-                SimpleMessageDialog(self.root, tr("Successo"), tr("Evento VSM duplicato."), "info")
+                SimpleMessageDialog(self.root, tr("Success"), tr("VSM event duplicated."), "info")
             else:
                 logger.warning(f"Tipo evento non riconosciuto per refresh: {status}")
-                SimpleMessageDialog(self.root, tr("Successo"), tr("Evento VSM duplicato. Aggiorna manualmente per vedere la copia."), "info")
+                SimpleMessageDialog(self.root, tr("Success"), tr("VSM event duplicated. Refresh manually to see the copy."), "info")
         
         except VSMError as e:
             logger.error(f"Errore VSM durante duplicazione evento {event_id}: {e}", exc_info=True)
-            SimpleMessageDialog(self.root, tr("Errore VSM"), tr("Impossibile duplicare l'evento:\n{}").format(e), "error")
+            SimpleMessageDialog(self.root, tr("VSM Error"), tr("Unable to duplicate the event:\n{}").format(e), "error")
         except DatabaseError as e:
             logger.error(f"Errore database durante duplicazione evento {event_id}: {e}", exc_info=True)
-            SimpleMessageDialog(self.root, tr("Errore Database"), tr("Impossibile duplicare l'evento:\n{}").format(e), "error")
+            SimpleMessageDialog(self.root, tr("Database Error"), tr("Unable to duplicate the event:\n{}").format(e), "error")
         except Exception as e:
             logger.error(f"Errore imprevisto durante duplicazione evento {event_id}: {e}", exc_info=True)
-            SimpleMessageDialog(self.root, tr("Errore"), tr("Impossibile duplicare l'evento:\n{}").format(e), "error")
+            SimpleMessageDialog(self.root, tr("Error"), tr("Unable to duplicate the event:\n{}").format(e), "error")
 
     def _get_selected_row_indices(self, sheet):
         """
@@ -2808,7 +2782,7 @@ class MainWindow:
         
         # VALIDAZIONE SICUREZZA: Verifica che tutte le RfQ selezionate siano dell'utente corrente
         if not self._check_if_all_selected_are_mine(sheet, selected_rows_indices):
-            SimpleMessageDialog(self.root, tr("Operazione Non Consentita"), tr("Non puoi modificare lo stato di RfO di altri utenti.\nPuoi operare solo sulle tue RdO."), "error")
+            SimpleMessageDialog(self.root, tr("Operation Not Allowed"), tr("You cannot modify the status of other users' RfQs.\nYou can only operate on your own RfQs."), "error")
             logger.warning(f"Tentativo di modifica stato RfQ altrui bloccato: utente={self.current_username}")
             return
         
@@ -2832,7 +2806,7 @@ class MainWindow:
             with DatabaseManager(get_db_path()) as db_manager:
                 db_manager.update_stato_richieste(params)
         except DatabaseError as e:
-            SimpleMessageDialog(self.root, tr("Errore"), tr("Impossibile aggiornare stato: {}").format(e), "error")
+            SimpleMessageDialog(self.root, tr("Error"), tr("Unable to update status: {}").format(e), "error")
         else:
             self.refresh_data()
 
@@ -2933,14 +2907,14 @@ class MainWindow:
         if status.startswith('vsm_'):
             # Elimina: disponibile per tutti i tab VSM (incluso Derisking)
             self.actions_menu.add_command(
-                label=tr("🗑 Elimina"),
+                label=tr("🗑 Delete"),
                 command=self._delete_vsm_events,
                 state="normal" if can_delete else "disabled"
             )
             # Duplica: non applicabile per Derisking (fornitori, non eventi economici)
             if status != 'vsm_derisking':
                 self.actions_menu.add_command(
-                    label=tr("🔁 Duplica"),
+                    label=tr("🔁 Duplicate"),
                     command=self._duplicate_vsm_event,
                     state="normal" if can_duplicate else "disabled"
                 )
@@ -2949,13 +2923,13 @@ class MainWindow:
         # RFQ logic (invariata)
         # Azioni comuni a entrambi i tab (riuso metodi esistenti)
         self.actions_menu.add_command(
-            label=tr("🗑 Elimina"),
+            label=tr("🗑 Delete"),
             command=self.delete_selected_request,
             state="normal" if can_delete else "disabled"
         )
         
         self.actions_menu.add_command(
-            label=tr("🔁 Duplica"),
+            label=tr("🔁 Duplicate"),
             command=self.duplicate_selected_request,
             state="normal" if can_duplicate else "disabled"
         )
@@ -2965,13 +2939,13 @@ class MainWindow:
         # Azione specifica per tab (riuso metodi esistenti)
         if status == 'attiva':
             self.actions_menu.add_command(
-                label=tr("📦 Archivia"),
+                label=tr("📦 Archive"),
                 command=self.archive_selected_request,
                 state="normal" if can_change_status else "disabled"
             )
         else:  # archiviata
             self.actions_menu.add_command(
-                label=tr("↩️ Riattiva"),
+                label=tr("↩️ Reactivate"),
                 command=self.reactivate_selected_request,
                 state="normal" if can_change_status else "disabled"
             )
@@ -3071,7 +3045,7 @@ class MainWindow:
             
             # BUGFIX: Applica filtro tipo RdO se presente (non solo "Tutte")
             tipo_filter = self.search_tipo.get()
-            if tipo_filter != tr("Tutte"):
+            if tipo_filter != tr("All"):
                 tipo_canonico = normalize_rfq_type(tipo_filter)
                 filtered_rows = [row for row in filtered_rows if row[1] == tipo_canonico]
                 logger.info(f"[MULTI-DB] Filtro tipo RdO '{tipo_filter}' applicato: {len(filtered_rows)} risultati")
@@ -3080,7 +3054,7 @@ class MainWindow:
                 
         except DatabaseError as e:
             logger.error(f"Errore database in _load_requests_by_status: {e}", exc_info=True)
-            SimpleMessageDialog(self.root, tr("Errore"), tr("Impossibile caricare elenco: {}").format(e), "error")
+            SimpleMessageDialog(self.root, tr("Error"), tr("Unable to load list: {}").format(e), "error")
 
     def update_treeview(self, sheet, requests):
         """Aggiorna il foglio tksheet con i dati delle richieste"""
@@ -3153,7 +3127,7 @@ class MainWindow:
             header_font = tkfont.Font(family="Calibri", size=11, weight="bold")
             
             # Larghezza minima (basata sull'header "Riferimento")
-            header_text = tr("Riferimento")
+            header_text = tr("Reference")
             min_width = header_font.measure(header_text) + 30  # +30 per padding
             
             # Se ci sono riferimenti, calcola la larghezza in base al più lungo
@@ -3348,7 +3322,7 @@ class MainWindow:
         
         # VALIDAZIONE SICUREZZA: Verifica che tutte le RfQ selezionate siano dell'utente corrente
         if not self._check_if_all_selected_are_mine(sheet, selected_rows_indices):
-            SimpleMessageDialog(self.root, tr("Operazione Non Consentita"), tr("Non puoi eliminare RdO di altri utenti.\nPuoi operare solo sulle tue RdO."), "error")
+            SimpleMessageDialog(self.root, tr("Operation Not Allowed"), tr("You cannot delete other users' RfQs.\nYou can only operate on your own RfQs."), "error")
             logger.warning(f"Tentativo di eliminazione RfQ altrui bloccato: utente={self.current_username}")
             return
         
@@ -3368,10 +3342,10 @@ class MainWindow:
         
         if count == 1:
             rdo_num = request_ids[0]
-            msg = tr("Sei sicuro di voler eliminare la RdO N° {}?\nL'operazione è permanente.").format(rdo_num)
+            msg = tr("Are you sure you want to delete RfQ N° {}?\nThe operation is permanent.").format(rdo_num)
         else:
-            msg = tr("Sei sicuro di voler eliminare le {} RdO selezionate?\nL'operazione è permanente.").format(count)
-        if not SimpleYesNoDialog(self.root, tr("Conferma Eliminazione"), msg).result: return
+            msg = tr("Are you sure you want to delete the {} selected RfQs?\nThe operation is permanent.").format(count)
+        if not SimpleYesNoDialog(self.root, tr("Delete Confirmation"), msg).result: return
         
         try:
             print(f"[MainWindow.delete_selected_request] Eliminazione di {len(request_ids)} richieste: {request_ids}")
@@ -3420,12 +3394,12 @@ class MainWindow:
             # Ricarica i dati invece di cancellare elementi dalla view
             self.refresh_data()
             if count == 1:
-                msg = tr("1 RdO eliminata.")
+                msg = tr("1 RfQ deleted.")
             else:
-                msg = tr("{} RdO eliminate.").format(count)
-            SimpleMessageDialog(self.root, tr("Successo"), msg, "info")
+                msg = tr("{} RfQs deleted.").format(count)
+            SimpleMessageDialog(self.root, tr("Success"), msg, "info")
         except DatabaseError as e:
-            SimpleMessageDialog(self.root, tr("Errore"), tr("Impossibile eliminare: {}").format(e), "error")
+            SimpleMessageDialog(self.root, tr("Error"), tr("Unable to delete: {}").format(e), "error")
 
     def duplicate_selected_request(self):
         sheet, _status = self.get_current_tree_and_status()
@@ -3446,32 +3420,32 @@ class MainWindow:
             selected_rows = sheet.get_selected_rows()
             if selected_rows:
                 if len(selected_rows) > 1:
-                    SimpleMessageDialog(self.root, tr("Selezione non valida"), tr("Seleziona una sola RdO per duplicarla."), "warning")
+                    SimpleMessageDialog(self.root, tr("Invalid selection"), tr("Select only one RfQ to duplicate."), "warning")
                     return
                 row_index = selected_rows[0] if isinstance(selected_rows, (list, set, tuple)) else selected_rows
         
         # VALIDAZIONE SICUREZZA: Verifica che la RfQ selezionata sia dell'utente corrente
         if row_index is not None:
             if not self._check_if_all_selected_are_mine(sheet, [row_index]):
-                SimpleMessageDialog(self.root, tr("Operazione Non Consentita"), tr("Non puoi duplicare RdO di altri utenti.\nPuoi operare solo sulle tue RdO."), "error")
+                SimpleMessageDialog(self.root, tr("Operation Not Allowed"), tr("You cannot duplicate other users' RfQs.\nYou can only operate on your own RfQs."), "error")
                 logger.warning(f"Tentativo di duplicazione RfQ altrui bloccato: utente={self.current_username}")
                 return
         
         # Se non c'è nessuna selezione
         if row_index is None:
-            SimpleMessageDialog(self.root, tr("Selezione mancante"), tr("Selezionare una RdO da duplicare."), "warning")
+            SimpleMessageDialog(self.root, tr("Missing selection"), tr("Select an RFQ to duplicate."), "warning")
             return
 
         # Ottieni i dati della riga
         try:
             row_data = sheet.get_row_data(row_index)
             if not row_data or len(row_data) == 0:
-                SimpleMessageDialog(self.root, tr("Errore"), tr("Impossibile determinare la RdO selezionata."), "error")
+                SimpleMessageDialog(self.root, tr("Error"), tr("Unable to determine the selected RfQ."), "error")
                 return
             original_id = int(row_data[0])
         except (ValueError, TypeError, IndexError) as e:
             logger.error(f"Errore nel recupero dati riga per duplicazione: {e}", exc_info=True)
-            SimpleMessageDialog(self.root, tr("Errore"), tr("Impossibile determinare la RdO selezionata."), "error")
+            SimpleMessageDialog(self.root, tr("Error"), tr("Unable to determine the selected RfQ."), "error")
             return
 
         new_request_id = None
@@ -3501,15 +3475,15 @@ class MainWindow:
             logger.info(f"RdO duplicata: {original_id} -> {new_request_id}")
 
         except ValueError as ve:
-            SimpleMessageDialog(self.root, tr("Errore"), str(ve), "error")
+            SimpleMessageDialog(self.root, tr("Error"), str(ve), "error")
             return
         except DatabaseError as e:
             logger.error(f"Errore duplicazione RdO {original_id}: {e}", exc_info=True)
-            SimpleMessageDialog(self.root, tr("Errore"), tr("Impossibile duplicare la RdO: {}").format(e), "error")
+            SimpleMessageDialog(self.root, tr("Error"), tr("Unable to duplicate the RfQ: {}").format(e), "error")
             return
         except Exception as e:
             logger.error(f"Errore duplicazione RdO {original_id}: {e}", exc_info=True)
-            SimpleMessageDialog(self.root, tr("Errore"), tr("Impossibile duplicare: {}").format(e), "error")
+            SimpleMessageDialog(self.root, tr("Error"), tr("Unable to duplicate: {}").format(e), "error")
             return
 
         # Ora new_request_id è garantito essere valido
@@ -3528,7 +3502,7 @@ class MainWindow:
                 break
         
         self.update_button_visibility()
-        SimpleMessageDialog(self.root, tr("Successo"), tr("RdO duplicata come N° {}.").format(new_request_id), "info")
+        SimpleMessageDialog(self.root, tr("Success"), tr("RFQ duplicated as N° {}.").format(new_request_id), "info")
 
     def clear_filters(self):
         self.dashboard_controller.clear_filters()
@@ -3652,7 +3626,7 @@ class MainWindow:
                         self._load_potential_suppliers(self.sheet_derisking)
                 except Exception as e:
                     logger.error("Errore creazione fornitore: %s", e, exc_info=True)
-                    SimpleMessageDialog(self.root, tr("Errore"), tr("Impossibile aprire il form: {}").format(e), "error")
+                    SimpleMessageDialog(self.root, tr("Error"), tr("Unable to open the form: {}").format(e), "error")
                 return
 
             # Mappa status → event_type
@@ -3687,7 +3661,7 @@ class MainWindow:
             
             except Exception as e:
                 logger.error(f"Errore creazione evento VSM: {e}", exc_info=True)
-                SimpleMessageDialog(self.root, tr("Errore"), tr("Impossibile aprire il form: {}").format(e), "error")
+                SimpleMessageDialog(self.root, tr("Error"), tr("Unable to open the form: {}").format(e), "error")
 
     def open_new_request_window(self):
         """Crea una nuova RdO 'guscio' e apre l'editor"""
@@ -3719,7 +3693,7 @@ class MainWindow:
             
         except DatabaseError as e:
             logger.error(f"Errore creazione RdO guscio: {e}", exc_info=True)
-            SimpleMessageDialog(self.root, tr("Errore Database"), tr("Impossibile creare la nuova RdO: {}").format(e), "error")
+            SimpleMessageDialog(self.root, tr("Database Error"), tr("Unable to create the new RfQ: {}").format(e), "error")
         finally:
             # BUG #32 FIX: Garantisce chiusura connessione anche in caso di eccezione
             if db_manager is not None:
@@ -3764,7 +3738,7 @@ class MainWindow:
                 
                 # Gestione tipo RdO
                 tipo_rdo = None
-                if self.search_tipo.get() != tr("Tutte"):
+                if self.search_tipo.get() != tr("All"):
                     tipo_rdo = normalize_rfq_type(self.search_tipo.get())
                 
                 # Usa SEMPRE aggregazione multi-database per avere dati da tutti gli utenti
@@ -3844,7 +3818,7 @@ class MainWindow:
                 
                 # Applica filtro tipo RdO se presente (non "Tutte")
                 tipo_filter = self.search_tipo.get()
-                if tipo_filter != tr("Tutte"):
+                if tipo_filter != tr("All"):
                     tipo_canonico = normalize_rfq_type(tipo_filter)
                     filtered_rows = [row for row in filtered_rows if row[1] == tipo_canonico]
                 
@@ -3856,14 +3830,14 @@ class MainWindow:
                     request_data.append((row[0], source_db_path))
             
             if not request_data:
-                SimpleMessageDialog(self.root, tr("Attenzione"), tr("Nessuna RfQ da esportare nella vista corrente."), "warning")
+                SimpleMessageDialog(self.root, tr("Warning"), tr("No RfQ to export in the current view."), "warning")
                 return
             
             logger.info(f"[export_excel] Trovate {len(request_data)} RfQ da esportare: {[r[0] for r in request_data[:10]]}{'...' if len(request_data) > 10 else ''}")
             
         except Exception as e:
             logger.error(f"[export_excel] Errore nel recupero degli ID: {e}", exc_info=True)
-            SimpleMessageDialog(self.root, tr("Errore"), tr("Errore nel recupero delle RfQ da esportare: {}").format(e), "error")
+            SimpleMessageDialog(self.root, tr("Error"), tr("Error nel recupero delle RfQ da esportare: {}").format(e), "error")
             return
 
         # 2. Chiedi Lingua
@@ -4155,7 +4129,7 @@ class MainWindow:
             # 6. Salvataggio
             default_name = f"Export_DataFlow_{datetime.now().strftime('%Y%m%d')}.xlsx"
             save_path = filedialog.asksaveasfilename(
-                title=tr("Salva Export"),
+                title=tr("Save Export"),
                 defaultextension=".xlsx",
                 initialfile=default_name,
                 filetypes=[("Excel Files", "*.xlsx")]
@@ -4163,11 +4137,11 @@ class MainWindow:
             
             if save_path:
                 wb.save(save_path)
-                SimpleMessageDialog(self.root, tr("Successo"), tr("Export completato con successo:\n{}").format(save_path), "info")
+                SimpleMessageDialog(self.root, tr("Success"), tr("Export completed successfully:\n{}").format(save_path), "info")
                 logger.info(f"Export Excel salvato in: {save_path}")
         except Exception as e:
             logger.error(f"Errore Export Excel: {e}", exc_info=True)
-            SimpleMessageDialog(self.root, tr("Errore"), tr("Errore durante l'esportazione: {}").format(e), "error")
+            SimpleMessageDialog(self.root, tr("Error"), tr("Error during export: {}").format(e), "error")
 
     def _export_vsm_excel(self, status, sheet):
         """Esporta i dati VSM (Saving / Cost Avoidance) del tab corrente in un file Excel.
@@ -4201,11 +4175,11 @@ class MainWindow:
             events, _unused_meta = self._apply_vsm_filters(events, event_type)
         except Exception as e:
             logger.error(f"[export_vsm] Errore recupero eventi: {e}", exc_info=True)
-            SimpleMessageDialog(self.root, tr("Errore"), tr("Errore nel recupero dati: {}").format(e), "error")
+            SimpleMessageDialog(self.root, tr("Error"), tr("Error retrieving data: {}").format(e), "error")
             return
 
         if not events:
-            SimpleMessageDialog(self.root, tr("Attenzione"), tr("Nessun dato da esportare nella vista corrente."), "warning")
+            SimpleMessageDialog(self.root, tr("Warning"), tr("No data to export in the current view."), "warning")
             return
 
         # 3. Intestazioni in base a lingua e tipo tab (hardcoded IT/EN come mega_export_excel)
@@ -4303,18 +4277,18 @@ class MainWindow:
         default_name = f"Export_VSM_{event_type.replace(' ', '_')}_{datetime.now().strftime('%Y%m%d')}.xlsx"
         try:
             save_path = filedialog.asksaveasfilename(
-                title=tr("Salva Export"),
+                title=tr("Save Export"),
                 defaultextension=".xlsx",
                 initialfile=default_name,
                 filetypes=[("Excel Files", "*.xlsx")]
             )
             if save_path:
                 wb.save(save_path)
-                SimpleMessageDialog(self.root, tr("Successo"), tr("Export completato con successo:\n{}").format(save_path), "info")
+                SimpleMessageDialog(self.root, tr("Success"), tr("Export completed successfully:\n{}").format(save_path), "info")
                 logger.info(f"Export VSM Excel salvato in: {save_path}")
         except Exception as e:
             logger.error(f"Errore Export VSM Excel: {e}", exc_info=True)
-            SimpleMessageDialog(self.root, tr("Errore"), tr("Errore durante l'esportazione: {}").format(e), "error")
+            SimpleMessageDialog(self.root, tr("Error"), tr("Error during export: {}").format(e), "error")
 
     def _export_derisking_excel(self):
         """Esporta i fornitori potenziali del tab Derisking in un file Excel.
@@ -4337,11 +4311,11 @@ class MainWindow:
                 suppliers = get_all_suppliers(db_manager, username=username_filter)
         except Exception as e:
             logger.error(f"[export_derisking] Errore recupero fornitori: {e}", exc_info=True)
-            SimpleMessageDialog(self.root, tr("Errore"), tr("Errore nel recupero dati: {}").format(e), "error")
+            SimpleMessageDialog(self.root, tr("Error"), tr("Error retrieving data: {}").format(e), "error")
             return
 
         if not suppliers:
-            SimpleMessageDialog(self.root, tr("Attenzione"), tr("Nessun dato da esportare nella vista corrente."), "warning")
+            SimpleMessageDialog(self.root, tr("Warning"), tr("No data to export in the current view."), "warning")
             return
 
         # 3. Intestazioni localizzate (hardcoded IT/EN, stesso pattern di _export_vsm_excel)
@@ -4411,18 +4385,18 @@ class MainWindow:
         default_name = f"Export_Derisking_{datetime.now().strftime('%Y%m%d')}.xlsx"
         try:
             save_path = filedialog.asksaveasfilename(
-                title=tr("Salva Export"),
+                title=tr("Save Export"),
                 defaultextension=".xlsx",
                 initialfile=default_name,
                 filetypes=[("Excel Files", "*.xlsx")]
             )
             if save_path:
                 wb.save(save_path)
-                SimpleMessageDialog(self.root, tr("Successo"), tr("Export completato con successo:\n{}").format(save_path), "info")
+                SimpleMessageDialog(self.root, tr("Success"), tr("Export completed successfully:\n{}").format(save_path), "info")
                 logger.info(f"Export Derisking Excel salvato in: {save_path}")
         except Exception as e:
             logger.error(f"Errore Export Derisking Excel: {e}", exc_info=True)
-            SimpleMessageDialog(self.root, tr("Errore"), tr("Errore durante l'esportazione: {}").format(e), "error")
+            SimpleMessageDialog(self.root, tr("Error"), tr("Error during export: {}").format(e), "error")
 
     def _format_date_for_display(self, db_date):
         if not db_date: return ""
@@ -4555,7 +4529,7 @@ if __name__ == '__main__':
                 user_dataflow_dir = get_user_documents_dataflow_dir()
                 if not user_dataflow_dir:
                     logger.error("Impossibile creare la cartella utente: username mancante.")
-                    SimpleMessageDialog(root, tr("Errore"), tr("Impossibile creare la cartella utente."), "error")
+                    SimpleMessageDialog(root, tr("Error"), tr("Unable to create user folder."), "error")
                     try:
                         root.destroy()
                     except:
@@ -4580,7 +4554,7 @@ if __name__ == '__main__':
             crea_database_v4()
         except Exception as e:
             logger.error(f"Errore creazione DB utente: {e}", exc_info=True)
-            SimpleMessageDialog(root, tr("Errore"), tr("Impossibile creare il database utente: {}").format(e), "error")
+            SimpleMessageDialog(root, tr("Error"), tr("Unable to create user database: {}").format(e), "error")
             try:
                 root.destroy()
             except:
@@ -4589,13 +4563,13 @@ if __name__ == '__main__':
 
         # 3) Ora mostriamo lo splash (dopo la creazione DB) e carichiamo l'interfaccia
         splash_local = SplashScreen(root)
-        splash_local.update_progress(90, tr("Caricamento interfaccia..."))
+        splash_local.update_progress(90, tr("Loading interface..."))
         splash_local.update()
 
         app = MainWindow(root)
         time.sleep(0.3)
 
-        splash_local.update_progress(100, tr("Completato!"))
+        splash_local.update_progress(100, tr("Completed!"))
         time.sleep(0.25)
 
         # Prepara e mostra la finestra principale

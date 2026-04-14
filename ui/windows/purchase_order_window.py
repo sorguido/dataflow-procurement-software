@@ -255,7 +255,7 @@ class PurchaseOrderWindow(tk.Toplevel):
         
         # BUG #35 FIX: Validazione esplicita campo vuoto con feedback utente
         if not po_number:
-            SimpleMessageDialog(self, tr("Attenzione"), tr("Inserisci un numero ordine valido."), "warning")
+            SimpleMessageDialog(self, tr("Warning"), tr("Enter a valid order number."), "warning")
             return
         
         # BUG #25 FIX: Previeni SQL injection e caratteri pericolosi
@@ -312,7 +312,7 @@ class PurchaseOrderWindow(tk.Toplevel):
         # BUG #18 FIX: Verifica che l'indice sia valido PRIMA di mostrare il dialog
         if not (0 <= row_idx < len(current_data)):
             logger.error(f"delete_selected_po: Indice {row_idx} fuori range (0-{len(current_data)-1})")
-            SimpleMessageDialog(self, tr("Errore"), tr("Cannot delete: invalid row index ({})").format(row_idx), "error")
+            SimpleMessageDialog(self, tr("Error"), tr("Cannot delete: invalid row index ({})").format(row_idx), "error")
             return
         
         # Conferma eliminazione
@@ -347,4 +347,4 @@ class PurchaseOrderWindow(tk.Toplevel):
             logger.info(f"Numeri ordine salvati per RdO {self.request_id}: {len(po_list)} entries")
         except DatabaseError as e:
             logger.error(f"Errore nel salvataggio numeri ordine: {e}")
-            SimpleMessageDialog(self, tr("Errore"), tr("Errore nel salvataggio dei numeri ordine."), "error")
+            SimpleMessageDialog(self, tr("Error"), tr("Error saving purchase order numbers."), "error")

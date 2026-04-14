@@ -67,9 +67,9 @@ class VSMEventDialog(tk.Toplevel):
         self.withdraw()
         set_window_icon(self)
         if read_only:
-            self.title(tr("Visualizza Evento VSM"))
+            self.title(tr("View VSM Event"))
         else:
-            self.title(tr("Modifica Evento VSM") if self.is_edit_mode else tr("Nuovo Evento VSM"))
+            self.title(tr("Edit VSM Event") if self.is_edit_mode else tr("New VSM Event"))
         self.transient(parent)
         self.resizable(False, False)
         
@@ -119,22 +119,22 @@ class VSMEventDialog(tk.Toplevel):
         """Converte il valore display di action al valore interno (italiano)."""
         display = self.action_var.get()
         # Reverse mapping: cerca la corrispondenza italiana
-        if display == tr("Negoziazione"):
+        if display == tr("Negotiation"):
             return "Negoziazione"
         elif display == "Derisking":
             return "Derisking"
-        elif display == tr("Altro"):
+        elif display == tr("Other"):
             return "Altro"
         return display  # Fallback per valori già in italiano
     
     def _set_action_display(self, internal_value):
         """Converte il valore interno (italiano) al valore display (tradotto)."""
         if internal_value == "Negoziazione":
-            self.action_var.set(tr("Negoziazione"))
+            self.action_var.set(tr("Negotiation"))
         elif internal_value == "Derisking":
             self.action_var.set("Derisking")
         elif internal_value == "Altro":
-            self.action_var.set(tr("Altro"))
+            self.action_var.set(tr("Other"))
         else:
             self.action_var.set(internal_value)
     
@@ -142,18 +142,18 @@ class VSMEventDialog(tk.Toplevel):
         """Converte il valore display di driver al valore interno (italiano)."""
         display = self.driver_var.get()
         # Reverse mapping
-        if display == tr("Prezzo"):
+        if display == tr("Price"):
             return "Prezzo"
-        elif display == tr("Pagamenti"):
+        elif display == tr("Payments"):
             return "Pagamenti"
         return display  # Fallback
     
     def _set_driver_display(self, internal_value):
         """Converte il valore interno (italiano) al valore display (tradotto)."""
         if internal_value == "Prezzo":
-            self.driver_var.set(tr("Prezzo"))
+            self.driver_var.set(tr("Price"))
         elif internal_value == "Pagamenti":
-            self.driver_var.set(tr("Pagamenti"))
+            self.driver_var.set(tr("Payments"))
         else:
             self.driver_var.set(internal_value)
     
@@ -166,12 +166,12 @@ class VSMEventDialog(tk.Toplevel):
         main_frame.pack(fill="both", expand=True)
         
         # === SEZIONE GENERALE ===
-        general_frame = ttk.LabelFrame(main_frame, text=tr("Informazioni Generali"), padding="10")
+        general_frame = ttk.LabelFrame(main_frame, text=tr("General Information"), padding="10")
         general_frame.grid(row=0, column=0, sticky="ew", pady=(0, 10))
         general_frame.columnconfigure(1, weight=1)
         
         # Data Evento
-        ttk.Label(general_frame, text=tr("Data Evento: *")).grid(row=0, column=0, sticky="w", padx=(0, 10), pady=5)
+        ttk.Label(general_frame, text=tr("Event Date: *")).grid(row=0, column=0, sticky="w", padx=(0, 10), pady=5)
         self.entry_date = DateEntry(
             general_frame,
             width=15,
@@ -181,7 +181,7 @@ class VSMEventDialog(tk.Toplevel):
         self.entry_date.grid(row=0, column=1, sticky="w", pady=5)
         
         # Tipo Evento (pre-condizionato dal tab attivo, non modificabile)
-        ttk.Label(general_frame, text=tr("Tipo Evento:")).grid(row=1, column=0, sticky="w", padx=(0, 10), pady=5)
+        ttk.Label(general_frame, text=tr("Event Type:")).grid(row=1, column=0, sticky="w", padx=(0, 10), pady=5)
         self.entry_event_type = ttk.Entry(
             general_frame,
             textvariable=self.event_type_var,
@@ -191,11 +191,11 @@ class VSMEventDialog(tk.Toplevel):
         self.entry_event_type.grid(row=1, column=1, sticky="w", pady=5)
         
         # Azione
-        ttk.Label(general_frame, text=tr("Azione:")).grid(row=2, column=0, sticky="w", padx=(0, 10), pady=5)
+        ttk.Label(general_frame, text=tr("Action:")).grid(row=2, column=0, sticky="w", padx=(0, 10), pady=5)
         self.combo_action = ttk.Combobox(
             general_frame,
             textvariable=self.action_var,
-            values=[tr("Negoziazione"), "Derisking", tr("Altro")],
+            values=[tr("Negotiation"), "Derisking", tr("Other")],
             state="readonly",
             width=20
         )
@@ -222,7 +222,7 @@ class VSMEventDialog(tk.Toplevel):
         # (not gridded here — shown dynamically by _on_event_type_changed)
 
         # === SEZIONE DESCRIZIONE ===
-        desc_frame = ttk.LabelFrame(main_frame, text=tr("Descrizione"), padding="10")
+        desc_frame = ttk.LabelFrame(main_frame, text=tr("Description"), padding="10")
         desc_frame.grid(row=2, column=0, sticky="ew", pady=(0, 10))
         desc_frame.columnconfigure(0, weight=1)
         desc_frame.rowconfigure(0, weight=1)
@@ -232,7 +232,7 @@ class VSMEventDialog(tk.Toplevel):
         self.text_description.grid(row=0, column=0, sticky="nsew", pady=5)
         
         # === SEZIONE ECONOMICA (dinamica) ===
-        self.economic_frame = ttk.LabelFrame(main_frame, text=tr("Dati Economici"), padding="10")
+        self.economic_frame = ttk.LabelFrame(main_frame, text=tr("Economic Data"), padding="10")
         self.economic_frame.grid(row=3, column=0, sticky="ew", pady=(0, 10))
         self.economic_frame.columnconfigure(0, weight=1)
         
@@ -241,15 +241,15 @@ class VSMEventDialog(tk.Toplevel):
         self.price_fields_frame.columnconfigure(1, weight=1)
         
         # Importo Budget (Saving only)
-        self.lbl_importo_bdg = ttk.Label(self.price_fields_frame, text=tr("Importo a Budget: *"))
+        self.lbl_importo_bdg = ttk.Label(self.price_fields_frame, text=tr("Budget Amount: *"))
         self.entry_importo_bdg = ttk.Entry(self.price_fields_frame, width=20)
         
         # Importo Richiesto Iniziale (Cost Avoidance only)
-        self.lbl_importo_richiesto = ttk.Label(self.price_fields_frame, text=tr("Importo Richiesto Iniziale: *"))
+        self.lbl_importo_richiesto = ttk.Label(self.price_fields_frame, text=tr("Initial Requested Amount: *"))
         self.entry_importo_richiesto = ttk.Entry(self.price_fields_frame, width=20)
         
         # Importo Negoziato (Saving + Cost Avoidance)
-        self.lbl_importo_negoziato = ttk.Label(self.price_fields_frame, text=tr("Importo Negoziato: *"))
+        self.lbl_importo_negoziato = ttk.Label(self.price_fields_frame, text=tr("Negotiated Amount: *"))
         self.entry_importo_negoziato = ttk.Entry(self.price_fields_frame, width=20)
         
         # Annual Q.ty
@@ -258,7 +258,7 @@ class VSMEventDialog(tk.Toplevel):
         self.entry_quantita_annua.insert(0, "1")  # Default 1
         
         # Percentuale Realizzo
-        self.lbl_percent_realizzo = ttk.Label(self.price_fields_frame, text=tr("% Realizzo:"))
+        self.lbl_percent_realizzo = ttk.Label(self.price_fields_frame, text=tr("% Realization:"))
         self.entry_percent_realizzo = ttk.Entry(self.price_fields_frame, width=10)
         self.entry_percent_realizzo.insert(0, "100")  # Default 100%
         
@@ -267,15 +267,15 @@ class VSMEventDialog(tk.Toplevel):
         self.payment_fields_frame.columnconfigure(1, weight=1)
         
         # Spending Annuo
-        self.lbl_spending_annuo = ttk.Label(self.payment_fields_frame, text=tr("Spending Annuo (€): *"))
+        self.lbl_spending_annuo = ttk.Label(self.payment_fields_frame, text=tr("Annual Spending (€): *"))
         self.entry_spending_annuo = ttk.Entry(self.payment_fields_frame, width=10)
         
         # Termini Pagamento Attuali
-        self.lbl_giorni_attuali = ttk.Label(self.payment_fields_frame, text=tr("Termini Pagamento Attuali (giorni): *"))
+        self.lbl_giorni_attuali = ttk.Label(self.payment_fields_frame, text=tr("Current Payment Terms (days): *"))
         self.entry_giorni_attuali = ttk.Entry(self.payment_fields_frame, width=8)
         
         # Termini Pagamento Negoziati
-        self.lbl_giorni_negoziati = ttk.Label(self.payment_fields_frame, text=tr("Termini Pagamento Negoziati (giorni): *"))
+        self.lbl_giorni_negoziati = ttk.Label(self.payment_fields_frame, text=tr("Negotiated Payment Terms (days): *"))
         self.entry_giorni_negoziati = ttk.Entry(self.payment_fields_frame, width=8)
         
         # Financial Impact rate (% per 30 days)
@@ -289,7 +289,7 @@ class VSMEventDialog(tk.Toplevel):
         self.combo_driver = ttk.Combobox(
             self.economic_frame,
             textvariable=self.driver_var,
-            values=[tr("Prezzo"), tr("Pagamenti")],
+            values=[tr("Price"), tr("Payments")],
             state="readonly",
             width=18
         )
@@ -297,8 +297,7 @@ class VSMEventDialog(tk.Toplevel):
         # --- DERISKING INFO LABEL (created once, shown conditionally) ---
         self.lbl_derisking_info = ttk.Label(
             self.economic_frame,
-            text=tr("Gli eventi Derisking non generano impatti economici.\n"
-                   "Compilare solo sezioni descrittive."),
+            text=tr("Derisking events do not generate economic impacts.\nFill only descriptive sections."),
             foreground="blue",
             font=("Calibri", 9, "italic")
         )
@@ -307,14 +306,14 @@ class VSMEventDialog(tk.Toplevel):
         self.combo_driver.bind("<<ComboboxSelected>>", self._on_driver_changed)
         
         # === SEZIONE DISTRIBUZIONE ===
-        dist_frame = ttk.LabelFrame(main_frame, text=tr("Distribuzione Valore"), padding="10")
+        dist_frame = ttk.LabelFrame(main_frame, text=tr("Value Distribution"), padding="10")
         dist_frame.grid(row=4, column=0, sticky="ew", pady=(0, 10))
         dist_frame.columnconfigure(1, weight=1)
         
         # OPEX Ripetitivo
         self.check_opex_ripetitivo = ttk.Checkbutton(
             dist_frame,
-            text=tr("OPEX Ripetitivo (distribuzione multi-mese)"),
+            text=tr("Repetitive OPEX (multi-month distribution)"),
             variable=self.opex_ripetitivo_var,
             command=self._on_opex_changed
         )
@@ -323,8 +322,7 @@ class VSMEventDialog(tk.Toplevel):
         # Info pro-rata (label informativo)
         info_label = ttk.Label(
             dist_frame,
-            text=tr("• Eventi ripetitivi: distribuzione fino a 24 mesi con pro-rata primo mese\n"
-                   "• Eventi one-shot: impatto singolo nel mese evento"),
+            text=tr("• Repetitive events: distribution up to 24 months with first month pro-rata\n• One-shot events: single impact in event month"),
             foreground="gray",
             font=("Calibri", 9, "italic")
         )
@@ -337,14 +335,14 @@ class VSMEventDialog(tk.Toplevel):
         
         self.btn_cancel = ttk.Button(
             btn_frame,
-            text=tr("❌ Annulla"),
+            text=tr("❌ Cancel"),
             command=self.destroy
         )
         self.btn_cancel.pack(side="right", padx=(5, 0))
         
         self.btn_save = ttk.Button(
             btn_frame,
-            text=tr("💾 Salva"),
+            text=tr("💾 Save"),
             command=self._validate_and_save
         )
         self.btn_save.pack(side="right")
@@ -356,7 +354,7 @@ class VSMEventDialog(tk.Toplevel):
         self.btn_save.pack_forget()
         self._disable_widgets_recursive(self)
         # Riabilita il bottone Chiudi (disabilitato dal loop ricorsivo)
-        self.btn_cancel.configure(state="normal", text=tr("✖ Chiudi"))
+        self.btn_cancel.configure(state="normal", text=tr("✖ Close"))
 
     def _disable_widgets_recursive(self, widget):
         """Disabilita ricorsivamente tutti i widget interattivi nel dialog."""
@@ -581,8 +579,8 @@ class VSMEventDialog(tk.Toplevel):
             logger.error(f"Errore caricamento evento {self.event_id}: {e}", exc_info=True)
             SimpleMessageDialog(
                 self,
-                tr("Errore"),
-                tr("Impossibile caricare l'evento:\n{}").format(e),
+                tr("Error"),
+                tr("Unable to load event:\n{}").format(e),
                 "error"
             )
             self.destroy()
@@ -593,19 +591,19 @@ class VSMEventDialog(tk.Toplevel):
             # === VALIDAZIONE CAMPI OBBLIGATORI ===
             event_date = self.entry_date.get_date()
             if not event_date:
-                raise ValueError(tr("Data evento obbligatoria."))
+                raise ValueError(tr("Event date required."))
             
             event_type = self.event_type_var.get()
             if not event_type:
-                raise ValueError(tr("Tipo evento obbligatorio."))
+                raise ValueError(tr("Event type required."))
             
             action = self._get_action_internal()
             if not action:
-                raise ValueError(tr("Azione obbligatoria."))
+                raise ValueError(tr("Action required."))
             
             buyer = self.entry_buyer.get().strip()
             if not buyer:
-                raise ValueError(tr("Buyer obbligatorio."))
+                raise ValueError(tr("Buyer required."))
             
             # Campi testuali
             description = self.text_description.get("1.0", tk.END).strip()
@@ -631,26 +629,26 @@ class VSMEventDialog(tk.Toplevel):
                     try:
                         importo_bdg = parse_float_from_comma_string(self.entry_importo_bdg.get().strip())
                     except ValueError:
-                        raise ValueError(tr("Importo a Budget non valido. Usare solo numeri con virgola (es. 1,23)."))
+                        raise ValueError(tr("Budget Amount not valid. Use only numbers with comma (e.g. 1,23)."))
                     
                     try:
                         importo_negoziato = parse_float_from_comma_string(self.entry_importo_negoziato.get().strip())
                     except ValueError:
-                        raise ValueError(tr("Importo Negoziato non valido. Usare solo numeri con virgola (es. 1,23)."))
+                        raise ValueError(tr("Negotiated Amount not valid. Use only numbers with comma (e.g. 1,23)."))
                     
                     try:
                         quantita_annua = parse_float_from_comma_string(self.entry_quantita_annua.get().strip())
                     except ValueError:
-                        raise ValueError(tr("Annual Q.ty non valido. Usare solo numeri con virgola (es. 1,5)."))
+                        raise ValueError(tr("Annual Q.ty not valid. Use only numbers with comma (e.g. 1,5)."))
                     if quantita_annua <= 0:
-                        raise ValueError(tr("Annual Q.ty deve essere maggiore di zero."))
+                        raise ValueError(tr("Annual Q.ty must be greater than zero."))
                     
                     try:
                         percent_realizzo = parse_float_from_comma_string(self.entry_percent_realizzo.get().strip())
                     except ValueError:
-                        raise ValueError(tr("% Realizzo non valido. Usare solo numeri con virgola (es. 99,5)."))
+                        raise ValueError(tr("% Realization not valid. Use only numbers with comma (e.g. 99,5)."))
                     if not (0 <= percent_realizzo <= 100):
-                        raise ValueError(tr("% Realizzo deve essere tra 0 e 100."))
+                        raise ValueError(tr("% Realization must be between 0 and 100."))
                     
                     # Campi Pagamenti a NULL
                     spending_annuo = None
@@ -662,36 +660,34 @@ class VSMEventDialog(tk.Toplevel):
                     try:
                         spending_annuo = parse_float_from_comma_string(self.entry_spending_annuo.get().strip())
                     except ValueError:
-                        raise ValueError(tr("Spending Annuo non valido. Usare solo numeri con virgola (es. 100000,00)."))
+                        raise ValueError(tr("Annual Spending not valid. Use only numbers with comma (e.g. 100000,00)."))
                     if spending_annuo <= 0:
-                        raise ValueError(tr("Spending Annuo deve essere positivo."))
+                        raise ValueError(tr("Annual Spending must be positive."))
                     
                     try:
                         giorni_pagamento_attuali = int(self.entry_giorni_attuali.get().strip())
                         if giorni_pagamento_attuali < 0:
-                            raise ValueError(tr("Termini Pagamento Attuali non possono essere negativi."))
+                            raise ValueError(tr("Current Payment Terms cannot be negative."))
                     except ValueError as e:
                         if "invalid literal" in str(e):
-                            raise ValueError(tr("Termini Pagamento Attuali deve essere un numero intero valido."))
+                            raise ValueError(tr("Current Payment Terms must be a valid integer."))
                         raise
                     
                     try:
                         giorni_pagamento_negoziati = int(self.entry_giorni_negoziati.get().strip())
                         if giorni_pagamento_negoziati < 0:
-                            raise ValueError(tr("Termini Pagamento Negoziati non possono essere negativi."))
+                            raise ValueError(tr("Negotiated Payment Terms cannot be negative."))
                     except ValueError as e:
                         if "invalid literal" in str(e):
-                            raise ValueError(tr("Termini Pagamento Negoziati deve essere un numero intero valido."))
+                            raise ValueError(tr("Negotiated Payment Terms must be a valid integer."))
                         raise
                     
                     # Warning opzionale se delta negativo (peggioramento)
                     if giorni_pagamento_negoziati < giorni_pagamento_attuali:
                         risposta = SimpleYesNoDialog(
                             self,
-                            tr("Attenzione"),
-                            tr("Termini negoziati ({}) inferiori a termini attuali ({}).\n"
-                              "Questo genera un impatto negativo (peggioramento dilazione).\n\n"
-                              "Confermi di voler procedere?").format(
+                            tr("Warning"),
+                            tr("Negotiated terms ({}) lower than current terms ({}).\nThis generates a negative impact (worsening of payment terms).\n\nDo you confirm you want to proceed?").format(
                                   giorni_pagamento_negoziati,
                                   giorni_pagamento_attuali
                               )
@@ -703,9 +699,9 @@ class VSMEventDialog(tk.Toplevel):
                     try:
                         payments_rate = parse_float_from_comma_string(self.entry_payments_rate.get().strip())
                     except ValueError:
-                        raise ValueError(tr("Financial Impact non valido. Usare solo numeri con virgola (es. 0,50)."))
+                        raise ValueError(tr("Financial Impact not valid. Use only numbers with comma (e.g. 0,50)."))
                     if payments_rate <= 0:
-                        raise ValueError(tr("Financial Impact deve essere maggiore di zero."))
+                        raise ValueError(tr("Financial Impact must be greater than zero."))
                     
                     # Campi Prezzo a NULL, percent_realizzo fisso a 100 (tecnico, ignorato)
                     importo_bdg = None
@@ -721,21 +717,21 @@ class VSMEventDialog(tk.Toplevel):
                 try:
                     importo_richiesto_iniziale = parse_float_from_comma_string(self.entry_importo_richiesto.get().strip())
                 except ValueError:
-                    raise ValueError(tr("Importo Richiesto Iniziale non valido. Usare solo numeri con virgola (es. 1,23)."))
+                    raise ValueError(tr("Initial Requested Amount not valid. Use only numbers with comma (e.g. 1,23)."))
                 
                 try:
                     importo_negoziato = parse_float_from_comma_string(self.entry_importo_negoziato.get().strip())
                 except ValueError:
-                    raise ValueError(tr("Importo Negoziato non valido. Usare solo numeri con virgola (es. 1,23)."))
+                    raise ValueError(tr("Negotiated Amount not valid. Use only numbers with comma (e.g. 1,23)."))
                 
                 # Annual Q.ty for driver Prezzo
                 if driver == "Prezzo":
                     try:
                         quantita_annua = parse_float_from_comma_string(self.entry_quantita_annua.get().strip())
                     except ValueError:
-                        raise ValueError(tr("Annual Q.ty non valido. Usare solo numeri con virgola (es. 1,5)."))
+                        raise ValueError(tr("Annual Q.ty not valid. Use only numbers with comma (e.g. 1,5)."))
                     if quantita_annua <= 0:
-                        raise ValueError(tr("Annual Q.ty deve essere maggiore di zero."))
+                        raise ValueError(tr("Annual Q.ty must be greater than zero."))
                 else:
                     quantita_annua = 0.0  # Not used for non-Prezzo drivers
                 
@@ -743,9 +739,9 @@ class VSMEventDialog(tk.Toplevel):
                 try:
                     percent_realizzo = parse_float_from_comma_string(self.entry_percent_realizzo.get().strip())
                 except ValueError:
-                    raise ValueError(tr("% Realizzo non valido. Usare solo numeri con virgola (es. 99,5)."))
+                    raise ValueError(tr("% Realization not valid. Use only numbers with comma (e.g. 99,5)."))
                 if not (0 <= percent_realizzo <= 100):
-                    raise ValueError(tr("% Realizzo deve essere tra 0 e 100."))
+                    raise ValueError(tr("% Realization must be between 0 and 100."))
             
             # Flags
             opex_ripetitivo = self.opex_ripetitivo_var.get()
@@ -778,10 +774,10 @@ class VSMEventDialog(tk.Toplevel):
             with DatabaseManager(get_db_path()) as db_manager:
                 if self.is_edit_mode:
                     update_event_with_impacts(db_manager, event)
-                    msg = tr("Evento VSM aggiornato con successo.")
+                    msg = tr("VSM Event updated successfully.")
                 else:
                     event_id = save_event_with_impacts(db_manager, event)
-                    msg = tr("Evento VSM creato con successo.")
+                    msg = tr("VSM Event created successfully.")
                     logger.info(f"Evento VSM creato con ID: {event_id}")
             
             # Aggiorna preferenza utente se il driver è Pagamenti
@@ -789,27 +785,27 @@ class VSMEventDialog(tk.Toplevel):
                 set_pagamenti_coefficient(payments_rate / 100.0)
             
             # Usa dialog custom con font uniforme
-            SimpleMessageDialog(self, tr("Successo"), msg, "info")
+            SimpleMessageDialog(self, tr("Success"), msg, "info")
             
             # Imposta result per indicare successo
             self.result = True
             self.destroy()
         
         except ValueError as e:
-            SimpleMessageDialog(self, tr("Validazione"), str(e), "warning")
+            SimpleMessageDialog(self, tr("Validation"), str(e), "warning")
         except (DatabaseError, VSMError) as e:
             logger.error(f"Errore salvataggio evento VSM: {e}", exc_info=True)
             SimpleMessageDialog(
                 self,
-                tr("Errore"),
-                tr("Impossibile salvare l'evento:\n{}").format(e),
+                tr("Error"),
+                tr("Unable to save event:\n{}").format(e),
                 "error"
             )
         except Exception as e:
             logger.error(f"Errore inatteso salvataggio evento: {e}", exc_info=True)
             SimpleMessageDialog(
                 self,
-                tr("Errore"),
-                tr("Errore inatteso:\n{}").format(e),
+                tr("Error"),
+                tr("Unexpected error:\n{}").format(e),
                 "error"
             )

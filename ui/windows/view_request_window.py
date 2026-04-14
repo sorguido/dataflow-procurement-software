@@ -98,7 +98,7 @@ class ViewRequestWindow(tk.Toplevel):
             # Fallback se username non disponibile
             title_base = tr("Control Panel - Request N° {} - {}").format(request_id, tipo_rdo_tradotto)
         if self.read_only:
-            title_base += tr(" [SOLA LETTURA]")
+            title_base += tr(" [READ-ONLY]")
         self.title(title_base)
         
         # Rendi la finestra ridimensionabile e massimizzabile
@@ -110,18 +110,18 @@ class ViewRequestWindow(tk.Toplevel):
         # Frame pulsanti articoli (sempre in fondo)
         frame_article_buttons = ttk.Frame(self)
         frame_article_buttons.pack(side="bottom", fill="x", padx=10, pady=10)
-        self.btn_add_article = ttk.Button(frame_article_buttons, text=tr("➕ Aggiungi Articolo"), command=self.add_new_article_row)
+        self.btn_add_article = ttk.Button(frame_article_buttons, text=tr("➕ Add Item"), command=self.add_new_article_row)
         self.btn_add_article.pack(side="left", padx=5)
-        self.btn_remove_article = ttk.Button(frame_article_buttons, text=tr("🗑 Rimuovi Articolo Selezionato"), command=self.remove_selected_article)
+        self.btn_remove_article = ttk.Button(frame_article_buttons, text=tr("🗑 Remove Selected Item"), command=self.remove_selected_article)
         self.btn_remove_article.pack(side="left", padx=5)
-        self.btn_import_excel = ttk.Button(frame_article_buttons, text=tr("📊 Importa da Excel"), command=self.import_from_excel)
+        self.btn_import_excel = ttk.Button(frame_article_buttons, text=tr("📊 Import from Excel"), command=self.import_from_excel)
         self.btn_import_excel.pack(side="left", padx=5)
         
         # Frame comandi (in alto)
         frame_comandi = ttk.Frame(self)
         frame_comandi.pack(side="top", fill="x", padx=10, pady=5)
-        ttk.Button(frame_comandi, text=tr("📄 Gestisci Offerte Fornitori"), command=lambda: self.open_attachment_window("Offerta Fornitore")).pack(side="left")
-        ttk.Button(frame_comandi, text=tr("📁 Gestisci Documenti Interni"), command=lambda: self.open_attachment_window("Documento Interno")).pack(side="left", padx=10)
+        ttk.Button(frame_comandi, text=tr("📄 Manage Supplier Offers"), command=lambda: self.open_attachment_window("Offerta Fornitore")).pack(side="left")
+        ttk.Button(frame_comandi, text=tr("📁 Manage Internal Documents"), command=lambda: self.open_attachment_window("Documento Interno")).pack(side="left", padx=10)
         # --- MODIFICA: Pulsante dinamico Fornitori ---
         self.btn_suppliers = ttk.Button(frame_comandi, text="...", command=self.open_edit_suppliers_window)
         self.btn_suppliers.pack(side="left")
@@ -130,7 +130,7 @@ class ViewRequestWindow(tk.Toplevel):
         self.btn_notes = ttk.Button(frame_comandi, text="...", command=self.open_notes_window)
         self.btn_notes.pack(side="left", padx=10)
         # --- FINE MODIFICA ---
-        export_label = tr("Export") if get_current_language() == "en" else tr("Esporta")
+        export_label = tr("Export")
         self.btn_export = ttk.Menubutton(
             frame_comandi,
             text=f"📊 {export_label}"
@@ -146,14 +146,14 @@ class ViewRequestWindow(tk.Toplevel):
         # --- FINE MODIFICA ---
         
         # Frame dettagli richiesta con layout a griglia
-        details_frame = ttk.LabelFrame(self, text=tr("Dettagli Richiesta"), padding="10")
+        details_frame = ttk.LabelFrame(self, text=tr("Request Details"), padding="10")
         details_frame.pack(fill="x", padx=10, pady=5)
         
         s = ttk.Style(); s.configure("Clickable.TLabel", foreground="black", font=('Calibri', 9, 'underline'))
         
         # --- LAYOUT MODIFICATO CON GRID ---
         # Riga 0: Data Emissione + Data Scadenza + Pulsante Add PO
-        ttk.Label(details_frame, text=tr("Data Emissione: ")).grid(row=0, column=0, sticky="w", padx=(0,5), pady=5)
+        ttk.Label(details_frame, text=tr("Issue Date: ")).grid(row=0, column=0, sticky="w", padx=(0,5), pady=5)
         
         # Import DateEntry qui per evitare circular dependency
         from tkcalendar import DateEntry
@@ -164,7 +164,7 @@ class ViewRequestWindow(tk.Toplevel):
         self.entry_data_emissione.bind('<FocusOut>', self._on_date_changed)  # Salva quando l'utente esce dal campo
         self.entry_data_emissione.bind('<Return>', self._on_date_changed)  # Salva quando l'utente preme Invio
         
-        ttk.Label(details_frame, text=tr("Data Scadenza: ")).grid(row=0, column=2, sticky="w", padx=(0,5), pady=5)
+        ttk.Label(details_frame, text=tr("Expiry Date: ")).grid(row=0, column=2, sticky="w", padx=(0,5), pady=5)
         self.entry_data_scadenza = DateEntry(details_frame, width=12, date_pattern='dd/mm/yyyy', locale=('it_IT' if get_current_language() == 'it' else 'en_US'))
         self.entry_data_scadenza.grid(row=0, column=3, sticky="w", padx=(0,20), pady=5)
         self.entry_data_scadenza.bind('<<DateEntrySelected>>', self._on_date_changed)
@@ -177,7 +177,7 @@ class ViewRequestWindow(tk.Toplevel):
         self.btn_po.grid(row=0, column=4, sticky="e", padx=(20,0), pady=5)
         
         # Riga 1: Riferimento
-        ttk.Label(details_frame, text=tr("Riferimento: ")).grid(row=1, column=0, sticky="w", padx=(0,5), pady=5)
+        ttk.Label(details_frame, text=tr("Reference: ")).grid(row=1, column=0, sticky="w", padx=(0,5), pady=5)
         self.lbl_riferimento = ttk.Label(details_frame, text="...", style="Clickable.TLabel", cursor="hand2")
         self.lbl_riferimento.grid(row=1, column=1, columnspan=3, sticky="w", pady=5)
         self.lbl_riferimento.bind("<Button-1>", self._on_reference_click)
@@ -187,7 +187,7 @@ class ViewRequestWindow(tk.Toplevel):
         # --- FINE LAYOUT MODIFICATO ---
         
         # Frame griglia (espandibile, tra i pulsanti sopra e sotto)
-        frame_grid = ttk.LabelFrame(self, text=tr("Tabella Prezzi: Materiali / Fornitori"))
+        frame_grid = ttk.LabelFrame(self, text=tr("Price Table: Materials / Suppliers"))
         frame_grid.pack(side="top", fill="both", expand=True, padx=10, pady=5)
         
         # Crea il widget tksheet
@@ -213,7 +213,7 @@ class ViewRequestWindow(tk.Toplevel):
             
             info_label = ttk.Label(
                 info_frame,
-                text=tr('⚠️ MODALITÀ SOLA LETTURA: Stai visualizzando una RdO di un altro utente. Non puoi modificare i dati.'),
+                text=tr("⚠️ READ-ONLY MODE: You are viewing an RfQ from another user. You cannot modify the data."),
                 foreground='#d63031',
                 font=('Calibri', 10, 'bold'),
                 anchor='center'
@@ -356,12 +356,12 @@ class ViewRequestWindow(tk.Toplevel):
             result = db_manager.get_note_formattate(self.request_id)
             
             if result and result[0] and result[0] != "()":
-                self.btn_notes.config(text="📝 " + tr("Visualizza nota"))
+                self.btn_notes.config(text="📝 " + tr("View note"))
             else:
-                self.btn_notes.config(text="📝 " + tr("Aggiungi nota"))
+                self.btn_notes.config(text="📝 " + tr("Add note"))
         except DatabaseError as e:
             logger.error(f"Errore database in check_note_status_and_update_button: {e}", exc_info=True)
-            self.btn_notes.config(text="⚠️ " + tr("Errore Nota"), state="disabled")
+            self.btn_notes.config(text="⚠️ " + tr("Note Error"), state="disabled")
         finally:
             if db_manager:
                 try:
@@ -376,12 +376,12 @@ class ViewRequestWindow(tk.Toplevel):
                 result = db_manager.get_fornitori_count(self.request_id)
                 
                 if result and result > 0:
-                    self.btn_suppliers.config(text="✏️ " + tr("Modifica Fornitori"))
+                    self.btn_suppliers.config(text="✏️ " + tr("Modify Suppliers"))
                 else:
-                    self.btn_suppliers.config(text="➕ " + tr("Aggiungi Fornitori"))
+                    self.btn_suppliers.config(text="➕ " + tr("Add Suppliers"))
         except DatabaseError as e:
             logger.error(f"Errore database in check_suppliers_status_and_update_button: {e}", exc_info=True)
-            self.btn_suppliers.config(text="⚠️ " + tr("Errore Fornitori"), state="disabled")
+            self.btn_suppliers.config(text="⚠️ " + tr("Suppliers Error"), state="disabled")
     
     def check_sqdc_status_and_update_button(self):
         """Controlla se esiste un'analisi SQDC salvata e aggiorna il testo del pulsante."""
@@ -392,13 +392,13 @@ class ViewRequestWindow(tk.Toplevel):
                 existing = db_manager_sqdc.get_allegato_id_by_filename(self.request_id, sqdc_filename, 'Documento Interno')
             
             if existing:
-                self.btn_sqdc.config(text=tr("📈 Apri analisi SQDC"))
+                self.btn_sqdc.config(text=tr("📈 Open SQDC Analysis"))
             else:
-                self.btn_sqdc.config(text=tr("📊 Crea analisi SQDC"))
+                self.btn_sqdc.config(text=tr("📊 Create SQDC Analysis"))
                 
         except DatabaseError as e:
             logger.error(f"Errore database in check_sqdc_status_and_update_button: {e}", exc_info=True)
-            self.btn_sqdc.config(text=tr("Errore SQDC"), state="disabled")
+            self.btn_sqdc.config(text=tr("SQDC Error"), state="disabled")
     
     def open_sqdc_analysis(self):
         """Apre la finestra di analisi SQDC (nuova o esistente)"""
@@ -501,8 +501,8 @@ class ViewRequestWindow(tk.Toplevel):
                     except Exception as parse_error:
                         logger.error(f"Errore parsing file SQDC: {parse_error}", exc_info=True)
                         show_warning(
-                            tr("Avviso"),
-                            tr("File SQDC trovato ma impossibile caricare i dati.\nVerrà aperta una nuova analisi vuota.\n\nErrore: {}").format(parse_error),
+                            tr("Warning"),
+                            tr("SQDC file found but unable to load data.\nA new empty analysis will be opened.\n\nError: {}").format(parse_error),
                             parent=self
                         )
                         existing_data = None
@@ -524,7 +524,7 @@ class ViewRequestWindow(tk.Toplevel):
         self.check_sqdc_status_and_update_button()
     
     def _format_date_for_display(self, db_date):
-        if not db_date: return tr("N/D")
+        if not db_date: return tr("N/A")
         try: return datetime.strptime(db_date, '%Y-%m-%d').strftime('%d/%m/%Y')
         except (ValueError, TypeError): return db_date
 
@@ -532,8 +532,8 @@ class ViewRequestWindow(tk.Toplevel):
         try:
             with self._get_db_manager() as db_manager:
                 result = db_manager.get_richiesta_basic_data(self.request_id)
-            r, de, ds = result if result else (tr("N/D"), None, None)
-            self.lbl_riferimento.config(text=r if r else tr("N/D"))
+            r, de, ds = result if result else (tr("N/A"), None, None)
+            self.lbl_riferimento.config(text=r if r else tr("N/A"))
             
             try:
                 if de: self.entry_data_emissione.set_date(datetime.strptime(de, '%Y-%m-%d'))
@@ -547,14 +547,14 @@ class ViewRequestWindow(tk.Toplevel):
                 
         except DatabaseError as e:
             logger.error(f"Errore database in load_rdo_details: {e}", exc_info=True)
-            show_error(tr("Errore"), tr("Impossibile caricare dettagli: {}").format(e), parent=self)
+            show_error(tr("Error"), tr("Unable to load details: {}").format(e), parent=self)
 
     def open_edit_reference_window(self):
         """Apre la finestra di modifica riferimento."""
         if self.read_only:
             show_warning(
-                tr("Operazione Non Consentita"),
-                tr("Non puoi modificare il riferimento di RdO di altri utenti."),
+                tr("Operation Not Allowed"),
+                tr("You cannot edit the reference of other users' RfQs."),
                 parent=self
             )
             return
@@ -569,8 +569,8 @@ class ViewRequestWindow(tk.Toplevel):
         """Apre la finestra di gestione numeri ordine di acquisto."""
         if self.read_only:
             show_warning(
-                tr("Operazione Non Consentita"),
-                tr("Non puoi modificare i numeri ordine di RdO di altri utenti."),
+                tr("Operation Not Allowed"),
+                tr("You cannot edit purchase order numbers of other users' RfQs."),
                 parent=self
             )
             return
@@ -607,7 +607,7 @@ class ViewRequestWindow(tk.Toplevel):
                 
         except Exception as e:
             logger.error(f"Errore database in auto_save_dates: {e}", exc_info=True)
-            show_error(tr("Errore"), tr("Impossibile salvare le date: {}").format(e), parent=self)
+            show_error(tr("Error"), tr("Unable to save dates: {}").format(e), parent=self)
         finally:
             if hasattr(self, 'after'):
                 import weakref
@@ -626,21 +626,21 @@ class ViewRequestWindow(tk.Toplevel):
             new_date_em = format_date_for_db(self.entry_data_emissione.get())
             new_date_sc = format_date_for_db(self.entry_data_scadenza.get())
         except Exception as e:
-            show_error(tr("Errore Formato Data"), tr("Date non valide: {}").format(e), parent=self)
+            show_error(tr("Date Format Error"), tr("Invalid dates: {}").format(e), parent=self)
             return
 
         try:
             with self._get_db_manager() as db_manager:
                 db_manager.update_date_richiesta(self.request_id, new_date_em, new_date_sc)
             
-            show_info(tr("Successo"), tr("Date aggiornate."), parent=self)
+            show_info(tr("Success"), tr("Dates updated."), parent=self)
             
             if hasattr(self.master, 'refresh_data'):
                 self.master.refresh_data()
                 
         except DatabaseError as e:
             logger.error(f"Errore database in save_dates: {e}", exc_info=True)
-            show_error(tr("Errore Database"), tr("Impossibile salvare le date: {}").format(e), parent=self)
+            show_error(tr("Database Error"), tr("Unable to save dates: {}").format(e), parent=self)
 
     def export_to_excel(self):
         """Esporta i dati della RdO in Excel"""
@@ -660,12 +660,12 @@ class ViewRequestWindow(tk.Toplevel):
             with self._get_db_manager() as db_manager:
                 rdo_type_result = db_manager.get_tipo_rdo(self.request_id)
             if not rdo_type_result:
-                show_error(tr("Errore"), tr("Tipo RdO non trovato."), parent=self)
+                show_error(tr("Error"), tr("RfQ type not found."), parent=self)
                 return
             tipo_normalizzato = normalize_rfq_type(rdo_type_result[0])
             is_cl = tipo_normalizzato == 'Conto lavoro'
         except Exception as e:
-            show_error(tr("Errore Database"), tr("Impossibile determinare il tipo di RdO: {}").format(e), parent=self)
+            show_error(tr("Database Error"), tr("Unable to determine the RfQ type: {}").format(e), parent=self)
             return
 
         template_name = ""
@@ -698,7 +698,7 @@ class ViewRequestWindow(tk.Toplevel):
         template_path = resource_path(os.path.join("add_data", template_name))
 
         if not os.path.exists(template_path):
-            show_error(tr("Errore"), tr("File modello non trovato!\nAssicurarsi che '{}' esista nella cartella 'add_data'.").format(template_name), parent=self)
+            show_error(tr("Error"), tr("Template file not found!\nMake sure '{}' exists in the 'add_data' folder.").format(template_name), parent=self)
             return
         
         wb = None
@@ -706,7 +706,7 @@ class ViewRequestWindow(tk.Toplevel):
             with self._get_db_manager() as db_manager:
                 rdo_det = db_manager.get_richiesta_full_data(self.request_id)
                 if not rdo_det:
-                    show_error(tr("Errore"), tr("Dettagli RdO non trovati."), parent=self)
+                    show_error(tr("Error"), tr("RfQ details not found."), parent=self)
                     return
                 de_db, ds_db, rif, tipo = rdo_det
                 suppliers_rows = db_manager.get_fornitori_by_richiesta(self.request_id, order_by=True)
@@ -722,16 +722,16 @@ class ViewRequestWindow(tk.Toplevel):
             bold = Font(bold=True); center = Alignment(horizontal='center', vertical='center'); left_align = Alignment(horizontal='left', vertical='center'); price_fmt = '0.0000'
             
             try:
-                ws['B1'] = datetime.strptime(de_db, '%Y-%m-%d').strftime('%d/%m/%Y') if de_db else tr("N/D")
+                ws['B1'] = datetime.strptime(de_db, '%Y-%m-%d').strftime('%d/%m/%Y') if de_db else tr("N/A")
             except (ValueError, TypeError) as e:
                 logger.error(f"Formato data emissione non valido per RdO {self.request_id}: '{de_db}' - {e}")
-                ws['B1'] = tr("Data non valida")
+                ws['B1'] = tr("Invalid date")
             
             try:
-                ws['B2'] = datetime.strptime(ds_db, '%Y-%m-%d').strftime('%d/%m/%Y') if ds_db else tr("N/D")
+                ws['B2'] = datetime.strptime(ds_db, '%Y-%m-%d').strftime('%d/%m/%Y') if ds_db else tr("N/A")
             except (ValueError, TypeError) as e:
                 logger.error(f"Formato data scadenza non valido per RdO {self.request_id}: '{ds_db}' - {e}")
-                ws['B2'] = tr("Data non valida")
+                ws['B2'] = tr("Invalid date")
             
             ws['C1'] = self.request_id
             for i, s_name in enumerate(suppliers): ws.cell(row=3, column=14+i, value=s_name).font=bold; ws.cell(row=3, column=14+i).alignment=center; ws.cell(row=3, column=14+i).border=border
@@ -770,19 +770,19 @@ class ViewRequestWindow(tk.Toplevel):
             self.focus_force()
             self.update_idletasks()  # Forza aggiornamento UI prima del dialog
             
-            filepath = filedialog.asksaveasfilename(defaultextension=".xlsx", filetypes=[(tr("File Excel"), "*.xlsx")], title=texts["save_title"], initialfile=texts["initial_file"])
+            filepath = filedialog.asksaveasfilename(defaultextension=".xlsx", filetypes=[(tr("Excel file"), "*.xlsx")], title=texts["save_title"], initialfile=texts["initial_file"])
             
             if filepath: 
                 wb.save(filepath)
                 logger.info(f"Excel esportato: {filepath}")
-                show_info(tr("Successo"), tr("File salvato in:\n{}").format(filepath), parent=self)
+                show_info(tr("Success"), tr("File saved in:\n{}").format(filepath), parent=self)
             else:
                 # BUG FIX: Se annullato, riporta focus a ViewRequestWindow
                 self.lift()
                 self.focus_force()
         except Exception as e: 
             logger.error(f"Errore esportazione Excel: {e}", exc_info=True)
-            show_error(tr("Errore Esportazione"), tr("Errore: {}").format(e), parent=self)
+            show_error(tr("Export Error"), tr("Error: {}").format(e), parent=self)
         finally:
             if wb is not None:
                 try:
@@ -891,8 +891,8 @@ class ViewRequestWindow(tk.Toplevel):
         except Exception as e:
             logger.error(f"Errore import dialog RFQ PDF: {e}", exc_info=True)
             show_error(
-                tr("Errore"),
-                tr("Funzionalita RFQ PDF non disponibile: {}").format(e),
+                tr("Error"),
+                tr("RFQ PDF feature not available: {}").format(e),
                 parent=self
             )
             return
@@ -979,7 +979,7 @@ class ViewRequestWindow(tk.Toplevel):
                 print(f"[ViewRequestWindow.build_grid] Primi 3 materiali: {materials[:3]}")
         except DatabaseError as e:
             logger.error(f"Errore database in build_grid: {e}", exc_info=True)
-            show_error(tr("Errore Database"), tr("Impossibile caricare la griglia: {}").format(e), parent=self)
+            show_error(tr("Database Error"), tr("Unable to load grid: {}").format(e), parent=self)
             return
         
         self.suppliers = suppliers
@@ -991,14 +991,14 @@ class ViewRequestWindow(tk.Toplevel):
         self.sheet.set_all_cell_sizes_to_text()
         
         base_headers = [
-            tr("Codice"),
-            tr("Allegato"),
-            tr("Descrizione"),
+            tr("Code"),
+            tr("Attachment"),
+            tr("Description"),
             get_qty_column_text()
         ]
         
         if self.is_conto_lavoro:
-            cl_headers = [tr("Cod. Grezzo"), tr("Allegato Grezzo"), tr("Mat. C/L")]
+            cl_headers = [tr("Raw Code"), tr("Raw Attachment"), tr("Material for Processing")]
             headers = base_headers + cl_headers + suppliers
             num_article_cols = 7
         else:
@@ -1215,8 +1215,8 @@ class ViewRequestWindow(tk.Toplevel):
             if new_value and new_value.strip():
                 if '.' in new_value and ',' not in new_value:
                     show_warning(
-                        tr("Separatore Decimale"),
-                        tr("Hai usato il punto (.) come separatore decimale.\n\nIn questo programma si usa la VIRGOLA (,) come separatore decimale.\n\nEsempio corretto: 12,5 invece di 12.5"),
+                        tr("Decimal Separator"),
+                        tr("You used the dot (.) as decimal separator.\n\nThis program uses the COMMA (,) as decimal separator.\n\nCorrect example: 12,5 instead of 12.5"),
                         parent=self
                     )
                     return False
@@ -1244,8 +1244,8 @@ class ViewRequestWindow(tk.Toplevel):
                 
         except DatabaseError as e:
             logger.error(f"Errore database in save_article_field: {e}", exc_info=True)
-            show_error(tr("Errore Database"), 
-                               tr("Impossibile salvare la modifica: {}").format(e), 
+            show_error(tr("Database Error"), 
+                               tr("Unable to save changes: {}").format(e), 
                                parent=self)
             return False
 
@@ -1266,7 +1266,7 @@ class ViewRequestWindow(tk.Toplevel):
                         price_float = parse_float_from_comma_string(price_str)
                         value_to_save = format_price_display(price_float)
                     except ValueError:
-                        show_error(tr("Errore Formato"), tr("Il prezzo deve essere un numero valido (es. 123,45), 'X' o 'ND'.\nUsa la virgola come separatore decimale."), parent=self)
+                        show_error(tr("Format Error"), tr("The price must be a valid number (e.g. 123,45), 'X' or 'ND'.\nUse comma as decimal separator."), parent=self)
                         return None
 
                 if price_str_upper == 'X' or price_str_upper == 'ND':
@@ -1279,7 +1279,7 @@ class ViewRequestWindow(tk.Toplevel):
                 
         except DatabaseError as e:
             logger.error(f"Errore database in save_price_in_db_no_refresh: {e}", exc_info=True)
-            show_error(tr("Errore Database"), tr("Impossibile salvare il prezzo: {}").format(e), parent=self)
+            show_error(tr("Database Error"), tr("Unable to save price: {}").format(e), parent=self)
             return None
 
     def save_price_in_db(self, detail_id, supplier_name, price_str):
@@ -1303,8 +1303,8 @@ class ViewRequestWindow(tk.Toplevel):
                 
         except DatabaseError as e:
             logger.error(f"Errore database in add_new_article_row: {e}", exc_info=True)
-            show_error(tr("Errore Database"), 
-                               tr("Impossibile aggiungere l'articolo: {}").format(e), 
+            show_error(tr("Database Error"), 
+                               tr("Unable to add the item: {}").format(e), 
                                parent=self)
     
     def remove_selected_article(self):
@@ -1313,21 +1313,21 @@ class ViewRequestWindow(tk.Toplevel):
         print(f"[ViewRequestWindow.remove_selected_article] Righe selezionate: {selected}")
         
         if not selected:
-            show_warning(tr("Attenzione"), 
-                                  tr("Seleziona almeno un articolo da rimuovere."), 
+            show_warning(tr("Warning"), 
+                                  tr("Select at least one item to remove."), 
                                   parent=self)
             return
         
         if not hasattr(self, 'materials') or not self.materials:
-            show_warning(tr("Attenzione"), 
-                                  tr("Nessun articolo disponibile per l'eliminazione."), 
+            show_warning(tr("Warning"), 
+                                  tr("No items available for deletion."), 
                                   parent=self)
             return
         
         print(f"[ViewRequestWindow.remove_selected_article] Numero materiali disponibili: {len(self.materials)}")
         
-        if not show_confirm(tr("Conferma Eliminazione"), 
-                                   tr("Sei sicuro di voler eliminare {} articolo/i selezionato/i?\nVerranno eliminati anche tutti i prezzi associati.").format(len(selected)), 
+        if not show_confirm(tr("Delete Confirmation"), 
+                                   tr("Are you sure you want to delete {} selected item(s)?\nAll associated prices will also be deleted.").format(len(selected)), 
                                    parent=self):
             return
         
@@ -1353,14 +1353,14 @@ class ViewRequestWindow(tk.Toplevel):
             if invalid_indices:
                 logger.warning(f"remove_selected_article: {len(invalid_indices)} indici invalidi: {invalid_indices}")
                 show_warning(
-                    tr("Attenzione"),
-                    tr("Alcuni indici selezionati non sono validi e verranno ignorati: {}").format(", ".join(invalid_indices)),
+                    tr("Warning"),
+                    tr("Some selected indices are invalid and will be ignored: {}").format(", ".join(invalid_indices)),
                     parent=self
                 )
             
             if not ids_to_delete:
-                show_warning(tr("Attenzione"), 
-                                      tr("Nessun articolo valido selezionato per l'eliminazione."), 
+                show_warning(tr("Warning"), 
+                                      tr("No valid items selected for deletion."), 
                                       parent=self)
                 return
             
@@ -1373,14 +1373,14 @@ class ViewRequestWindow(tk.Toplevel):
             
             self.refresh_grid()
             
-            show_info(tr("Successo"), 
-                               tr("{} articolo/i eliminato/i con successo.").format(count), 
+            show_info(tr("Success"), 
+                               tr("{} item(s) successfully deleted.").format(count), 
                                parent=self)
             
         except DatabaseError as e:
             logger.error(f"Errore database in remove_selected_article: {e}", exc_info=True)
-            show_error(tr("Errore Database"), 
-                               tr("Impossibile eliminare l'articolo: {}").format(e), 
+            show_error(tr("Database Error"), 
+                               tr("Unable to delete the item: {}").format(e), 
                                parent=self)
 
     def import_from_excel(self):
@@ -1389,27 +1389,27 @@ class ViewRequestWindow(tk.Toplevel):
             with DatabaseManager(get_db_path()) as db_manager:
                 result = db_manager.get_tipo_rdo(self.request_id)
             if not result:
-                show_error(tr("Errore"), tr("RdO non trovata."), parent=self)
+                show_error(tr("Error"), tr("RfQ not found."), parent=self)
                 return
             tipo_rdo = result[0]
         except DatabaseError as e:
             logger.error(f"Errore database in import_from_excel: {e}", exc_info=True)
-            show_error(tr("Errore Database"), tr("Impossibile determinare il tipo di RdO: {}").format(e), parent=self)
+            show_error(tr("Database Error"), tr("Unable to determine the RfQ type: {}").format(e), parent=self)
             return
         
         is_cl = (tipo_rdo == "Conto lavoro")
         
-        msg = (tr("Assicurarsi che il file Excel abbia la seguente struttura:\n\n")
-               + tr("TIPO '{}' (4 colonne):\n").format(tr("Fornitura piena"))
-               + tr("A: Codice, B: Allegato, C: Descrizione, D: Quantità\n\n")
-               + tr("TIPO '{}' (7 colonne):\n").format(tr("Conto lavoro"))
-               + tr("A-D come sopra, E: Codice Grezzo, F: Allegato Grezzo, G: Materiale C/L"))
-        if not show_ok_cancel(tr("Istruzioni Importazione Excel"), msg, parent=self):
+        msg = (tr("Make sure the Excel file has the following structure:\n\n")
+               + tr("TYPE '{}' (4 columns):\n").format(tr("Full Supply"))
+               + tr("A: Code, B: Attachment, C: Description, D: Quantity\n\n")
+               + tr("TYPE '{}' (7 columns):\n").format(tr("Work Order"))
+               + tr("A-D as above, E: Raw Code, F: Raw Attachment, G: Work Order Material"))
+        if not show_ok_cancel(tr("Excel Import Instructions"), msg, parent=self):
             return
 
         filepath = filedialog.askopenfilename(
-            title=tr("Seleziona file Excel"), 
-            filetypes=[(tr("File Excel"), "*.xlsx"), (tr("Tutti i file"), "*.*")],
+            title=tr("Select Excel file"), 
+            filetypes=[(tr("Excel file"), "*.xlsx"), (tr("All files"), "*.*")],
             parent=self
         )
         if not filepath:
@@ -1422,9 +1422,9 @@ class ViewRequestWindow(tk.Toplevel):
             sheet = workbook.active
             
             if sheet.max_column < expected_cols:
-                raise ValueError(tr("Il file Excel deve avere almeno {} colonne per una RdO '{}'.").format(
+                raise ValueError(tr("The Excel file must have at least {} columns for an RfQ '{}'.").format(
                     expected_cols, 
-                    tr("Conto lavoro") if is_cl else tr("Fornitura piena")
+                    tr("Work Order") if is_cl else tr("Full Supply")
                 ))
             
             items_to_add = []
@@ -1446,7 +1446,7 @@ class ViewRequestWindow(tk.Toplevel):
                     items_to_add.append((str(cod), str(allegato or ""), str(desc or ""), str(qta), "", "", ""))
             
             if not items_to_add:
-                show_warning(tr("Attenzione"), tr("Nessun articolo valido trovato nel file Excel."), parent=self)
+                show_warning(tr("Warning"), tr("No valid items found in the Excel file."), parent=self)
                 return
             
             db_manager = DatabaseManager(get_db_path())
@@ -1457,16 +1457,16 @@ class ViewRequestWindow(tk.Toplevel):
             print(f"[ViewRequestWindow.import_from_excel] Chiamata refresh_grid() dopo importazione di {count} articoli")
             self.refresh_grid()
             
-            show_info(tr("Importazione Completata"), 
-                               tr("{} articoli importati.").format(count), 
+            show_info(tr("Import Completed"), 
+                               tr("{} items imported.").format(count), 
                                parent=self)
             
         except ValueError as e:
-            show_error(tr("Errore Formato File"), str(e), parent=self)
+            show_error(tr("File Format Error"), str(e), parent=self)
         except Exception as e:
             logger.error(f"Errore in import_from_excel: {e}", exc_info=True)
-            show_error(tr("Errore Importazione"), 
-                               tr("Impossibile leggere il file Excel.\n{}").format(e), 
+            show_error(tr("Import Error"), 
+                               tr("Unable to read the Excel file.\n{}").format(e), 
                                parent=self)
         finally:
             if workbook is not None:

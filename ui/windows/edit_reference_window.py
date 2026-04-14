@@ -23,21 +23,21 @@ class EditReferenceWindow(tk.Toplevel):
         self.withdraw()
         set_window_icon(self)
         self.request_id = request_id
-        self.title(tr("Modifica Riferimento"))
+        self.title(tr("Edit Reference"))
         self.db_path = get_db_path()
         self.transient(parent)
         
         # Frame pulsanti (sempre in fondo)
         btn_frame = ttk.Frame(self)
         btn_frame.pack(side="bottom", fill="x", padx=10, pady=10)
-        ttk.Button(btn_frame, text=tr("💾 Salva"), command=self.save_changes).pack(side="right")
-        ttk.Button(btn_frame, text=tr("❌ Annulla"), command=self.destroy).pack(side="right", padx=10)
+        ttk.Button(btn_frame, text=tr("💾 Save"), command=self.save_changes).pack(side="right")
+        ttk.Button(btn_frame, text=tr("❌ Cancel"), command=self.destroy).pack(side="right", padx=10)
         
         # Frame contenuto (espandibile)
         frame = ttk.Frame(self, padding="10")
         frame.pack(side="top", fill="both", expand=True)
         
-        ttk.Label(frame, text=tr("Modifica Riferimento:")).pack(anchor="w")
+        ttk.Label(frame, text=tr("Edit Reference:")).pack(anchor="w")
         self.entry_riferimento = ttk.Entry(frame, width=70)
         self.entry_riferimento.pack(fill="x", expand=True, pady=5)
         
@@ -55,15 +55,15 @@ class EditReferenceWindow(tk.Toplevel):
                 self.entry_riferimento.insert(0, result[0])
         except DatabaseError as e:
             logger.error(f"Errore database in load_current_reference: {e}", exc_info=True)
-            show_error(self, tr("Errore"), tr("Impossibile caricare riferimento: {}").format(e))
+            show_error(self, tr("Error"), tr("Unable to load reference: {}").format(e))
     
     def save_changes(self):
         try:
             # BUG #46 FIX: Usa context manager per garantire chiusura DB anche su eccezione
             with DatabaseManager(getattr(self, 'db_path', get_db_path())) as db_manager:
                 db_manager.update_riferimento(self.request_id, self.entry_riferimento.get().strip())
-            show_info(self.master, tr("Successo"), tr("Riferimento aggiornato."))
+            show_info(self.master, tr("Success"), tr("Reference updated."))
             self.destroy()
         except DatabaseError as e:
             logger.error(f"Errore database in save_changes (EditReferenceWindow): {e}", exc_info=True)
-            show_error(self, tr("Errore"), tr("Impossibile salvare: {}").format(e))
+            show_error(self, tr("Error"), tr("Unable to save: {}").format(e))
