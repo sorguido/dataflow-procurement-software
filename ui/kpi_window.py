@@ -50,15 +50,18 @@ def _fmt_int(v) -> str:
         return "0"
 
 
-def _fmt_money(v) -> str:
-    """Formatta un valore monetario: formato italiano (punto migliaia) con simbolo €.
+def _fmt_money(v, with_symbol: bool = True) -> str:
+    """Formatta un valore monetario: formato italiano (punto migliaia).
 
-    Esempi:  20000 → "20.000 €"   |   1234567 → "1.234.567 €"
+    Esempi:
+        20000   → "20.000 €" (with_symbol=True)
+        20000   → "20.000"   (with_symbol=False)
     """
     try:
-        return f"{float(v or 0):,.0f}".replace(",", ".") + " €"
+        formatted = f"{float(v or 0):,.0f}".replace(",", ".")
+        return f"{formatted} €" if with_symbol else formatted
     except (TypeError, ValueError):
-        return "0 €"
+        return "0 €" if with_symbol else "0"
 
 
 def _fmt_pct(v) -> str:
@@ -577,8 +580,8 @@ class KpiWindow(tk.Toplevel):
             else:  # saving, ca
                 tree.insert('', 'end', values=(
                     d['label'],
-                    _fmt_money(d['theoretical']),
-                    _fmt_money(d['actual']),
+                    _fmt_money(d['theoretical'], with_symbol=False),
+                    _fmt_money(d['actual'], with_symbol=False),
                 ))
 
     # ------------------------------------------------------------------

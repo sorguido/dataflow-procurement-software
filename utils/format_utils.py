@@ -88,23 +88,24 @@ def format_amount_display(val):
         return str(val)
 
 
-def format_currency_display(val):
-    """Formatta un valore monetario con simbolo euro, separatore migliaia e virgola decimale.
+def format_currency_display(val, show_symbol=True):
+    """Formatta un valore monetario con separatore migliaia e virgola decimale.
 
     Convenzione italiana: punto come separatore migliaia, virgola come decimale.
 
     Esempi:
-        2000.0       → "€ 2.000,00"
-        38700.5      → "€ 38.700,50"
-        -2.16        → "€ -2,16"
-        0.32         → "€ 0,32"
+        2000.0       → "€ 2.000,00" (show_symbol=True)
+        38700.5      → "38.700,50"  (show_symbol=False)
+        -2.16        → "-2,16"      (show_symbol=False)
+        0.32         → "0,32"       (show_symbol=False)
     """
     if val is None:
-        return '€ 0,00'
+        return '€ 0,00' if show_symbol else '0,00'
     try:
         # :,.2f usa virgola come migliaia e punto come decimali (en_US)
         # swap: virgola↔punto per convenzione italiana
         formatted = f"{float(val):,.2f}"
-        return "€ " + formatted.replace(',', 'X').replace('.', ',').replace('X', '.')
+        numeric = formatted.replace(',', 'X').replace('.', ',').replace('X', '.')
+        return f"€ {numeric}" if show_symbol else numeric
     except (ValueError, TypeError):
         return str(val)
