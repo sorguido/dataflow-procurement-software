@@ -771,10 +771,10 @@ msgid "Saving"
 msgstr "Saving"
 
 msgid "Cost Avoidance"
-msgstr "Evitamento Costi"
+msgstr "Cost Avoidance"
 
 msgid "Derisking"
-msgstr "Riduzione Rischio"
+msgstr "Derisking"
 
 msgid "From:"
 msgstr "Da:"
