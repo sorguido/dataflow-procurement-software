@@ -264,11 +264,11 @@ class VSMEventDialog(tk.Toplevel):
         
         # --- SUB-FRAME PAGAMENTI (driver Pagamenti) ---
         self.payment_fields_frame = ttk.Frame(self.economic_frame)
-        # No columnconfigure: keep compact layout without expansion
+        self.payment_fields_frame.columnconfigure(1, weight=1)
         
         # Spending Annuo
         self.lbl_spending_annuo = ttk.Label(self.payment_fields_frame, text=tr("Spending Annuo (€): *"))
-        self.entry_spending_annuo = ttk.Entry(self.payment_fields_frame, width=15)
+        self.entry_spending_annuo = ttk.Entry(self.payment_fields_frame, width=10)
         
         # Termini Pagamento Attuali
         self.lbl_giorni_attuali = ttk.Label(self.payment_fields_frame, text=tr("Termini Pagamento Attuali (giorni): *"))
@@ -479,16 +479,16 @@ class VSMEventDialog(tk.Toplevel):
             
             # Layout widgets inside payment_fields_frame
             self.lbl_spending_annuo.grid(row=0, column=0, sticky="w", padx=(0, 10), pady=5)
-            self.entry_spending_annuo.grid(row=0, column=1, sticky="w", pady=5)
+            self.entry_spending_annuo.grid(row=0, column=1, sticky="ew", pady=5)
             
             self.lbl_giorni_attuali.grid(row=1, column=0, sticky="w", padx=(0, 10), pady=5)
-            self.entry_giorni_attuali.grid(row=1, column=1, sticky="w", pady=5)
+            self.entry_giorni_attuali.grid(row=1, column=1, sticky="ew", pady=5)
             
             self.lbl_giorni_negoziati.grid(row=2, column=0, sticky="w", padx=(0, 10), pady=5)
-            self.entry_giorni_negoziati.grid(row=2, column=1, sticky="w", pady=5)
+            self.entry_giorni_negoziati.grid(row=2, column=1, sticky="ew", pady=5)
             
             self.lbl_payments_rate.grid(row=3, column=0, sticky="w", padx=(0, 10), pady=5)
-            self.entry_payments_rate.grid(row=3, column=1, sticky="w", pady=5)
+            self.entry_payments_rate.grid(row=3, column=1, sticky="ew", pady=5)
     
     def _on_new_supplier_enter(self, event=None):
         """Salvataggio immediato del campo new_supplier su Enter (solo edit mode con evento già persistito)."""
