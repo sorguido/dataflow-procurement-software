@@ -4,3 +4,4 @@ polib==1.2.0
 reportlab==4.2.2
 tkcalendar==1.6.1
 tksheet==7.6.0
+tkinterdnd2==0.4.2

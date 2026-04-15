@@ -11,6 +11,7 @@ import shutil
 import tempfile
 import webbrowser
 import threading
+from urllib.parse import unquote, urlparse
 from tksheet import Sheet
 from datetime import datetime
 
@@ -20,7 +21,17 @@ from utils.window_utils import center_window
 from utils.resource_utils import set_window_icon
 from utils.i18n_utils import tr
 from utils.validation_utils import sanitize_filename
-from ui.dialogs.common_dialogs import SimpleMessageDialog, SimpleYesNoDialog
+from ui.dialogs.common_dialogs import (
+    SimpleMessageDialog,
+    SimpleYesNoDialog,
+    show_error,
+    show_warning,
+)
+
+try:
+    from tkinterdnd2 import TkinterDnD
+except Exception:
+    TkinterDnD = None
 
 logger = logging.getLogger(__name__)
 
@@ -143,8 +154,21 @@ class AttachmentWindow(tk.Toplevel):
         )
         
         self.sheet_attachments.pack(fill="both", expand=True)
-            
+
+        # Hint non invasivo tra area lista allegati e pulsanti inferiori.
+        # Mantiene il layout esistente senza overlay.
+        hint_frame = ttk.Frame(self)
+        hint_frame.pack(side="bottom", fill="x", padx=10, pady=(0, 2))
+        self.lbl_drop_hint = ttk.Label(
+            hint_frame,
+            text=tr("Trascina qui i file oppure usa '+ Aggiungi...'"),
+            foreground="black",
+            anchor="center"
+        )
+        self.lbl_drop_hint.pack(fill="x")
+
         self.load_attachments()
+        self._init_drag_and_drop()
         
         # Imposta dimensione minima per mostrare tutte le colonne
         self.geometry("850x450")
@@ -152,6 +176,181 @@ class AttachmentWindow(tk.Toplevel):
         
         center_window(self)
         self.deiconify()
+
+    def _init_drag_and_drop(self):
+        """Abilita DnD solo sulla lista allegati, in modalità opzionale/reversibile."""
+        self._dnd_available = False
+        self._dnd_drop_cmd = None
+        self._dnd_backend = "none"
+        self._dnd_target = None
+
+        # In read-only lasciamo DnD disattivo per evitare UX incoerente.
+        if self.read_only:
+            return
+
+        target = self._get_dnd_target_widget()
+        if target is None:
+            logger.warning("DnD non inizializzato: target widget non disponibile.")
+            return
+
+        # Tentativo 1: tkdnd già disponibile nel runtime Tk.
+        if self._try_enable_tkdnd(target, backend_name="runtime-tkdnd"):
+            return
+
+        # Tentativo 2: bootstrap tkdnd tramite tkinterdnd2 (opzionale).
+        if self._try_enable_tkinterdnd2(target):
+            return
+
+        logger.info("Drag-and-drop allegati disattivato: backend non disponibile. Fallback picker attivo.")
+
+    def _get_dnd_target_widget(self):
+        """Target DnD: solo area bianca centrale lista (MT), non header/hint/pulsanti."""
+        if hasattr(self, "sheet_attachments") and hasattr(self.sheet_attachments, "MT"):
+            return self.sheet_attachments.MT
+        return getattr(self, "sheet_attachments", None)
+
+    def _try_enable_tkdnd(self, target_widget, backend_name):
+        """Prova registrazione DnD usando tkdnd già caricato nel runtime Tcl/Tk."""
+        try:
+            self.tk.call('package', 'require', 'tkdnd')
+            self.tk.call('tkdnd::drop_target', 'register', target_widget._w, 'DND_Files')
+            self._dnd_drop_cmd = self.register(self._on_tkdnd_drop)
+
+            # Bind su entrambe le varianti evento per compatibilità runtime differenti.
+            self.tk.call('bind', target_widget._w, '<<Drop>>', f'{self._dnd_drop_cmd} %D')
+            self.tk.call('bind', target_widget._w, '<<Drop:DND_Files>>', f'{self._dnd_drop_cmd} %D')
+
+            self._dnd_available = True
+            self._dnd_backend = backend_name
+            self._dnd_target = target_widget
+            logger.info("Drag-and-drop allegati attivato su area lista (backend=%s).", backend_name)
+            return True
+        except Exception as dnd_error:
+            logger.info("Backend DnD '%s' non disponibile: %s", backend_name, dnd_error)
+            return False
+
+    def _try_enable_tkinterdnd2(self, target_widget):
+        """Prova bootstrap tkdnd tramite tkinterdnd2 (se installato)."""
+        if TkinterDnD is None:
+            logger.info("tkinterdnd2 non installato nel runtime Python.")
+            return False
+        try:
+            TkinterDnD._require(self)
+        except Exception as e:
+            logger.info("tkinterdnd2 presente ma _require fallito: %s", e)
+            return False
+        return self._try_enable_tkdnd(target_widget, backend_name="tkinterdnd2")
+
+    def _on_tkdnd_drop(self, drop_data):
+        """Callback drop tkdnd: normalizza i path e instrada il flusso di upload."""
+        try:
+            paths = self._parse_drop_paths(drop_data)
+            self._handle_dropped_paths(paths)
+        except Exception as e:
+            logger.error("Errore gestione drop allegati: %s", e, exc_info=True)
+            show_error(self, tr("Error"), tr("Unable to add attachment: {}").format(e))
+        return "break"
+
+    def _parse_drop_paths(self, raw_data):
+        """Parsa i path file dal payload DnD (Windows/Linux, spazi e caratteri speciali)."""
+        if not raw_data:
+            return []
+
+        try:
+            parts = self.tk.splitlist(raw_data)
+        except tk.TclError:
+            parts = [raw_data]
+
+        parsed = []
+        for part in parts:
+            item = (part or "").strip()
+            if not item:
+                continue
+            if item.startswith("{") and item.endswith("}"):
+                item = item[1:-1]
+            if item.startswith('"') and item.endswith('"'):
+                item = item[1:-1]
+
+            if item.lower().startswith("file://"):
+                url = urlparse(item)
+                item = unquote(url.path or "")
+                if os.name == "nt" and item.startswith("/") and len(item) > 2 and item[2] == ":":
+                    item = item[1:]
+
+            item = os.path.normpath(item)
+            if item:
+                parsed.append(item)
+        return parsed
+
+    def _handle_dropped_paths(self, paths):
+        """Applica policy multi-file e instrada su _attach_from_path()."""
+        if self.read_only:
+            show_warning(self, tr("Operation Not Allowed"), tr("You cannot add attachments to other users' RfQs."))
+            return
+
+        if self.attachment_type == "Offerta Fornitore" and len(paths) > 1:
+            show_warning(self, tr("Warning"), tr("For supplier offers, drop only one file at a time."))
+            return
+
+        valid_files = [p for p in paths if p and os.path.isfile(p)]
+        if not valid_files:
+            show_warning(self, tr("Warning"), tr("No valid files were dropped."))
+            return
+
+        for path in valid_files:
+            self._attach_from_path(path)
+
+    def _attach_from_path(self, filepath: str):
+        """
+        Punto unico di persistenza allegati:
+        validazioni -> naming -> copy -> insert DB -> refresh UI.
+        """
+        if self.read_only:
+            show_warning(self, tr("Operation Not Allowed"), tr("You cannot add attachments to other users' RfQs."))
+            return
+
+        supplier = self.combo_suppliers.get() if self.attachment_type == "Offerta Fornitore" else "Interno"
+        if not supplier and self.attachment_type == "Offerta Fornitore":
+            show_warning(self, tr("Warning"), tr("Select a supplier."))
+            return
+
+        archive_path = self.attachments_base
+        if not archive_path:
+            show_error(self, tr("Error"), tr("Attachment path not available."))
+            return
+
+        try:
+            file_ext = os.path.splitext(filepath)[1]
+            sanitized_supplier = sanitize_filename(supplier)
+            db_manager_temp = DatabaseManager(self.db_path, read_only=self.read_only)
+            try:
+                next_id = db_manager_temp.get_max_allegato_id() + 1
+            finally:
+                try:
+                    db_manager_temp.close()
+                except Exception:
+                    pass
+
+            if self.attachment_type == "Documento Interno":
+                new_filename = f"RfQ{self.request_id}_ID{next_id}{file_ext}"
+            else:
+                new_filename = f"RfQ{self.request_id}_{sanitized_supplier}_ID{next_id}{file_ext}"
+
+            dest_path = os.path.join(archive_path, new_filename)
+            shutil.copy(filepath, dest_path)
+
+            with DatabaseManager(self.db_path, read_only=self.read_only) as db_manager:
+                db_manager.insert_allegato_richiesta_link(
+                    self.request_id,
+                    os.path.basename(filepath),
+                    self.attachment_type,
+                    supplier,
+                    new_filename
+                )
+        except Exception as e:
+            show_error(self, tr("Error"), tr("Unable to add attachment: {}").format(e))
+        finally:
+            self.load_attachments()
 
     def on_closing(self):
         """Pulisce i file temporanei prima di chiudere la finestra con gestione sicura."""
@@ -337,7 +536,7 @@ class AttachmentWindow(tk.Toplevel):
 
     def add_attachment(self):
         if self.read_only:
-            SimpleMessageDialog(self, tr("Operation Not Allowed"), tr("You cannot add attachments to other users' RfQs."), "warning")
+            show_warning(self, tr("Operation Not Allowed"), tr("You cannot add attachments to other users' RfQs."))
             return
         
         self.grab_release()
@@ -349,42 +548,9 @@ class AttachmentWindow(tk.Toplevel):
         finally:
             self.grab_set()
         
-        if not filepath: return
-        supplier = self.combo_suppliers.get() if self.attachment_type == "Offerta Fornitore" else "Interno"
-        if not supplier and self.attachment_type == "Offerta Fornitore":
-            SimpleMessageDialog(self, tr("Warning"), tr("Select a supplier."), "warning")
+        if not filepath:
             return
-        
-        archive_path = self.attachments_base
-        if not archive_path:
-            SimpleMessageDialog(self, tr("Error"), tr("Attachment path not available."), "error")
-            return
-
-        try:
-            file_ext = os.path.splitext(filepath)[1]
-            sanitized_supplier = sanitize_filename(supplier)
-            db_manager_temp = DatabaseManager(self.db_path, read_only=self.read_only)
-            try:
-                next_id = db_manager_temp.get_max_allegato_id() + 1
-            finally:
-                try:
-                    db_manager_temp.close()
-                except Exception:
-                    pass
-            
-            if self.attachment_type == "Documento Interno":
-                new_filename = f"RfQ{self.request_id}_ID{next_id}{file_ext}"
-            else:
-                new_filename = f"RfQ{self.request_id}_{sanitized_supplier}_ID{next_id}{file_ext}"
-            dest_path = os.path.join(archive_path, new_filename)
-            shutil.copy(filepath, dest_path)
-            
-            with DatabaseManager(self.db_path, read_only=self.read_only) as db_manager:
-                db_manager.insert_allegato_richiesta_link(self.request_id, os.path.basename(filepath), self.attachment_type, supplier, new_filename)
-        except Exception as e:
-            SimpleMessageDialog(self, tr("Error"), tr("Unable to add attachment: {}").format(e), "error")
-        
-        self.load_attachments()
+        self._attach_from_path(filepath)
     
     def open_attachment(self):
         selected = self.sheet_attachments.get_currently_selected()
