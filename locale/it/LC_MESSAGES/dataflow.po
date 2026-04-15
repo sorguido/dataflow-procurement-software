@@ -1400,6 +1400,12 @@ msgstr "Non puoi aggiungere allegati a RdO di altri utenti."
 msgid "Select a supplier."
 msgstr "Seleziona un fornitore."
 
+msgid "For supplier offers, drop only one file at a time."
+msgstr "Per le offerte fornitore, trascina un solo file alla volta."
+
+msgid "No valid files were dropped."
+msgstr "Nessun file valido trascinato."
+
 msgid "Attachment path not available."
 msgstr "Percorso allegati non disponibile."
 
