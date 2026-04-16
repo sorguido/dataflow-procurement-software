@@ -34,6 +34,7 @@ class SupplierNameSuggestController:
         self._listbox = None
         self._suggestions: list[str] = []
         self._suspend = False
+        self._hide_after_id = None
 
         self._bind_ids = []
         self._bind_events()
@@ -104,13 +105,25 @@ class SupplierNameSuggestController:
         return None
 
     def _on_focus_out(self, event=None):
-        self.entry.after(120, self._hide_popup_if_focus_lost)
+        if self._hide_after_id is not None:
+            try:
+                self.entry.after_cancel(self._hide_after_id)
+            except Exception:
+                pass
+        self._hide_after_id = self.entry.after(120, self._hide_popup_if_focus_lost)
 
     def _hide_popup_if_focus_lost(self):
+        self._hide_after_id = None
         if self._popup is None:
             return
         focused = self.entry.focus_get()
-        if focused is self.entry:
+        if focused is self.entry or focused is self._listbox:
+            return
+        pointer_widget = self.entry.winfo_containing(
+            self.entry.winfo_pointerx(),
+            self.entry.winfo_pointery(),
+        )
+        if pointer_widget is self._listbox:
             return
         self._hide_popup()
 
@@ -155,7 +168,8 @@ class SupplierNameSuggestController:
             selectmode=tk.SINGLE,
         )
         self._listbox.pack(fill="both", expand=True)
-        self._listbox.bind("<ButtonRelease-1>", self._on_click_select)
+        self._listbox.bind("<Button-1>", self._on_click_select)
+        self._listbox.bind("<Double-Button-1>", self._on_click_select)
         self._listbox.bind("<Return>", self._on_listbox_return)
         self._listbox.bind("<Escape>", self._on_listbox_escape)
 
@@ -190,11 +204,19 @@ class SupplierNameSuggestController:
 
     def _on_click_select(self, event=None):
         if self._listbox is None:
-            return
-        sel = self._listbox.curselection()
-        if not sel:
-            return
-        self._apply_index(sel[0])
+            return "break"
+        idx = None
+        if event is not None and getattr(event, "y", None) is not None:
+            idx = self._listbox.nearest(event.y)
+        if idx is None:
+            sel = self._listbox.curselection()
+            if not sel:
+                return "break"
+            idx = sel[0]
+        if idx < 0:
+            return "break"
+        self._apply_index(idx)
+        return "break"
 
     def _on_listbox_return(self, event=None):
         self._on_click_select(event)
@@ -206,11 +228,18 @@ class SupplierNameSuggestController:
         return "break"
 
     def _apply_index(self, idx: int):
-        if idx < 0 or idx >= len(self._suggestions):
+        if idx < 0:
+            return
+        suggestion = None
+        if self._listbox is not None and idx < self._listbox.size():
+            suggestion = self._listbox.get(idx)
+        elif idx < len(self._suggestions):
+            suggestion = self._suggestions[idx]
+        if not suggestion:
             return
         self._suspend = True
         try:
-            self.apply_suggestion(self._suggestions[idx])
+            self.apply_suggestion(suggestion)
         finally:
             self._suspend = False
         self._hide_popup()
