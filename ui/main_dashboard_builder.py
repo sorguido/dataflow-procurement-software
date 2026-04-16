@@ -79,7 +79,7 @@ def build_main_dashboard(app):
     app.btn_actions.config(menu=app.actions_menu)
 
     # 3. Export Excel (Export Globale)
-    app.btn_mega_export = ttk.Button(frame_top, text=tr("📊 Export Excel"), command=app.mega_export_excel)
+    app.btn_mega_export = ttk.Button(frame_top, text=tr("📥 Export Excel"), command=app.mega_export_excel)
     app.btn_mega_export.pack(side="left", padx=(0, 20))
 
     # 4. KPI Dashboard
