@@ -108,7 +108,8 @@ class VSMEventDialog(tk.Toplevel):
         screen_h = self.winfo_screenheight()
 
         # Dimensione iniziale più ampia ma non rigida; evita overflow su schermi piccoli.
-        target_width = min(max(base_width + 220, int(screen_w * 0.62)), int(screen_w * 0.9))
+        base_target_width = min(max(base_width + 220, int(screen_w * 0.62)), int(screen_w * 0.9))
+        target_width = int(base_target_width * 0.7)
         target_height = min(max(base_height + 90, int(screen_h * 0.62)), int(screen_h * 0.88))
         target_x = max(0, (screen_w - target_width) // 2)
         target_y = max(0, (screen_h - target_height) // 2)
