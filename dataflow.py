@@ -28,7 +28,7 @@ if sys.platform == 'win32':
 
 import tkinter as tk
 from tkinter import ttk, filedialog, simpledialog
-from tksheet import Sheet
+from tksheet import Sheet, natural_sort_key
 import os
 from database_manager import DatabaseManager, DatabaseError
 import tempfile
@@ -69,7 +69,13 @@ from constants import (
 
 # Importa utility stringhe e formattazione
 from utils.string_utils import generate_username
-from utils.format_utils import parse_float_from_comma_string, format_quantity_display, format_currency_display
+from utils.format_utils import (
+    parse_float_from_comma_string,
+    format_quantity_display,
+    format_currency_display,
+    get_currency_code,
+    get_currency_excel_number_format,
+)
 from utils.window_utils import calculate_center_position, calculate_optimal_window_size, center_window
 from utils.user_utils import get_app_data_dir, get_config_file, load_user_identity, save_user_identity
 from utils.resource_utils import resource_path, set_window_icon
@@ -163,6 +169,7 @@ class SettingsWindow(tk.Toplevel):
             self.autobackup_hour = tk.StringVar()
             self.autobackup_path = tk.StringVar()
             self.language_var = tk.StringVar()
+            self.currency_var = tk.StringVar(value=tr("None"))
             # Imposta un valore di default per la lingua (verrà aggiornato da load_settings)
             self.language_var.set("English")
 
@@ -231,8 +238,8 @@ class SettingsWindow(tk.Toplevel):
 
             ttk.Button(autobackup_frame, text=tr("💾 Save Backup Settings"), command=self.save_autobackup_settings).pack(pady=(10,0))
 
-            # --- Sezione Lingua ---
-            language_frame = ttk.LabelFrame(main_frame, text=tr("Language"), padding="10")
+            # --- Sezione Lingua e Valuta ---
+            language_frame = ttk.LabelFrame(main_frame, text=tr("Lingua e Valuta"), padding="10")
             language_frame.pack(fill="x", pady=(0, 15), padx=5)
             
             ttk.Label(language_frame, text=tr("Select the interface language. The change requires restarting the application."), font=(None, 10), wraplength=500).pack(anchor="w", pady=(0, 15))
@@ -246,6 +253,20 @@ class SettingsWindow(tk.Toplevel):
             language_combo.pack(side="left", padx=(0, 10))
             self.language_combo = language_combo  # Salva riferimento per aggiornamento successivo
             ttk.Button(lang_row, text=tr("💾 Save Language"), command=self.save_language_settings).pack(side="left")
+
+            # Riga per preferenza valuta globale
+            currency_row = ttk.Frame(language_frame)
+            currency_row.pack(fill="x", pady=(8, 0))
+            ttk.Label(currency_row, text=tr("Currency")).pack(side="left", padx=(0, 10))
+            self.currency_combo = ttk.Combobox(
+                currency_row,
+                textvariable=self.currency_var,
+                values=[tr("None"), "EUR", "USD", "GBP", "CHF"],
+                state="readonly",
+                width=20,
+            )
+            self.currency_combo.pack(side="left", padx=(0, 10))
+            ttk.Button(currency_row, text=tr("💾 Salva Valuta"), command=self.save_currency_settings).pack(side="left")
             
             # Assicura che il valore nel combobox corrisponda al codice lingua
             def on_language_change(event):
@@ -319,9 +340,14 @@ class SettingsWindow(tk.Toplevel):
                 except Exception as e:
                     logger.warning(f"Errore nel caricare lingua: {e}")
                     self.language_var.set("English")
+                currency_code = config.get('Settings', 'currency_code', fallback='NONE').strip().upper()
+                if currency_code not in {"NONE", "EUR", "USD", "GBP", "CHF"}:
+                    currency_code = "NONE"
+                self.currency_var.set(tr("None") if currency_code == "NONE" else currency_code)
             else:
                 # Se non c'è la sezione Settings, usa default inglese
                 self.language_var.set("English")
+                self.currency_var.set(tr("None"))
         except Exception as e:
             logger.error(f"Errore critico nel caricare impostazioni: {e}", exc_info=True)
             # Imposta valori di default in caso di errore
@@ -329,6 +355,7 @@ class SettingsWindow(tk.Toplevel):
             self.autobackup_hour.set("12")
             self.autobackup_path.set("")
             self.language_var.set("English")
+            self.currency_var.set(tr("None"))
 
     # La funzione save_display_settings() è stata rimossa perché le impostazioni
     # di visualizzazione sono ora gestite automaticamente da Windows DPI
@@ -368,6 +395,40 @@ class SettingsWindow(tk.Toplevel):
         except Exception as e:
             logger.error(f"Errore nel salvare la lingua: {e}", exc_info=True)
             SimpleMessageDialog(self, tr("Error"), tr("Unable to save language setting: {}").format(e), "error")
+
+    def save_currency_settings(self):
+        """Salva la preferenza valuta globale nel config.ini."""
+        try:
+            selected_currency_ui = self.currency_var.get().strip()
+            selected_currency = "NONE" if selected_currency_ui in {tr("None"), "NONE"} else selected_currency_ui.upper()
+            if selected_currency not in {"NONE", "EUR", "USD", "GBP", "CHF"}:
+                selected_currency = "NONE"
+
+            config = configparser.ConfigParser(interpolation=None)
+            config_file = get_config_file()
+            if os.path.exists(config_file):
+                config.read(config_file, encoding="utf-8")
+            if "Settings" not in config:
+                config["Settings"] = {}
+            config["Settings"]["currency_code"] = selected_currency
+
+            with open(config_file, "w", encoding="utf-8") as f:
+                config.write(f)
+
+            dialog = SimpleYesNoDialog(
+                self,
+                tr("Success"),
+                tr("Currency setting saved.")
+                + "\n"
+                + tr("The change requires restarting the application.")
+                + "\n"
+                + tr("Restart the application now to apply the changes?")
+            )
+            if dialog.result:
+                self.main_app.restart_program()
+        except Exception as e:
+            logger.error(f"Errore nel salvare valuta: {e}", exc_info=True)
+            SimpleMessageDialog(self, tr("Error"), tr("Unable to save currency setting: {}").format(e), "error")
 
     def select_autobackup_path(self):
         path = filedialog.askdirectory(title=tr("Select folder for automatic backups"), parent=self)
@@ -1587,7 +1648,8 @@ class MainWindow:
                 tr("Theoretical Savings"), tr("Actual Savings"),
                 tr("Realization %"), tr("Variance %"), tr("Repetitive"), tr("User")
             ]
-            align_cols = [0, 1, 2, 4, 5, 6, 7, 8, 9]
+            align_cols = [0, 1, 2, 6, 7, 8, 9]
+            amount_cols = [4, 5]
             n_cols = 10
         elif event_type == "Cost Avoidance":
             headers = [
@@ -1595,7 +1657,8 @@ class MainWindow:
                 tr("CA Theoretical"), tr("CA Actual"),
                 tr("Realization %"), tr("Variance %"), tr("Repetitive"), tr("User")
             ]
-            align_cols = [0, 1, 2, 4, 5, 6, 7, 8, 9]
+            align_cols = [0, 1, 2, 6, 7, 8, 9]
+            amount_cols = [4, 5]
             n_cols = 10
         else:
             # LEGACY DEAD CODE — Derisking VSM (precedente modello event-based).
@@ -1608,6 +1671,7 @@ class MainWindow:
                 tr("Repetitive"), tr("User")
             ]
             align_cols = [0, 3, 4]
+            amount_cols = []
             n_cols = 5
 
         # Calcola larghezze colonne dinamicamente dall'header (eccetto Descrizione)
@@ -1669,12 +1733,57 @@ class MainWindow:
         
         # Salva colonne centrate per riapplicarle dopo set_sheet_data() / set_column_widths()
         sheet._vsm_align_cols = align_cols
+        sheet._vsm_amount_cols = amount_cols
+
+        # Sort numerico per colonne importo (mantiene il display formattato).
+        def _currency_numeric_sort_key(value):
+            if isinstance(value, (int, float)):
+                return natural_sort_key(float(value))
+            if not isinstance(value, str):
+                return natural_sort_key(value)
+            text = value.replace("\xa0", " ").strip()
+            if not text:
+                return natural_sort_key(value)
+            normalized = text
+            for prefix in ("CHF ", "$", "£"):
+                if normalized.startswith(prefix):
+                    normalized = normalized[len(prefix):].strip()
+                    break
+            if normalized.endswith("€"):
+                normalized = normalized[:-1].strip()
+            if "," in normalized and "." in normalized:
+                if normalized.rfind(",") > normalized.rfind("."):
+                    normalized = normalized.replace(".", "").replace(",", ".")
+                else:
+                    normalized = normalized.replace(",", "")
+            elif "," in normalized:
+                parts = normalized.split(",")
+                if len(parts[-1]) in (1, 2):
+                    normalized = normalized.replace(".", "").replace(",", ".")
+                else:
+                    normalized = normalized.replace(",", "")
+            try:
+                return natural_sort_key(float(normalized))
+            except (TypeError, ValueError):
+                return natural_sort_key(value)
+
+        def _configure_vsm_sort_key(_event_data):
+            selected = sheet.get_currently_selected()
+            column = selected.column if selected is not None else None
+            if column in amount_cols:
+                sheet.set_options(redraw=False, sort_key=_currency_numeric_sort_key)
+            else:
+                sheet.set_options(redraw=False, sort_key=natural_sort_key)
+
+        sheet.extra_bindings("begin_sort_rows", _configure_vsm_sort_key)
         
         # Configura larghezze colonne
         sheet.set_column_widths(col_widths)
         
         # Centra colonne numeriche e date (Descrizione rimane left-aligned)
         sheet.align_columns(columns=align_cols, align="center")
+        if amount_cols:
+            sheet.align_columns(columns=amount_cols, align="right")
         
         # Abilita bindings
         sheet.enable_bindings()
@@ -2090,6 +2199,7 @@ class MainWindow:
         actual_to = _parse_amount(actual_to_str)
 
         use_dual_value = event_type in ("Saving", "Cost Avoidance")
+        currency_code = get_currency_code()
         meta_iter = extra_meta if extra_meta is not None else [None] * len(events)
         filtered_pairs = []
 
@@ -2152,6 +2262,7 @@ class MainWindow:
         """
         data_rows = []
         metadata = []
+        currency_code = get_currency_code()
         
         # Usa event_type dalla sheet se non passato direttamente
         if event_type is None:
@@ -2187,8 +2298,8 @@ class MainWindow:
                     event.event_type,
                     tr(event.action),
                     (event.description or event.reference or "")[:50],
-                    format_currency_display(valore_teorico, show_symbol=False),
-                    format_currency_display(valore_effettivo, show_symbol=False),
+                    format_currency_display(valore_teorico, currency_code=currency_code),
+                    format_currency_display(valore_effettivo, currency_code=currency_code),
                     f"{event.percent_realizzo:.2f}".replace('.', ',') + "%",
                     _variance_str,
                     "✓" if event.opex_ripetitivo else "",
@@ -2261,6 +2372,9 @@ class MainWindow:
         align_cols = getattr(sheet, '_vsm_align_cols', None)
         if align_cols:
             sheet.align_columns(columns=align_cols, align="center", redraw=False)
+        amount_cols = getattr(sheet, '_vsm_amount_cols', None)
+        if amount_cols:
+            sheet.align_columns(columns=amount_cols, align="right", redraw=False)
         # Redraw esplicito unico: sostituisce il timer deferred di set_sheet_data e
         # align_columns, garantendo un solo ridisegno con stato già completamente coerente.
         sheet.redraw(redraw_header=True, redraw_row_index=True)
@@ -4254,13 +4368,14 @@ class MainWindow:
         monetary_cols = {5, 6} if use_dual else {6}
         pct_cols = {7, 8} if use_dual else {7}
         rep_col = 9 if use_dual else 8  # Colonna "Ripetitivo/Repetitive" (1-based)
+        money_fmt = get_currency_excel_number_format()
 
         for row_idx, row_data in enumerate(data_rows, start=2):
             for col_idx, value in enumerate(row_data, start=1):
                 cell = ws.cell(row=row_idx, column=col_idx, value=value)
                 cell.border = thin_border
                 if col_idx in monetary_cols:
-                    cell.number_format = '#,##0.00'
+                    cell.number_format = money_fmt
                 elif col_idx in pct_cols:
                     cell.number_format = '0.0'
                 elif col_idx == rep_col:

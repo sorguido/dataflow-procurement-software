@@ -14,6 +14,7 @@ from datetime import datetime
 
 import openpyxl
 from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
+from utils.format_utils import get_currency_excel_number_format
 
 logger = logging.getLogger('DataFlow.KpiExcelExport')
 
@@ -95,8 +96,6 @@ def _f(v):
         return 0.0
 
 
-# Formato monetario standard (sistema locale dell'utente controlla il separatore migliaia)
-_FMT_MONEY = '#,##0.00'
 # Formato percentuale: es. 5.23
 _FMT_PCT   = '0.00'
 
@@ -114,6 +113,7 @@ def build_kpi_workbook(
     scope:          str,
     current_section: str,
     lang:           str,
+    currency_code:  str = "NONE",
 ) -> openpyxl.Workbook:
     """
     Genera il workbook Excel KPI Analysis.
@@ -132,6 +132,7 @@ def build_kpi_workbook(
         openpyxl.Workbook (non ancora salvato su disco)
     """
     is_ita = (lang == 'ita')
+    money_fmt = get_currency_excel_number_format(currency_code)
 
     sections = (
         [current_section] if scope == 'current'
@@ -141,15 +142,17 @@ def build_kpi_workbook(
     wb = openpyxl.Workbook()
     wb.remove(wb.active)   # Rimuove foglio "Sheet" di default
 
-    _build_summary(wb, rfq_data, saving_data, ca_data, derisking_data,
-                   filter_label, scope, current_section, sections, is_ita)
+    _build_summary(
+        wb, rfq_data, saving_data, ca_data, derisking_data,
+        filter_label, scope, current_section, sections, is_ita, money_fmt
+    )
 
     if 'RFQ' in sections:
         _build_rfq(wb, rfq_data, filter_label, is_ita)
     if 'Saving' in sections:
-        _build_saving(wb, saving_data, filter_label, is_ita)
+        _build_saving(wb, saving_data, filter_label, is_ita, money_fmt)
     if 'Cost Avoidance' in sections:
-        _build_ca(wb, ca_data, filter_label, is_ita)
+        _build_ca(wb, ca_data, filter_label, is_ita, money_fmt)
     if 'Derisking' in sections:
         _build_derisking(wb, derisking_data, filter_label, is_ita)
 
@@ -161,7 +164,7 @@ def build_kpi_workbook(
 # ---------------------------------------------------------------------------
 
 def _build_summary(wb, rfq, sav, ca, der,
-                   filter_label, scope, current_section, sections, is_ita):
+                   filter_label, scope, current_section, sections, is_ita, money_fmt):
     sheet_name = _t(is_ita, "Riepilogo", "Summary")
     ws = wb.create_sheet(sheet_name)
     _w(ws, 'A', 34)
@@ -205,8 +208,8 @@ def _build_summary(wb, rfq, sav, ca, der,
 
     all_rows = (
         _rows_rfq(rfq, is_ita)
-        + _rows_saving(sav, is_ita)
-        + _rows_ca(ca, is_ita)
+        + _rows_saving(sav, is_ita, money_fmt)
+        + _rows_ca(ca, is_ita, money_fmt)
         + _rows_derisking(der, is_ita)
     )
     for sec_key, kpi_name, value, fmt in all_rows:
@@ -236,50 +239,50 @@ def _rows_rfq(data, is_ita):
     ]
 
 
-def _rows_saving(data, is_ita):
+def _rows_saving(data, is_ita, money_fmt):
     if not data:
         return []
     rows = [
-        ('Saving', _t(is_ita, "Saving Teorico",              "Theoretical Saving"),        _f(data.get('theoretical_saving')),   _FMT_MONEY),
-        ('Saving', _t(is_ita, "Saving Effettivo",            "Actual Saving"),             _f(data.get('actual_saving')),         _FMT_MONEY),
+        ('Saving', _t(is_ita, "Saving Teorico",              "Theoretical Saving"),        _f(data.get('theoretical_saving')),   money_fmt),
+        ('Saving', _t(is_ita, "Saving Effettivo",            "Actual Saving"),             _f(data.get('actual_saving')),         money_fmt),
         ('Saving', _t(is_ita, "Media % Saving Teorico",      "Avg Theoretical Saving %"),  _f(data.get('average_saving_pct')),   _FMT_PCT),
         ('Saving', _t(is_ita, "Best Saving %",               "Best Saving %"),             _f(data.get('best_saving_pct')),      _FMT_PCT),
         ('Saving', _t(is_ita, "Worst Saving %",              "Worst Saving %"),            _f(data.get('worst_saving_pct')),     _FMT_PCT),
         ('Saving', _t(is_ita, "Mediana Saving %",            "Median Saving %"),           _f(data.get('median_saving_pct')),    _FMT_PCT),
-        ('Saving', _t(is_ita, "Impatto Ricorrente (€)",      "Recurring Impact (€)"),      _f(data.get('recurring_impact')),     _FMT_MONEY),
-        ('Saving', _t(is_ita, "Impatto Non Ricorrente (€)",  "Non-Recurring Impact (€)"),  _f(data.get('non_recurring_impact')), _FMT_MONEY),
+        ('Saving', _t(is_ita, "Impatto Ricorrente",          "Recurring Impact"),          _f(data.get('recurring_impact')),     money_fmt),
+        ('Saving', _t(is_ita, "Impatto Non Ricorrente",      "Non-Recurring Impact"),      _f(data.get('non_recurring_impact')), money_fmt),
     ]
     co = data.get('carry_over_to_next_year')
     if co is not None:
         rows.append((
             'Saving',
-            _t(is_ita, "Carry-over Anno Successivo (€)", "Carry-over to Next Year (€)"),
+            _t(is_ita, "Carry-over Anno Successivo", "Carry-over to Next Year"),
             _f(co),
-            _FMT_MONEY,
+            money_fmt,
         ))
     return rows
 
 
-def _rows_ca(data, is_ita):
+def _rows_ca(data, is_ita, money_fmt):
     if not data:
         return []
     rows = [
-        ('Cost Avoidance', _t(is_ita, "CA Teorico",             "Theoretical CA"),        _f(data.get('theoretical_cost_avoidance')),  _FMT_MONEY),
-        ('Cost Avoidance', _t(is_ita, "CA Effettivo",           "Actual CA"),             _f(data.get('actual_cost_avoidance')),        _FMT_MONEY),
+        ('Cost Avoidance', _t(is_ita, "CA Teorico",             "Theoretical CA"),        _f(data.get('theoretical_cost_avoidance')),  money_fmt),
+        ('Cost Avoidance', _t(is_ita, "CA Effettivo",           "Actual CA"),             _f(data.get('actual_cost_avoidance')),        money_fmt),
         ('Cost Avoidance', _t(is_ita, "Media % CA Teorico",     "Avg Theoretical CA %"),  _f(data.get('average_pct')),                  _FMT_PCT),
         ('Cost Avoidance', _t(is_ita, "Best %",                 "Best %"),                _f(data.get('best_pct')),                     _FMT_PCT),
         ('Cost Avoidance', _t(is_ita, "Worst %",                "Worst %"),               _f(data.get('worst_pct')),                    _FMT_PCT),
         ('Cost Avoidance', _t(is_ita, "Mediana %",              "Median %"),              _f(data.get('median_pct')),                   _FMT_PCT),
-        ('Cost Avoidance', _t(is_ita, "Ricorrente (€)",         "Recurring (€)"),         _f(data.get('recurring')),                    _FMT_MONEY),
-        ('Cost Avoidance', _t(is_ita, "Non Ricorrente (€)",     "Non-Recurring (€)"),     _f(data.get('non_recurring')),                 _FMT_MONEY),
+        ('Cost Avoidance', _t(is_ita, "Ricorrente",             "Recurring"),             _f(data.get('recurring')),                    money_fmt),
+        ('Cost Avoidance', _t(is_ita, "Non Ricorrente",         "Non-Recurring"),         _f(data.get('non_recurring')),               money_fmt),
     ]
     co = data.get('carry_over_to_next_year')
     if co is not None:
         rows.append((
             'Cost Avoidance',
-            _t(is_ita, "Carry-over Anno Successivo (€)", "Carry-over to Next Year (€)"),
+            _t(is_ita, "Carry-over Anno Successivo", "Carry-over to Next Year"),
             _f(co),
-            _FMT_MONEY,
+            money_fmt,
         ))
     return rows
 
@@ -327,7 +330,7 @@ def _build_rfq(wb, data, filter_label, is_ita):
 # Foglio SAVING
 # ---------------------------------------------------------------------------
 
-def _build_saving(wb, data, filter_label, is_ita):
+def _build_saving(wb, data, filter_label, is_ita, money_fmt):
     ws = wb.create_sheet("Saving")
     _w(ws, 'A', 38)
     _w(ws, 'B', 22)
@@ -336,7 +339,7 @@ def _build_saving(wb, data, filter_label, is_ita):
     _hdr(ws, r, 1, "KPI")
     _hdr(ws, r, 2, _t(is_ita, "Valore", "Value"))
     r += 1
-    for _, kpi_name, value, fmt in _rows_saving(data, is_ita):
+    for _, kpi_name, value, fmt in _rows_saving(data, is_ita, money_fmt):
         _dat(ws, r, 1, kpi_name)
         _dat(ws, r, 2, value, fmt=fmt, align=_CENTER)
         r += 1
@@ -346,7 +349,7 @@ def _build_saving(wb, data, filter_label, is_ita):
 # Foglio COST AVOIDANCE
 # ---------------------------------------------------------------------------
 
-def _build_ca(wb, data, filter_label, is_ita):
+def _build_ca(wb, data, filter_label, is_ita, money_fmt):
     ws = wb.create_sheet("Cost Avoidance")
     _w(ws, 'A', 38)
     _w(ws, 'B', 22)
@@ -355,7 +358,7 @@ def _build_ca(wb, data, filter_label, is_ita):
     _hdr(ws, r, 1, "KPI")
     _hdr(ws, r, 2, _t(is_ita, "Valore", "Value"))
     r += 1
-    for _, kpi_name, value, fmt in _rows_ca(data, is_ita):
+    for _, kpi_name, value, fmt in _rows_ca(data, is_ita, money_fmt):
         _dat(ws, r, 1, kpi_name)
         _dat(ws, r, 2, value, fmt=fmt, align=_CENTER)
         r += 1

@@ -3,6 +3,14 @@ Utility per formattazione numeri secondo convenzioni italiane.
 Gestione conversione virgola/punto decimale.
 """
 
+import configparser
+import os
+
+from utils.user_utils import get_config_file
+
+
+_VALID_CURRENCY_CODES = {"NONE", "EUR", "USD", "GBP", "CHF"}
+
 
 def parse_float_from_comma_string(s):
     """Converte una stringa con virgola decimale in float, con validazione robusta.
@@ -88,24 +96,64 @@ def format_amount_display(val):
         return str(val)
 
 
-def format_currency_display(val, show_symbol=True):
-    """Formatta un valore monetario con separatore migliaia e virgola decimale.
-
-    Convenzione italiana: punto come separatore migliaia, virgola come decimale.
-
-    Esempi:
-        2000.0       → "€ 2.000,00" (show_symbol=True)
-        38700.5      → "38.700,50"  (show_symbol=False)
-        -2.16        → "-2,16"      (show_symbol=False)
-        0.32         → "0,32"       (show_symbol=False)
-    """
-    if val is None:
-        return '€ 0,00' if show_symbol else '0,00'
+def get_currency_code(default="NONE"):
+    """Legge il codice valuta globale da config.ini (Settings.currency_code)."""
+    fallback = default if default in _VALID_CURRENCY_CODES else "NONE"
     try:
-        # :,.2f usa virgola come migliaia e punto come decimali (en_US)
-        # swap: virgola↔punto per convenzione italiana
-        formatted = f"{float(val):,.2f}"
-        numeric = formatted.replace(',', 'X').replace('.', ',').replace('X', '.')
-        return f"€ {numeric}" if show_symbol else numeric
+        config_file = get_config_file()
+        config = configparser.ConfigParser(interpolation=None)
+        if os.path.exists(config_file):
+            config.read(config_file, encoding="utf-8")
+        value = config.get("Settings", "currency_code", fallback=fallback).strip().upper()
+        return value if value in _VALID_CURRENCY_CODES else fallback
+    except Exception:
+        return fallback
+
+
+def _format_number_it(value):
+    return f"{value:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+
+
+def _format_number_en(value):
+    return f"{value:,.2f}"
+
+
+def format_currency_display(val, currency_code=None):
+    """Formatta un importo in base alla preferenza valuta globale (solo display)."""
+    code = (currency_code or get_currency_code()).upper()
+    if code not in _VALID_CURRENCY_CODES:
+        code = "NONE"
+    try:
+        value = float(val or 0.0)
     except (ValueError, TypeError):
         return str(val)
+
+    if code in {"NONE", "EUR"}:
+        numeric = _format_number_it(value)
+    else:
+        numeric = _format_number_en(value)
+
+    if code == "NONE":
+        return numeric
+    if code == "EUR":
+        return f"{numeric} €"
+    if code == "USD":
+        return f"${numeric}"
+    if code == "GBP":
+        return f"£{numeric}"
+    # CHF
+    return f"CHF {numeric}"
+
+
+def get_currency_excel_number_format(currency_code=None):
+    """Restituisce il number_format Excel per importi numerici secondo valuta scelta."""
+    code = (currency_code or get_currency_code()).upper()
+    if code == "EUR":
+        return '#,##0.00 "€"'
+    if code == "USD":
+        return "$#,##0.00"
+    if code == "GBP":
+        return "£#,##0.00"
+    if code == "CHF":
+        return '#,##0.00 "CHF"'
+    return "#,##0.00"

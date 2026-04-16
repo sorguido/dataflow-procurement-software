@@ -251,6 +251,9 @@ msgstr "Backup Automatico Giornaliero"
 msgid "Language"
 msgstr "Lingua"
 
+msgid "Lingua e Valuta"
+msgstr "Lingua e Valuta"
+
 msgid "Select a language."
 msgstr "Seleziona una lingua."
 
@@ -558,6 +561,30 @@ msgstr "Lingua:"
 
 msgid "💾 Save Language"
 msgstr "💾 Salva Lingua"
+
+msgid "💾 Salva Valuta"
+msgstr "💾 Salva Valuta"
+
+msgid "Currency"
+msgstr "Valuta"
+
+msgid "None"
+msgstr "Nessuna valuta"
+
+msgid "Save Currency"
+msgstr "Salva Valuta"
+
+msgid "Currency setting saved."
+msgstr "Impostazione valuta salvata."
+
+msgid "The change requires restarting the application."
+msgstr "La modifica richiede il riavvio dell'applicazione."
+
+msgid "Restart the application now to apply the changes?"
+msgstr "Riavviare ora l'applicazione per applicare le modifiche?"
+
+msgid "Unable to save currency setting: {}"
+msgstr "Impossibile salvare l'impostazione valuta: {}"
 
 msgid "Unable to save language setting: {}"
 msgstr "Impossibile salvare l'impostazione della lingua: {}"

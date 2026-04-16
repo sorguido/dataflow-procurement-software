@@ -17,6 +17,7 @@ from datetime import date, timedelta, datetime as _dt
 from utils.window_utils import center_window
 from utils.resource_utils import set_window_icon
 from utils.i18n_utils import tr, get_current_language
+from utils.format_utils import format_currency_display, get_currency_code
 from ui.dialogs.common_dialogs import LanguagePrompt, SimpleMessageDialog
 from services.kpi_engine import (
     get_rfq_kpi,
@@ -48,20 +49,6 @@ def _fmt_int(v) -> str:
         return str(int(v or 0))
     except (TypeError, ValueError):
         return "0"
-
-
-def _fmt_money(v, with_symbol: bool = True) -> str:
-    """Formatta un valore monetario: formato italiano (punto migliaia).
-
-    Esempi:
-        20000   → "20.000 €" (with_symbol=True)
-        20000   → "20.000"   (with_symbol=False)
-    """
-    try:
-        formatted = f"{float(v or 0):,.0f}".replace(",", ".")
-        return f"{formatted} €" if with_symbol else formatted
-    except (TypeError, ValueError):
-        return "0 €" if with_symbol else "0"
 
 
 def _fmt_pct(v) -> str:
@@ -284,9 +271,9 @@ class KpiWindow(tk.Toplevel):
         tab_derisking = ttk.Frame(self._notebook)
 
         self._notebook.add(tab_rfq, text=tr("  RFQ  "))
-        self._notebook.add(tab_saving, text=tr("  Saving  "))
-        self._notebook.add(tab_ca, text=tr("  Cost Avoidance  "))
-        self._notebook.add(tab_derisking, text=tr("  Derisking  "))
+        self._notebook.add(tab_saving, text=tr("Saving"))
+        self._notebook.add(tab_ca, text=tr("Cost Avoidance"))
+        self._notebook.add(tab_derisking, text=tr("Derisking"))
 
         self._build_tab_rfq(tab_rfq)
         self._build_tab_saving(tab_saving)
@@ -321,8 +308,8 @@ class KpiWindow(tk.Toplevel):
             (tr("Best Saving %"),         "best_saving_pct"),
             (tr("Worst Saving %"),        "worst_saving_pct"),
             (tr("Median Saving %"),       "median_saving_pct"),
-            (tr("Recurring Impact (€)"),     "recurring_impact"),
-            (tr("Non-Recurring Impact (€)"),  "non_recurring_impact"),
+            (tr("Recurring Impact"),      "recurring_impact"),
+            (tr("Non-Recurring Impact"),  "non_recurring_impact"),
         ]
         self._saving_labels = self._build_section(parent, items, section_key='saving')
 
@@ -338,9 +325,9 @@ class KpiWindow(tk.Toplevel):
             (tr("Best %"),                      "best_pct"),
             (tr("Worst %"),                     "worst_pct"),
             (tr("Median %"),                    "median_pct"),
-            (tr("Recurring (\u20ac)"),     "recurring"),
-            (tr("Non-Recurring (\u20ac)"), "non_recurring"),
-            (tr("Carry-over to next year (\u20ac)"), "carry_over_to_next_year"),
+            (tr("Recurring"),               "recurring"),
+            (tr("Non-Recurring"),           "non_recurring"),
+            (tr("Carry-over to next year"), "carry_over_to_next_year"),
         ]
         self._ca_labels = self._build_section(parent, items, section_key='ca')
 
@@ -578,10 +565,11 @@ class KpiWindow(tk.Toplevel):
             if key in ('rfq', 'derisking'):
                 tree.insert('', 'end', values=(d['label'], _fmt_int(d['count'])))
             else:  # saving, ca
+                currency_code = get_currency_code()
                 tree.insert('', 'end', values=(
                     d['label'],
-                    _fmt_money(d['theoretical'], with_symbol=False),
-                    _fmt_money(d['actual'], with_symbol=False),
+                    format_currency_display(d['theoretical'], currency_code=currency_code),
+                    format_currency_display(d['actual'], currency_code=currency_code),
                 ))
 
     # ------------------------------------------------------------------
@@ -725,6 +713,7 @@ class KpiWindow(tk.Toplevel):
                 scope=scope_dlg.scope,
                 current_section=current_section,
                 lang=lang,
+                currency_code=get_currency_code(),
             )
         except Exception as e:
             logger.error("[KpiWindow] build_kpi_workbook failed: %s", e, exc_info=True)
@@ -943,7 +932,7 @@ class KpiWindow(tk.Toplevel):
             label2=_t_ui(is_ita, "Effettivo", "Actual"),
             title=_t_ui(is_ita, "Saving teorico vs effettivo per periodo",
                         "Theoretical vs Actual Saving per period"),
-            y_label="Saving (€)",
+            y_label=_t_ui(is_ita, "Saving", "Saving"),
             x_label=_t_ui(is_ita, "Periodo", "Period"),
         )
 
@@ -956,7 +945,7 @@ class KpiWindow(tk.Toplevel):
             label2=_t_ui(is_ita, "Effettivo", "Actual"),
             title=_t_ui(is_ita, "Cost avoidance teorico vs effettivo per periodo",
                         "Theoretical vs Actual CA per period"),
-            y_label="Cost Avoidance (€)",
+            y_label=_t_ui(is_ita, "Cost Avoidance", "Cost Avoidance"),
             x_label=_t_ui(is_ita, "Periodo", "Period"),
         )
 
@@ -987,6 +976,7 @@ class KpiWindow(tk.Toplevel):
                       "worst_saving_pct", "median_saving_pct"}
         money_keys = {"theoretical_saving", "actual_saving",
                       "recurring_impact", "non_recurring_impact"}
+        currency_code = get_currency_code()
         for key, lbl in self._saving_labels.items():
             if key in pct_keys:
                 lbl.config(text=_fmt_pct(data.get(key, 0)), foreground="#222222")
@@ -995,9 +985,9 @@ class KpiWindow(tk.Toplevel):
                 if raw is None:
                     lbl.config(text="\u2014", foreground="#888888")
                 else:
-                    lbl.config(text=_fmt_money(raw), foreground="#222222")
+                    lbl.config(text=format_currency_display(raw, currency_code=currency_code), foreground="#222222")
             elif key in money_keys:
-                lbl.config(text=_fmt_money(data.get(key, 0)), foreground="#222222")
+                lbl.config(text=format_currency_display(data.get(key, 0), currency_code=currency_code), foreground="#222222")
             else:
                 lbl.config(text=str(data.get(key, 0) or 0), foreground="#222222")
 
@@ -1006,6 +996,7 @@ class KpiWindow(tk.Toplevel):
         pct_keys   = {"average_pct", "best_pct", "worst_pct", "median_pct"}
         money_keys = {"theoretical_cost_avoidance", "actual_cost_avoidance",
                       "recurring", "non_recurring"}
+        currency_code = get_currency_code()
         for key, lbl in self._ca_labels.items():
             if key in pct_keys:
                 lbl.config(text=_fmt_pct(data.get(key, 0)), foreground="#222222")
@@ -1014,9 +1005,9 @@ class KpiWindow(tk.Toplevel):
                 if raw is None:
                     lbl.config(text="\u2014", foreground="#888888")
                 else:
-                    lbl.config(text=_fmt_money(raw), foreground="#222222")
+                    lbl.config(text=format_currency_display(raw, currency_code=currency_code), foreground="#222222")
             elif key in money_keys:
-                lbl.config(text=_fmt_money(data.get(key, 0)), foreground="#222222")
+                lbl.config(text=format_currency_display(data.get(key, 0), currency_code=currency_code), foreground="#222222")
             else:
                 lbl.config(text=str(data.get(key, 0) or 0), foreground="#222222")
 
