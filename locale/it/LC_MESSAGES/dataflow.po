@@ -866,8 +866,8 @@ msgstr "🔍 Cerca"
 msgid "🧹 Clear Filters"
 msgstr "🔎 Pulisci Filtri"
 
-msgid "v2.1.0 - Developed by "
-msgstr "v2.1.0 - Sviluppato da "
+msgid "v.2.2.0 - Developed by "
+msgstr "v.2.2.0 - Sviluppato da "
 
 msgid " © 2025–2026 - Released under GNU GPLv3 license"
 msgstr " © 2025–2026 - Rilasciato sotto licenza GNU GPLv3"
