@@ -562,6 +562,9 @@ msgstr "Lingua:"
 msgid "💾 Save Language"
 msgstr "💾 Salva Lingua"
 
+msgid "💾 Save Settings"
+msgstr "💾 Salva Impostazioni"
+
 msgid "💾 Salva Valuta"
 msgstr "💾 Salva Valuta"
 
@@ -588,6 +591,9 @@ msgstr "Impossibile salvare l'impostazione valuta: {}"
 
 msgid "Unable to save language setting: {}"
 msgstr "Impossibile salvare l'impostazione della lingua: {}"
+
+msgid "No changes to save."
+msgstr "Nessuna modifica da salvare."
 
 msgid "Unable to save: {}"
 msgstr "Impossibile salvare: {}"

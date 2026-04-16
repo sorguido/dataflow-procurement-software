@@ -13,6 +13,25 @@ from utils.string_utils import generate_username
 from utils.i18n_utils import get_current_language, tr
 
 
+def _add_dataflow_logo_to_parent(dialog, parent, max_width=273):
+    """Aggiunge il logo DataFlow (stesso asset/strategia splash) al parent, se disponibile."""
+    try:
+        logo_path = resource_path(os.path.join("add_data", "logo_dataflow.png"))
+        if not os.path.exists(logo_path):
+            return False
+
+        img = Image.open(logo_path)
+        if img.width <= 0 or img.height <= 0:
+            return False
+
+        img.thumbnail((max_width, int(max_width * (img.height / img.width))), Image.Resampling.LANCZOS)
+        dialog.logo_photo = ImageTk.PhotoImage(img)
+        ttk.Label(parent, image=dialog.logo_photo).pack()
+        return True
+    except Exception:
+        return False
+
+
 class SimpleMessageDialog(tk.Toplevel):
     """Dialog semplice per messaggi con font uniforme all'app."""
     def __init__(self, parent, title, message, msg_type="info"):
@@ -304,6 +323,11 @@ class UserIdentityDialog(tk.Toplevel):
         
         frame = ttk.Frame(self, padding=20)
         frame.pack(fill="both", expand=True)
+
+        header_frame = ttk.Frame(frame)
+        header_frame.grid(row=0, column=0, columnspan=2, pady=(0, 12))
+        if not _add_dataflow_logo_to_parent(self, header_frame):
+            header_frame.destroy()
         
         ttk.Label(
             frame,
@@ -311,22 +335,22 @@ class UserIdentityDialog(tk.Toplevel):
             font=(None, 10),
             wraplength=320,
             justify="left"
-        ).grid(row=0, column=0, columnspan=2, sticky="w", pady=(0, 10))
+        ).grid(row=1, column=0, columnspan=2, sticky="w", pady=(0, 10))
         
-        ttk.Label(frame, text=tr("First Name:")).grid(row=1, column=0, sticky="w", pady=5)
+        ttk.Label(frame, text=tr("First Name:")).grid(row=2, column=0, sticky="w", pady=5)
         first_entry = ttk.Entry(frame, textvariable=self.first_var, width=30)
-        first_entry.grid(row=1, column=1, sticky="ew", pady=5)
+        first_entry.grid(row=2, column=1, sticky="ew", pady=5)
         
-        ttk.Label(frame, text=tr("Last Name:")).grid(row=2, column=0, sticky="w", pady=5)
+        ttk.Label(frame, text=tr("Last Name:")).grid(row=3, column=0, sticky="w", pady=5)
         last_entry = ttk.Entry(frame, textvariable=self.last_var, width=30)
-        last_entry.grid(row=2, column=1, sticky="ew", pady=5)
+        last_entry.grid(row=3, column=1, sticky="ew", pady=5)
         
-        ttk.Label(frame, text=tr("Generated Username:")).grid(row=3, column=0, sticky="w", pady=(10, 0))
+        ttk.Label(frame, text=tr("Generated Username:")).grid(row=4, column=0, sticky="w", pady=(10, 0))
         username_display = ttk.Label(frame, textvariable=self.username_var, font=("Calibri", 12, "bold"), foreground="#005AA0")
-        username_display.grid(row=3, column=1, sticky="w", pady=(10, 0))
+        username_display.grid(row=4, column=1, sticky="w", pady=(10, 0))
         
         confirm_btn = ttk.Button(frame, text=tr("Confirm"), command=self._on_confirm)
-        confirm_btn.grid(row=4, column=0, columnspan=2, pady=(20, 0), sticky="ew")
+        confirm_btn.grid(row=5, column=0, columnspan=2, pady=(20, 0), sticky="ew")
         
         frame.columnconfigure(1, weight=1)
         
@@ -511,6 +535,11 @@ class LicenseAcceptanceDialog(tk.Toplevel):
 
         frame = ttk.Frame(self, padding=20)
         frame.pack(fill="both", expand=True)
+
+        header_frame = ttk.Frame(frame)
+        header_frame.pack(fill="x", pady=(0, 12))
+        if not _add_dataflow_logo_to_parent(self, header_frame):
+            header_frame.destroy()
 
         ttk.Label(
             frame,

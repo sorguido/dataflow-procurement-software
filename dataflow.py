@@ -169,6 +169,7 @@ from services.dashboard_search_service import (
     filter_vsm_events_by_query,
 )
 from services.settings_preferences_service import (
+    ALLOWED_CURRENCIES,
     load_settings_snapshot,
     save_language_preference,
     save_currency_preference,
@@ -268,7 +269,7 @@ class SettingsWindow(tk.Toplevel):
                 dataflow_frame, 
                 text=tr("📁 Change DataFlow Location..."), 
                 command=self.select_standard_dataflow_location
-            ).pack(anchor="w")
+            ).pack()
             
             try:
                 current_dataflow = get_user_documents_dataflow_dir()
@@ -287,7 +288,7 @@ class SettingsWindow(tk.Toplevel):
             backup_frame = ttk.LabelFrame(main_frame, text=tr("Manual Backup"), padding="10")
             backup_frame.pack(fill="x", pady=(0, 15), padx=5)
             ttk.Label(backup_frame, text=tr("Create an immediate backup of the database."), font=(None, 10), wraplength=500).pack(anchor="w", pady=(0, 10))
-            ttk.Button(backup_frame, text=tr("💾 Manual Backup..."), command=self.backup_database).pack(anchor="w")
+            ttk.Button(backup_frame, text=tr("💾 Manual Backup..."), command=self.backup_database).pack()
 
             # --- Sezione Backup Automatico ---
             autobackup_frame = ttk.LabelFrame(main_frame, text=tr("Daily Automatic Backup"), padding="10")
@@ -325,7 +326,6 @@ class SettingsWindow(tk.Toplevel):
             language_combo = ttk.Combobox(lang_row, textvariable=self.language_var, values=["English", "Italiano"], state="readonly", width=20)
             language_combo.pack(side="left", padx=(0, 10))
             self.language_combo = language_combo  # Salva riferimento per aggiornamento successivo
-            ttk.Button(lang_row, text=tr("💾 Save Language"), command=self.save_language_settings).pack(side="left")
 
             # Riga per preferenza valuta globale
             currency_row = ttk.Frame(language_frame)
@@ -339,7 +339,11 @@ class SettingsWindow(tk.Toplevel):
                 width=20,
             )
             self.currency_combo.pack(side="left", padx=(0, 10))
-            ttk.Button(currency_row, text=tr("💾 Salva Valuta"), command=self.save_currency_settings).pack(side="left")
+            ttk.Button(
+                language_frame,
+                text=tr("💾 Save Settings"),
+                command=self.save_language_currency_settings,
+            ).pack(pady=(12, 0))
             
             # Assicura che il valore nel combobox corrisponda al codice lingua
             def on_language_change(event):
@@ -444,6 +448,56 @@ class SettingsWindow(tk.Toplevel):
         except Exception as e:
             logger.error(f"Errore nel salvare valuta: {e}", exc_info=True)
             SimpleMessageDialog(self, tr("Error"), tr("Unable to save currency setting: {}").format(e), "error")
+
+    def save_language_currency_settings(self):
+        """Salva lingua/valuta con un solo feedback finale e un solo prompt di restart."""
+        try:
+            selected_lang = self.language_var.get()
+            if not selected_lang:
+                SimpleMessageDialog(self, tr("Warning"), tr("Select a language."), "warning")
+                return
+
+            snapshot = load_settings_snapshot(get_config_file())
+            selected_lang_code = "en" if selected_lang == "English" else "it"
+
+            selected_currency_ui = (self.currency_var.get() or "").strip()
+            selected_currency_code = (
+                "NONE"
+                if selected_currency_ui in {tr("None"), "NONE"}
+                else selected_currency_ui.upper()
+            )
+            if selected_currency_code not in ALLOWED_CURRENCIES:
+                selected_currency_code = "NONE"
+
+            language_changed = selected_lang_code != snapshot["language_code"]
+            currency_changed = selected_currency_code != snapshot["currency_code"]
+
+            if not language_changed and not currency_changed:
+                SimpleMessageDialog(self, tr("Info"), tr("No changes to save."), "info")
+                return
+
+            if language_changed:
+                save_language_preference(get_config_file(), selected_lang)
+
+            if currency_changed:
+                save_currency_preference(
+                    get_config_file(),
+                    self.currency_var.get(),
+                    tr("None"),
+                )
+
+            dialog = SimpleYesNoDialog(
+                self,
+                tr("Success"),
+                tr("The change requires restarting the application.")
+                + "\n"
+                + tr("Restart the application now to apply the changes?"),
+            )
+            if dialog.result:
+                self.main_app.restart_program()
+        except Exception as e:
+            logger.error(f"Errore nel salvare lingua/valuta: {e}", exc_info=True)
+            SimpleMessageDialog(self, tr("Error"), tr("Unable to save: {}").format(e), "error")
 
     def select_autobackup_path(self):
         path = filedialog.askdirectory(title=tr("Select folder for automatic backups"), parent=self)
