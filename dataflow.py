@@ -177,6 +177,8 @@ from services.settings_preferences_service import (
 )
 from services.settings_maintenance_service import (
     read_autobackup_config,
+    read_last_autobackup_date,
+    save_last_autobackup_date,
     copy_manual_backup_bundle,
     perform_autobackup_copy,
 )
@@ -1322,13 +1324,17 @@ class MainWindow:
             )
 
     def check_for_autobackup(self):
-        enabled, path, hour = read_autobackup_config(get_config_file())
+        config_file = get_config_file()
+        enabled, path, hour = read_autobackup_config(config_file)
         if enabled and path and hour:
             try:
                 now = datetime.now()
-                if now.hour == int(hour) and now.date() != self.last_backup_date:
-                    self.perform_autobackup(path)
-                    self.last_backup_date = now.date()
+                persisted_last_run_date = read_last_autobackup_date(config_file)
+                self.last_backup_date = persisted_last_run_date
+                if now.hour == int(hour) and now.date() != persisted_last_run_date:
+                    if self.perform_autobackup(path):
+                        self.last_backup_date = now.date()
+                        save_last_autobackup_date(config_file, now.date())
             except Exception as e:
                 print(f"ERRORE AUTOBACKUP: {e}")
         
@@ -1353,7 +1359,7 @@ class MainWindow:
         # Verifica che non ci sia un backup già in corso
         if hasattr(self, '_backup_in_progress') and self._backup_in_progress:
             logger.warning("Backup già in corso, saltato")
-            return
+            return False
         
         self._backup_in_progress = True
         
@@ -1364,7 +1370,7 @@ class MainWindow:
                 logger=logger,
             )
             if not result.get("copied"):
-                return
+                return False
 
             files_copied = len(result["copied_files"])
             total_size = result["total_size"]
@@ -1375,10 +1381,12 @@ class MainWindow:
                 total_size,
                 (total_size / original_size * 100) if original_size else 0.0,
             )
+            return True
             
         except Exception as e:
             logger.error(f"Errore backup automatico: {e}", exc_info=True)
             print(f"ERRORE AUTOBACKUP: {e}")
+            return False
         finally:
             self._backup_in_progress = False
 

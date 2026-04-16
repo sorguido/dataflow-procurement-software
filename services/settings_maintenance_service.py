@@ -21,6 +21,30 @@ def read_autobackup_config(config_file):
     )
 
 
+def read_last_autobackup_date(config_file):
+    """Read persisted last autobackup date (YYYY-MM-DD). Returns date or None."""
+    config = configparser.ConfigParser(interpolation=None)
+    config.read(config_file)
+    raw_value = config.get("AutoBackup", "last_run_date", fallback="").strip()
+    if not raw_value:
+        return None
+    try:
+        return datetime.strptime(raw_value, "%Y-%m-%d").date()
+    except ValueError:
+        return None
+
+
+def save_last_autobackup_date(config_file, run_date):
+    """Persist last successful autobackup date in YYYY-MM-DD format."""
+    config = configparser.ConfigParser(interpolation=None)
+    config.read(config_file)
+    if "AutoBackup" not in config:
+        config["AutoBackup"] = {}
+    config["AutoBackup"]["last_run_date"] = run_date.strftime("%Y-%m-%d")
+    with open(config_file, "w", encoding="utf-8") as file_obj:
+        config.write(file_obj)
+
+
 def copy_manual_backup_bundle(*, db_file, dest, logger):
     """Copy DB + optional WAL/SHM for manual backup destination."""
     for attempt in range(5):
@@ -78,9 +102,9 @@ def perform_autobackup_copy(*, db_file, dest_folder, logger):
     time.sleep(0.2)
 
     backup_sets = {}
-    for ext in ["*.db", "*.db-wal", "*.db-shm"]:
-        pattern = os.path.join(dest_folder, f"*_backup_auto_{ext.replace('*', '')}")
-        for filepath in glob.glob(pattern):
+    for pattern in ["*_backup_auto_*.db", "*_backup_auto_*.db-wal", "*_backup_auto_*.db-shm"]:
+        full_pattern = os.path.join(dest_folder, pattern)
+        for filepath in glob.glob(full_pattern):
             basename = os.path.basename(filepath)
             try:
                 timestamp_part = basename.split("_backup_auto_")[1].rsplit(".", 1)[0]

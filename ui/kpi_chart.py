@@ -166,6 +166,8 @@ def draw_dual_bar_chart(
 
         # Serie 1 — Theoretical (blu)
         h1 = int((tv / max_v) * plot_h)
+        if tv > 0 and h1 == 0:
+            h1 = 1
         if h1 > 0:
             canvas.create_rectangle(
                 x_left, base_y - h1, x_left + bw, base_y,
@@ -173,6 +175,8 @@ def draw_dual_bar_chart(
             )
         # Serie 2 — Actual (arancio)
         h2 = int((av / max_v) * plot_h)
+        if av > 0 and h2 == 0:
+            h2 = 1
         if h2 > 0:
             canvas.create_rectangle(
                 x_left + bw + 1, base_y - h2,
