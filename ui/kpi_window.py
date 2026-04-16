@@ -310,6 +310,7 @@ class KpiWindow(tk.Toplevel):
             (tr("Median Saving %"),       "median_saving_pct"),
             (tr("Recurring Impact"),      "recurring_impact"),
             (tr("Non-Recurring Impact"),  "non_recurring_impact"),
+            (tr("Carry-over to next year"), "carry_over_to_next_year"),
         ]
         self._saving_labels = self._build_section(parent, items, section_key='saving')
 
