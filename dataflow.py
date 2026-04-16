@@ -101,6 +101,13 @@ from ui.windows.view_request_window import ViewRequestWindow
 from ui.components.main_dashboard_toolbar import MainDashboardToolbar
 from ui.components.collapsible_filters import CollapsibleFilters
 from ui.main_dashboard_builder import build_main_dashboard
+from ui.sheet_factories import (
+    create_request_sheet,
+    create_vsm_event_sheet,
+    create_supplier_sheet,
+    create_cell_select_handler as factory_create_cell_select_handler,
+    create_row_select_handler as factory_create_row_select_handler,
+)
 from services.dashboard_controller import DashboardController
 
 # REFACTORING: Import moduli estratti
@@ -115,6 +122,72 @@ from services.startup_service import (
     cleanup_temp_on_startup,
     setup_logging,
     initialize_dataflow_directory_structure
+)
+from services.excel_export_service import (
+    export_rfq_requests_excel,
+    export_vsm_events_excel,
+    export_derisking_suppliers_excel,
+    load_derisking_suppliers_for_export,
+)
+from services.dashboard_selection_policy import (
+    get_selected_row_indices as policy_get_selected_row_indices,
+    check_all_selected_are_mine as policy_check_all_selected_are_mine,
+)
+from services.dashboard_actions_policy import (
+    compute_actions_capabilities,
+    build_actions_menu_spec,
+)
+from services.vsm_dashboard_service import (
+    get_vsm_dataset as service_get_vsm_dataset,
+    apply_vsm_filters as service_apply_vsm_filters,
+)
+from services.derisking_dashboard_service import (
+    build_supplier_rows_and_metadata,
+    auto_size_supplier_sheet as service_auto_size_supplier_sheet,
+    populate_supplier_sheet as service_populate_supplier_sheet,
+)
+from services.vsm_command_service import (
+    status_to_event_type,
+    delete_vsm_events_by_ids,
+    delete_suppliers_by_ids,
+    duplicate_vsm_event_by_id,
+)
+from services.rfq_dashboard_service import (
+    load_requests_by_status as service_load_requests_by_status,
+    build_rfq_sheet_payload,
+)
+from services.rfq_command_service import (
+    update_request_status,
+    delete_requests_with_attachments,
+    duplicate_request_full,
+    create_request_shell,
+)
+from services.dashboard_search_service import (
+    has_active_search_filters,
+    filter_derisking_suppliers_by_query,
+    split_vsm_events_by_type,
+    filter_vsm_events_by_query,
+)
+from services.settings_preferences_service import (
+    load_settings_snapshot,
+    save_language_preference,
+    save_currency_preference,
+    save_autobackup_preferences,
+)
+from services.settings_maintenance_service import (
+    read_autobackup_config,
+    copy_manual_backup_bundle,
+    perform_autobackup_copy,
+)
+from services.dataflow_location_service import (
+    normalize_parent_directory,
+    ensure_parent_directory_writable,
+    detect_username_conflict,
+)
+from services.restart_lifecycle_service import (
+    resolve_restart_script_path,
+    build_restart_command,
+    launch_post_mainloop_restart,
 )
 from database.db_helpers import crea_database_v4
 from ui.dialogs.common_dialogs import (
@@ -308,46 +381,12 @@ class SettingsWindow(tk.Toplevel):
     def load_settings(self):
         """Carica le impostazioni dal file config.ini."""
         try:
-            config = configparser.ConfigParser(interpolation=None)
-            config_file = get_config_file()
-            config.read(config_file)
-            
-            # Carica impostazioni AutoBackup
-            if 'AutoBackup' in config:
-                try:
-                    self.autobackup_enabled.set(config['AutoBackup'].getboolean('enabled', False))
-                    self.autobackup_hour.set(config['AutoBackup'].get('hour', '12'))
-                    self.autobackup_path.set(config['AutoBackup'].get('path', ''))
-                except Exception as e:
-                    logger.warning(f"Errore nel caricare impostazioni AutoBackup: {e}")
-                    self.autobackup_enabled.set(False)
-                    self.autobackup_hour.set("12")
-                    self.autobackup_path.set("")
-            else:
-                self.autobackup_enabled.set(False)
-                self.autobackup_hour.set("12")
-                self.autobackup_path.set("")
-            
-            # Carica impostazioni generali
-            if 'Settings' in config:
-                # Carica la lingua (default 'en' per primo avvio)
-                try:
-                    current_lang = config.get('Settings', 'language', fallback='en')
-                    # Validazione: accetta solo 'en' o 'it'
-                    if current_lang not in ['en', 'it']:
-                        current_lang = 'en'
-                    self.language_var.set("English" if current_lang == 'en' else "Italiano")
-                except Exception as e:
-                    logger.warning(f"Errore nel caricare lingua: {e}")
-                    self.language_var.set("English")
-                currency_code = config.get('Settings', 'currency_code', fallback='NONE').strip().upper()
-                if currency_code not in {"NONE", "EUR", "USD", "GBP", "CHF"}:
-                    currency_code = "NONE"
-                self.currency_var.set(tr("None") if currency_code == "NONE" else currency_code)
-            else:
-                # Se non c'è la sezione Settings, usa default inglese
-                self.language_var.set("English")
-                self.currency_var.set(tr("None"))
+            snapshot = load_settings_snapshot(get_config_file())
+            self.autobackup_enabled.set(snapshot["autobackup_enabled"])
+            self.autobackup_hour.set(snapshot["autobackup_hour"])
+            self.autobackup_path.set(snapshot["autobackup_path"])
+            self.language_var.set("English" if snapshot["language_code"] == "en" else "Italiano")
+            self.currency_var.set(tr("None") if snapshot["currency_code"] == "NONE" else snapshot["currency_code"])
         except Exception as e:
             logger.error(f"Errore critico nel caricare impostazioni: {e}", exc_info=True)
             # Imposta valori di default in caso di errore
@@ -363,26 +402,12 @@ class SettingsWindow(tk.Toplevel):
     def save_language_settings(self):
         """Salva la lingua selezionata nel config.ini."""
         try:
-            config = configparser.ConfigParser(interpolation=None)
-            config_file = get_config_file()
-            if os.path.exists(config_file):
-                config.read(config_file)
-            
-            if 'Settings' not in config:
-                config['Settings'] = {}
-            
-            # Converte "English"/"Italiano" in "en"/"it"
             selected_lang = self.language_var.get()
             if not selected_lang:
                 SimpleMessageDialog(self, tr("Warning"), tr("Select a language."), "warning")
                 return
-            
-            lang_code = "en" if selected_lang == "English" else "it"
-            config['Settings']['language'] = lang_code
-            
-            # BUG #49 FIX: Usa encoding UTF-8 per gestire caratteri speciali
-            with open(config_file, 'w', encoding='utf-8') as f:
-                config.write(f)
+
+            save_language_preference(get_config_file(), selected_lang)
             
             dialog = SimpleYesNoDialog(
                 self,
@@ -399,21 +424,11 @@ class SettingsWindow(tk.Toplevel):
     def save_currency_settings(self):
         """Salva la preferenza valuta globale nel config.ini."""
         try:
-            selected_currency_ui = self.currency_var.get().strip()
-            selected_currency = "NONE" if selected_currency_ui in {tr("None"), "NONE"} else selected_currency_ui.upper()
-            if selected_currency not in {"NONE", "EUR", "USD", "GBP", "CHF"}:
-                selected_currency = "NONE"
-
-            config = configparser.ConfigParser(interpolation=None)
-            config_file = get_config_file()
-            if os.path.exists(config_file):
-                config.read(config_file, encoding="utf-8")
-            if "Settings" not in config:
-                config["Settings"] = {}
-            config["Settings"]["currency_code"] = selected_currency
-
-            with open(config_file, "w", encoding="utf-8") as f:
-                config.write(f)
+            save_currency_preference(
+                get_config_file(),
+                self.currency_var.get(),
+                tr("None"),
+            )
 
             dialog = SimpleYesNoDialog(
                 self,
@@ -435,18 +450,16 @@ class SettingsWindow(tk.Toplevel):
         if path: self.autobackup_path.set(path)
 
     def save_autobackup_settings(self):
-        config = configparser.ConfigParser(interpolation=None); config.read(get_config_file())
-        if 'AutoBackup' not in config: config['AutoBackup'] = {}
-        config['AutoBackup']['enabled'] = str(self.autobackup_enabled.get())
-        config['AutoBackup']['hour'] = self.autobackup_hour.get()
-        config['AutoBackup']['path'] = self.autobackup_path.get()
-        if self.autobackup_enabled.get() and not self.autobackup_path.get():
-            SimpleMessageDialog(self, tr("Warning"), tr("To enable automatic backup, specify a path."), "warning")
-            return
         try:
-            # BUG #49 FIX: Usa encoding UTF-8 per gestire caratteri speciali
-            with open(get_config_file(), 'w', encoding='utf-8') as f: config.write(f)
+            save_autobackup_preferences(
+                get_config_file(),
+                enabled=self.autobackup_enabled.get(),
+                hour=self.autobackup_hour.get(),
+                path=self.autobackup_path.get(),
+            )
             SimpleMessageDialog(self, tr("Success"), tr("Backup settings saved."), "info")
+        except ValueError:
+            SimpleMessageDialog(self, tr("Warning"), tr("To enable automatic backup, specify a path."), "warning")
         except Exception as e:
             SimpleMessageDialog(self, tr("Error"), tr("Unable to save: {}").format(e), "error")
 
@@ -485,49 +498,15 @@ class SettingsWindow(tk.Toplevel):
         except Exception as e:
             logger.warning(f"Impossibile chiudere connessione MainWindow: {e}")
         
-        # BUG #24 FIX: Verifica che tutte le connessioni database siano chiuse prima della copia
-        # Su Windows, file database con handle aperti possono causare corruzione durante copia
         try:
-            # Attendi che il DB rilasci tutti i lock (max 1 secondo)
-            import time
-            for attempt in range(5):
-                try:
-                    # Test se possiamo aprire il file in modalità esclusiva
-                    with open(db_file, 'r+b') as test_handle:
-                        pass  # File accessibile senza lock
-                    break  # Successo, esci dal loop
-                except (PermissionError, IOError) as lock_error:
-                    if attempt < 4:  # Non l'ultimo tentativo
-                        logger.debug(f"Database ancora locked, tentativo {attempt+1}/5: {lock_error}")
-                        time.sleep(0.2)  # Attendi 200ms
-                    else:
-                        logger.warning(f"Database potrebbe avere lock attivi dopo 5 tentativi")
-            
-            # ✅ COPIA FILE PRINCIPALE
-            shutil.copy2(db_file, dest)
-            logger.info(f"Backup DB principale: {dest}")
-            
-            # ✅ COPIA FILE WAL (se esiste)
-            wal_file = db_file.replace('.db', '.db-wal')
-            if os.path.exists(wal_file):
-                wal_dest = dest.replace('.db', '.db-wal')
-                shutil.copy2(wal_file, wal_dest)
-                logger.info(f"Backup WAL copiato: {wal_dest}")
-            else:
-                logger.info("File WAL non presente (normale se DB appena chiuso)")
-            
-            # ✅ COPIA FILE SHM (se esiste)
-            shm_file = db_file.replace('.db', '.db-shm')
-            if os.path.exists(shm_file):
-                shm_dest = dest.replace('.db', '.db-shm')
-                shutil.copy2(shm_file, shm_dest)
-                logger.info(f"Backup SHM copiato: {shm_dest}")
-            else:
-                logger.info("File SHM non presente (normale se DB appena chiuso)")
-            
-            # Verifica dimensione backup principale (sanity check)
-            original_size = os.path.getsize(db_file)
-            backup_size = os.path.getsize(dest)
+            copy_result = copy_manual_backup_bundle(
+                db_file=db_file,
+                dest=dest,
+                logger=logger,
+            )
+            original_size = copy_result["original_size"]
+            backup_size = copy_result["backup_size"]
+            copied_paths = copy_result["copied_files"]
             
             if backup_size < original_size * 0.5:
                 logger.warning(f"Backup manuale potenzialmente incompleto: {backup_size} vs {original_size} bytes")
@@ -538,35 +517,22 @@ class SettingsWindow(tk.Toplevel):
                 )
                 if not dialog.result:
                     try:
-                        os.remove(dest)
-                        # Rimuovi anche WAL e SHM se esistono
-                        wal_dest = dest.replace('.db', '.db-wal')
-                        shm_dest = dest.replace('.db', '.db-shm')
-                        if os.path.exists(wal_dest):
-                            os.remove(wal_dest)
-                        if os.path.exists(shm_dest):
-                            os.remove(shm_dest)
+                        for file_path in copied_paths:
+                            if os.path.exists(file_path):
+                                os.remove(file_path)
                     except:
                         pass
                     return
             
             # Messaggio di successo con info sui file copiati
-            files_copied = [os.path.basename(dest)]
-            wal_dest = dest.replace('.db', '.db-wal')
-            shm_dest = dest.replace('.db', '.db-shm')
-            if os.path.exists(wal_dest):
-                files_copied.append(os.path.basename(wal_dest))
-            if os.path.exists(shm_dest):
-                files_copied.append(os.path.basename(shm_dest))
+            files_copied = [os.path.basename(path) for path in copied_paths if os.path.exists(path)]
             
             SimpleMessageDialog(
                 self,
                 tr("Success"), 
                 tr("Backup created successfully:\n\nFiles copied:\n{}\n\nTotal size: {:.2f} MB").format(
                     '\n'.join(f'  • {f}' for f in files_copied),
-                    sum(os.path.getsize(f) for f in [dest] + 
-                        ([wal_dest] if os.path.exists(wal_dest) else []) + 
-                        ([shm_dest] if os.path.exists(shm_dest) else [])) / (1024*1024)
+                    copy_result["total_size"] / (1024 * 1024)
                 ),
                 "info"
             )
@@ -583,14 +549,9 @@ class SettingsWindow(tk.Toplevel):
             # Rimuovi backup parziale/corrotto
             if os.path.exists(dest):
                 try:
-                    os.remove(dest)
-                    # Rimuovi anche WAL e SHM parziali
-                    wal_dest = dest.replace('.db', '.db-wal')
-                    shm_dest = dest.replace('.db', '.db-shm')
-                    if os.path.exists(wal_dest):
-                        os.remove(wal_dest)
-                    if os.path.exists(shm_dest):
-                        os.remove(shm_dest)
+                    for file_path in [dest, dest.replace('.db', '.db-wal'), dest.replace('.db', '.db-shm')]:
+                        if os.path.exists(file_path):
+                            os.remove(file_path)
                 except:
                     pass
         finally:
@@ -663,7 +624,7 @@ class SettingsWindow(tk.Toplevel):
             logger.info("Utente ha annullato la selezione della nuova posizione")
             return
         
-        normalized_dir = os.path.normpath(os.path.abspath(selected_dir.strip()))
+        normalized_dir = normalize_parent_directory(selected_dir)
         if not normalized_dir:
             SimpleMessageDialog(self, tr("Error"), tr("Invalid path."), "error")
             return
@@ -672,33 +633,8 @@ class SettingsWindow(tk.Toplevel):
         # Il percorso selezionato dall'utente è la directory PARENT dove verrà creata DataFlow_{username}
         logger.info(f"Cartella parent selezionata per DataFlow: {normalized_dir}")
         
-        # Verifica che la directory parent esista o possa essere creata
         try:
-            os.makedirs(normalized_dir, exist_ok=True)
-        except OSError as e:
-            logger.error(f"Impossibile creare/accedere alla cartella parent: {e}")
-            SimpleMessageDialog(
-                self,
-                tr("Error"),
-                tr("Unable to access the selected folder:\n{}\n\nDetails: {}").format(normalized_dir, e),
-                "error"
-            )
-            return
-        
-        # Validazione permessi scrittura nella directory parent
-        try:
-            # BUG #28 FIX: Risolto TOCTOU usando try-except invece di check esistenza
-            # Test scrittura nella directory parent (già esistente o appena creata)
-            test_file = os.path.join(normalized_dir, ".dataflow_test_write")
-            try:
-                with open(test_file, 'w') as f:
-                    f.write("test")
-            finally:
-                # BUG #28 FIX: Cleanup in finally per garantire rimozione anche se write fallisce
-                try:
-                    os.remove(test_file)
-                except FileNotFoundError:
-                    pass  # File già rimosso, va bene
+            ensure_parent_directory_writable(normalized_dir)
             logger.info(f"Permessi verifica OK per {normalized_dir}")
         except (OSError, PermissionError) as e:
             logger.error(f"Test permessi fallito per {normalized_dir}: {e}")
@@ -759,34 +695,13 @@ class SettingsWindow(tk.Toplevel):
         # Loop controllo conflitto username
         while True:
             # Controlla se esiste già un database con questo username nella destinazione
-            potential_folder = os.path.join(normalized_dir, f"DataFlow_{final_username}")
-            potential_db = os.path.join(potential_folder, 'Database', f'dataflow_db_{final_username}.db')
-            
-            folder_exists = os.path.exists(potential_folder)
-            db_exists = False
-            
-            # Controllo robusto dell'esistenza del DB (gestisce file locked)
-            if folder_exists:
-                try:
-                    # Verifica esistenza DB in modo più robusto
-                    db_exists = os.path.exists(potential_db)
-                    
-                    # Se il DB esiste, prova ad aprirlo per verificare che sia accessibile
-                    if db_exists:
-                        try:
-                            # Test di accesso in lettura (non modifica il file)
-                            with open(potential_db, 'rb') as f:
-                                f.read(1)  # Leggi solo 1 byte per verificare accesso
-                            logger.info(f"Controllo conflitto: DB '{potential_db}' esiste ed è accessibile")
-                        except (PermissionError, OSError) as e:
-                            # File locked o inaccessibile: CONSIDERA COME ESISTENTE
-                            logger.warning(f"DB '{potential_db}' esistente ma locked/inaccessibile: {e}")
-                            db_exists = True
-                except Exception as e:
-                    logger.error(f"Errore nel controllo esistenza DB: {e}")
-                    # In caso di errore, ASSUME CHE ESISTA (principio di precauzione)
-                    db_exists = True
-            
+            conflict_info = detect_username_conflict(
+                parent_dir=normalized_dir,
+                username=final_username,
+                logger=logger,
+            )
+            folder_exists = conflict_info["folder_exists"]
+            db_exists = conflict_info["db_exists"]
             logger.info(f"Controllo conflitto per username '{final_username}': folder={folder_exists}, db={db_exists}")
             
             # ✅ CORREZIONE LOGICA: Se ESISTE cartella O database, è un CONFLITTO
@@ -1243,21 +1158,12 @@ class MainWindow:
 
     def _has_active_search_filters(self):
         """Verifica se ci sono filtri di ricerca attivi (escludendo username e stato)"""
-        # Controlla filtri di testo
-        for var in self.search_vars.values():
-            if var.get().strip():
-                return True
-        
-        # Controlla filtro tipo RdO
-        if self.search_tipo.get() != tr("All"):
-            return True
-        
-        # Controlla filtri data
-        for entry in self.date_entries.values():
-            if entry.get().strip():
-                return True
-        
-        return False
+        return has_active_search_filters(
+            search_values={k: v.get() for k, v in self.search_vars.items()},
+            search_tipo_value=self.search_tipo.get(),
+            all_label=tr("All"),
+            date_values={k: v.get() for k, v in self.date_entries.items()},
+        )
 
     def _assign_request_to_current_user(self, request_id):
         """Associa una RdO all'utente corrente."""
@@ -1277,59 +1183,23 @@ class MainWindow:
     def restart_program(self):
         """Riavvia l'applicazione con le nuove impostazioni."""
         python = sys.executable
-        
-        # Determina il percorso corretto del file Python
-        script_path = None
-        
-        # Prova prima con __file__ (sempre disponibile quando eseguito come script)
-        try:
-            # __file__ è sempre disponibile quando il file viene eseguito come script
-            current_file = __file__
-            if current_file:
-                script_path = os.path.abspath(current_file)
-                if os.path.exists(script_path) and script_path.endswith('.py'):
-                    # Percorso valido trovato
-                    pass
-        except (NameError, AttributeError):
-            # __file__ non disponibile (raro, ma può accadere in alcuni contesti)
-            pass
-        
-        # Se __file__ non è disponibile o non valido, prova sys.argv[0]
-        if not script_path or not os.path.exists(script_path):
-            if sys.argv[0]:
-                # Se sys.argv[0] è un percorso relativo, prova a risolverlo
-                if os.path.exists(sys.argv[0]):
-                    script_path = os.path.abspath(sys.argv[0])
-                else:
-                    # Se non esiste, prova a costruire il percorso assoluto
-                    # basandosi sulla directory corrente
-                    possible_path = os.path.join(os.getcwd(), sys.argv[0])
-                    if os.path.exists(possible_path):
-                        script_path = os.path.abspath(possible_path)
-                    else:
-                        # Ultimo tentativo: usa il nome del file nella directory dello script
-                        # (se siamo in modalità PyInstaller o MSIX)
-                        if hasattr(sys, '_MEIPASS'):
-                            # PyInstaller: usa sys.executable
-                            script_path = sys.executable
-                        else:
-                            script_path = sys.argv[0]
-        
-        # Se ancora non abbiamo un percorso valido, usa sys.executable
-        if not script_path or (not os.path.exists(script_path) and not hasattr(sys, '_MEIPASS')):
-            script_path = sys.executable
+        is_frozen = hasattr(sys, "_MEIPASS")
+        script_path = resolve_restart_script_path(
+            file_value=globals().get("__file__"),
+            argv0=sys.argv[0] if sys.argv else "",
+            cwd=os.getcwd(),
+            executable=sys.executable,
+            is_frozen=is_frozen,
+        )
         
         # Riavvia l'applicazione usando subprocess invece di os.execl
         # Questo gestisce correttamente i percorsi con spazi
         try:
-            # Costruisci il comando da eseguire
-            # Usa subprocess.Popen con lista di argomenti per gestire correttamente gli spazi
-            if script_path.endswith('.py') or (not hasattr(sys, '_MEIPASS') and script_path != sys.executable):
-                # Esecuzione come script Python
-                cmd = [python, script_path]
-            else:
-                # Eseguibile (PyInstaller o MSIX)
-                cmd = [script_path]
+            cmd = build_restart_command(
+                python_executable=python,
+                script_path=script_path,
+                is_frozen=is_frozen,
+            )
             
             # Imposta la working directory
             if os.path.dirname(script_path):
@@ -1398,17 +1268,15 @@ class MainWindow:
             )
 
     def check_for_autobackup(self):
-        config = configparser.ConfigParser(interpolation=None); config.read(get_config_file())
-        if config.getboolean('AutoBackup', 'enabled', fallback=False):
-            # BUG #38 FIX: Strip whitespace da valori config per evitare path con spazi invisibili
-            path = config.get('AutoBackup', 'path', fallback='').strip()
-            hour = config.get('AutoBackup', 'hour', fallback='').strip()
-            if path and hour:
-                try:
-                    now = datetime.now()
-                    if now.hour == int(hour) and now.date() != self.last_backup_date:
-                        self.perform_autobackup(path); self.last_backup_date = now.date()
-                except Exception as e: print(f"ERRORE AUTOBACKUP: {e}")
+        enabled, path, hour = read_autobackup_config(get_config_file())
+        if enabled and path and hour:
+            try:
+                now = datetime.now()
+                if now.hour == int(hour) and now.date() != self.last_backup_date:
+                    self.perform_autobackup(path)
+                    self.last_backup_date = now.date()
+            except Exception as e:
+                print(f"ERRORE AUTOBACKUP: {e}")
         
         # BUG #45 FIX: Cancella timer precedente prima di ri-registrarlo (previene memory leak)
         if self._autobackup_timer_id is not None:
@@ -1436,121 +1304,23 @@ class MainWindow:
         self._backup_in_progress = True
         
         try:
-            if not os.path.exists(db_file): 
-                logger.warning(f"File database non trovato per backup: {db_file}")
+            result = perform_autobackup_copy(
+                db_file=db_file,
+                dest_folder=dest_folder,
+                logger=logger,
+            )
+            if not result.get("copied"):
                 return
-            
-            # Attendi un momento per permettere sync su disco
-            import time
-            time.sleep(0.2)
-            
-            # Gestione vecchi backup (mantieni solo gli ultimi 3 SET completi)
-            # Un SET = .db + .db-wal + .db-shm con lo stesso timestamp
-            backup_sets = {}  # timestamp -> [file_path1, file_path2, ...]
-            
-            for ext in ['*.db', '*.db-wal', '*.db-shm']:
-                pattern = os.path.join(dest_folder, f"*_backup_auto_{ext.replace('*', '')}")
-                for filepath in glob.glob(pattern):
-                    # Estrai timestamp dal nome file (es: gestione_offerte_backup_auto_20250102_143000.db)
-                    basename = os.path.basename(filepath)
-                    try:
-                        # Pattern: *_backup_auto_YYYYMMDD_HHMMSS.ext
-                        timestamp_part = basename.split('_backup_auto_')[1].rsplit('.', 1)[0]
-                        if timestamp_part not in backup_sets:
-                            backup_sets[timestamp_part] = []
-                        backup_sets[timestamp_part].append(filepath)
-                    except (IndexError, ValueError):
-                        logger.warning(f"Formato nome backup non riconosciuto: {basename}")
-            
-            # Ordina i set per timestamp e mantieni solo gli ultimi 3 (soglia >= 3 perché il nuovo viene aggiunto dopo)
-            sorted_timestamps = sorted(backup_sets.keys())
-            while len(sorted_timestamps) >= 3:
-                old_timestamp = sorted_timestamps.pop(0)
-                for old_file in backup_sets[old_timestamp]:
-                    try:
-                        os.remove(old_file)
-                        logger.info(f"Rimosso vecchio backup: {old_file}")
-                    except Exception as e:
-                        logger.warning(f"Impossibile eliminare vecchio backup {old_file}: {e}")
-            
-            # Genera timestamp per il nuovo set di backup
-            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-            base_name = f"gestione_offerte_backup_auto_{timestamp}"
-            
-            # ✅ COPIA FILE PRINCIPALE
-            dest_path = os.path.join(dest_folder, f"{base_name}.db")
-            
-            # Copia con retry su errori temporanei
-            max_retries = 3
-            for attempt in range(max_retries):
-                try:
-                    shutil.copy2(db_file, dest_path)
-                    break
-                except (PermissionError, OSError) as e:
-                    if attempt < max_retries - 1:
-                        logger.warning(f"Tentativo backup {attempt+1} fallito: {e}, riprovo...")
-                        time.sleep(1)
-                    else:
-                        raise
-            
-            logger.info(f"Backup automatico DB principale: {dest_path}")
-            
-            # ✅ COPIA FILE WAL (se esiste)
-            wal_file = db_file.replace('.db', '.db-wal')
-            if os.path.exists(wal_file):
-                wal_dest = os.path.join(dest_folder, f"{base_name}.db-wal")
-                try:
-                    shutil.copy2(wal_file, wal_dest)
-                    logger.info(f"Backup WAL copiato: {wal_dest}")
-                except Exception as e:
-                    logger.warning(f"Impossibile copiare WAL: {e}")
-            else:
-                logger.info("File WAL non presente per autobackup (normale se DB chiuso)")
-            
-            # ✅ COPIA FILE SHM (se esiste)
-            shm_file = db_file.replace('.db', '.db-shm')
-            if os.path.exists(shm_file):
-                shm_dest = os.path.join(dest_folder, f"{base_name}.db-shm")
-                try:
-                    shutil.copy2(shm_file, shm_dest)
-                    logger.info(f"Backup SHM copiato: {shm_dest}")
-                except Exception as e:
-                    logger.warning(f"Impossibile copiare SHM: {e}")
-            else:
-                logger.info("File SHM non presente per autobackup (normale se DB chiuso)")
-            
-            # Verifica integrità backup principale
-            original_size = os.path.getsize(db_file)
-            backup_size = os.path.getsize(dest_path)
-            
-            if backup_size < original_size * 0.5:
-                logger.error(f"Backup automatico potenzialmente corrotto: {backup_size} vs {original_size} bytes")
-                # Elimina backup corrotto (tutti i file del set)
-                try:
-                    os.remove(dest_path)
-                    wal_dest = os.path.join(dest_folder, f"{base_name}.db-wal")
-                    shm_dest = os.path.join(dest_folder, f"{base_name}.db-shm")
-                    if os.path.exists(wal_dest):
-                        os.remove(wal_dest)
-                    if os.path.exists(shm_dest):
-                        os.remove(shm_dest)
-                except:
-                    pass
-            else:
-                # Conta i file effettivamente copiati
-                files_copied = 1  # DB principale
-                wal_dest = os.path.join(dest_folder, f"{base_name}.db-wal")
-                shm_dest = os.path.join(dest_folder, f"{base_name}.db-shm")
-                if os.path.exists(wal_dest):
-                    files_copied += 1
-                if os.path.exists(shm_dest):
-                    files_copied += 1
-                
-                total_size = sum(os.path.getsize(f) for f in [dest_path] + 
-                               ([wal_dest] if os.path.exists(wal_dest) else []) + 
-                               ([shm_dest] if os.path.exists(shm_dest) else []))
-                
-                logger.info(f"Backup automatico completato: {files_copied} file copiati, {total_size} bytes totali ({total_size/original_size*100:.1f}% dimensione originale)")
+
+            files_copied = len(result["copied_files"])
+            total_size = result["total_size"]
+            original_size = result["original_size"]
+            logger.info(
+                "Backup automatico completato: %d file copiati, %d bytes totali (%.1f%% dimensione originale)",
+                files_copied,
+                total_size,
+                (total_size / original_size * 100) if original_size else 0.0,
+            )
             
         except Exception as e:
             logger.error(f"Errore backup automatico: {e}", exc_info=True)
@@ -1564,330 +1334,41 @@ class MainWindow:
     def on_kpi_click(self): on_kpi_click(self)
     
     def create_request_treeview(self, parent):
-        # Frame per contenere il Sheet
-        tree_frame = ttk.Frame(parent)
-        tree_frame.pack(fill="both", expand=True)
-        
-        # Crea il widget tksheet invece di Treeview
-        sheet = Sheet(tree_frame,
-                     theme="light blue",
-                     header_font=("Calibri", 11, "bold"),
-                     font=("Calibri", 11, "normal"),
-                     headers=[tr("RfQ No."), tr("RfQ Type"), tr("Issue Date"), tr("Expiry Date"), tr("Reference"), tr("User")],
-                     show_header=True,
-                     show_row_index=False)
-        
-        # Configura le larghezze delle colonne
-        sheet.set_column_widths([80, 120, 120, 120, 300, 140])
-        
-        # Centra tutte le colonne tranne "Riferimento"
-        sheet.align_columns(columns=[0, 1, 2, 3, 5], align="center")
-        
-        # Abilita tutti i binding
-        sheet.enable_bindings()
-        
-        # Rendi il sheet completamente in sola lettura (nessuna cella editabile)
-        for col_idx in range(6):
-            sheet.readonly_columns(columns=[col_idx], readonly=True)
-        
-        # Configura il binding per doppio click su cella (metodo nativo tksheet)
-        # Questo si attiva quando si fa doppio click su qualsiasi cella della riga
-        sheet.extra_bindings("cell_select", self.create_cell_select_handler(sheet))
-        sheet.extra_bindings("row_select", self.create_row_select_handler(sheet))
-        
-        # Variabile per tracciare il tempo dell'ultimo click (per doppio click)
-        sheet._last_click_time = 0
-        sheet._last_click_row = None
-        
-        # Binding generico per gestire il doppio click
-        sheet.bind("<Double-Button-1>", lambda event: self.on_sheet_double_click(sheet, event))
-        
-        sheet.pack(fill="both", expand=True)
-        
-        # Salva riferimento per uso successivo
-        sheet._sheet_data = []  # Per memorizzare i dati attuali
-        
-        return sheet
+        return create_request_sheet(
+            parent=parent,
+            on_cell_select=self.create_cell_select_handler(None),
+            on_row_select=self.create_row_select_handler(None),
+            on_double_click_cb=self.on_sheet_double_click,
+        )
     
     def create_cell_select_handler(self, sheet):
-        """Crea un handler per il doppio click su celle"""
-        def handler(event_data):
-            # Quando viene selezionata una cella, aggiorna i pulsanti
-            self.update_button_visibility()
-        return handler
+        """Crea un handler cell_select che aggiorna lo stato azioni."""
+        return factory_create_cell_select_handler(self.update_button_visibility)
     
     def create_row_select_handler(self, sheet):
-        """Crea un handler per la selezione di righe"""
-        def handler(event_data):
-            # Quando viene selezionata una riga, aggiorna i pulsanti
-            self.update_button_visibility()
-        return handler
+        """Crea un handler row_select che aggiorna lo stato azioni."""
+        return factory_create_row_select_handler(self.update_button_visibility)
 
     def _create_vsm_event_sheet(self, parent, event_type=None):
-        """
-        Crea un tksheet per visualizzare eventi VSM.
-        
-        ESTRATTO da VSMManagementWindow._create_event_sheet() (Step 4B).
-        Pattern identico a create_request_treeview() per coerenza visiva.
-        
-        Args:
-            parent: Widget parent (tab frame)
-            event_type: Tipo evento ("Saving"|"Cost Avoidance"|None)
-                        Determina le intestazioni della colonna valore.
-        
-        Returns:
-            Sheet: Widget tksheet configurato con colonne VSM
-        """
-        frame = ttk.Frame(parent)
-        frame.pack(fill="both", expand=True)
-        
-        # Intestazioni e layout dipendono dal tab
-        if event_type == "Saving":
-            headers = [
-                tr("Date"), tr("Type"), tr("Action"), tr("Description"),
-                tr("Theoretical Savings"), tr("Actual Savings"),
-                tr("Realization %"), tr("Variance %"), tr("Repetitive"), tr("User")
-            ]
-            align_cols = [0, 1, 2, 6, 7, 8, 9]
-            amount_cols = [4, 5]
-            n_cols = 10
-        elif event_type == "Cost Avoidance":
-            headers = [
-                tr("Date"), tr("Type"), tr("Action"), tr("Description"),
-                tr("CA Theoretical"), tr("CA Actual"),
-                tr("Realization %"), tr("Variance %"), tr("Repetitive"), tr("User")
-            ]
-            align_cols = [0, 1, 2, 6, 7, 8, 9]
-            amount_cols = [4, 5]
-            n_cols = 10
-        else:
-            # LEGACY DEAD CODE — Derisking VSM (precedente modello event-based).
-            # Questo branch (event_type=None) non viene più chiamato:
-            # il tab Derisking ora usa _create_supplier_sheet() con struttura PotentialSupplier.
-            # NON rimuovere finché non si completa la verifica dell'intero step cleanup.
-            # Da rimuovere nello step successivo (created_at + KPI temporali).
-            headers = [
-                tr("Date"), tr("New Supplier"), tr("Description"),
-                tr("Repetitive"), tr("User")
-            ]
-            align_cols = [0, 3, 4]
-            amount_cols = []
-            n_cols = 5
-
-        # Calcola larghezze colonne dinamicamente dall'header (eccetto Descrizione)
-        # Usa il font degli header (Calibri 11 bold) per misurare il testo reale visualizzato
-        _HEADER_PADDING = 30  # px extra per evitare header troppo "tirati"
-        # Derisking: Descrizione a col 2; Saving/CA: Descrizione a col 3
-        _DESC_COL_IDX = 2 if event_type is None else 3
-        _DESC_COL_WIDTH = 400
-        _DATE_COL_IDX = 0
-        # Saving/CA: Azione a col 2, Tipo a col 1; Derisking: nessuna di queste colonne
-        _ACTION_COL_IDX = 2 if event_type is not None else None
-        _ACTION_MIN_WIDTH = 150  # "Negoziazione" è il valore più lungo atteso (~115px + padding)
-        _TYPE_COL_IDX = 1 if event_type is not None else None
-        # New Supplier solo nel tab Derisking (event_type=None), in colonna 1
-        _NEW_SUPPLIER_COL_IDX = 1 if event_type is None else None
-        try:
-            import tkinter.font as tkfont
-            _hfont = tkfont.Font(family="Calibri", size=11, weight="bold")
-            _cfont = tkfont.Font(family="Calibri", size=11)  # font celle (normal)
-            # Larghezze minime ricavate da colonne di riferimento già ben calibrate:
-            # - "Data": spazio per "dd/mm/YYYY" (contenuto celle) + padding
-            # - "Tipo" deve contenere "Derisking" → larghezza ≥ colonna "Realizzo %"
-            # - "Nuovo Fornitore" ha contenuto medio → larghezza ≥ colonna "Valore Teorico"
-            _date_min = _cfont.measure("dd/mm/YYYY") + _HEADER_PADDING
-            _type_min = _hfont.measure(tr("Realization %")) + _HEADER_PADDING
-            _new_supplier_min = _hfont.measure(tr("Theoretical Value")) + _HEADER_PADDING
-            col_widths = [
-                _DESC_COL_WIDTH if i == _DESC_COL_IDX
-                else max(_date_min, _hfont.measure(h) + _HEADER_PADDING) if i == _DATE_COL_IDX
-                else max(_ACTION_MIN_WIDTH, _hfont.measure(h) + _HEADER_PADDING) if i == _ACTION_COL_IDX
-                else max(_type_min, _hfont.measure(h) + _HEADER_PADDING) if i == _TYPE_COL_IDX
-                else max(_new_supplier_min, _hfont.measure(h) + _HEADER_PADDING) if i == _NEW_SUPPLIER_COL_IDX
-                else max(60, _hfont.measure(h) + _HEADER_PADDING)
-                for i, h in enumerate(headers)
-            ]
-        except Exception:
-            # Fallback conservativo alle larghezze originali se tkfont non disponibile
-            col_widths = [400 if i == _DESC_COL_IDX else 150 if i in (_ACTION_COL_IDX, _TYPE_COL_IDX) else 120 for i in range(len(headers))]
-
-        # Crea widget tksheet con colonne VSM
-        sheet = Sheet(
-            frame,
-            theme="light blue",
-            header_font=("Calibri", 11, "bold"),
-            font=("Calibri", 11, "normal"),
-            headers=headers,
-            show_header=True,
-            show_row_index=False
+        return create_vsm_event_sheet(
+            parent=parent,
+            event_type=event_type,
+            on_cell_select=self.create_cell_select_handler(None),
+            on_row_select=self.create_row_select_handler(None),
+            on_double_click_cb=self._on_vsm_sheet_double_click,
         )
-        
-        # Salva il tipo di tab per uso in _populate_vsm_sheet e _export_vsm_excel
-        sheet._vsm_event_type = event_type
-        
-        # Salva intestazioni tradotte per uso in _export_vsm_excel
-        sheet._vsm_headers = headers
-        
-        # Salva larghezze calcolate per riapplicarle dopo set_sheet_data()
-        sheet._vsm_col_widths = col_widths
-        
-        # Salva colonne centrate per riapplicarle dopo set_sheet_data() / set_column_widths()
-        sheet._vsm_align_cols = align_cols
-        sheet._vsm_amount_cols = amount_cols
-
-        # Sort numerico per colonne importo (mantiene il display formattato).
-        def _currency_numeric_sort_key(value):
-            if isinstance(value, (int, float)):
-                return natural_sort_key(float(value))
-            if not isinstance(value, str):
-                return natural_sort_key(value)
-            text = value.replace("\xa0", " ").strip()
-            if not text:
-                return natural_sort_key(value)
-            normalized = text
-            for prefix in ("CHF ", "$", "£"):
-                if normalized.startswith(prefix):
-                    normalized = normalized[len(prefix):].strip()
-                    break
-            if normalized.endswith("€"):
-                normalized = normalized[:-1].strip()
-            if "," in normalized and "." in normalized:
-                if normalized.rfind(",") > normalized.rfind("."):
-                    normalized = normalized.replace(".", "").replace(",", ".")
-                else:
-                    normalized = normalized.replace(",", "")
-            elif "," in normalized:
-                parts = normalized.split(",")
-                if len(parts[-1]) in (1, 2):
-                    normalized = normalized.replace(".", "").replace(",", ".")
-                else:
-                    normalized = normalized.replace(",", "")
-            try:
-                return natural_sort_key(float(normalized))
-            except (TypeError, ValueError):
-                return natural_sort_key(value)
-
-        def _configure_vsm_sort_key(_event_data):
-            selected = sheet.get_currently_selected()
-            column = selected.column if selected is not None else None
-            if column in amount_cols:
-                sheet.set_options(redraw=False, sort_key=_currency_numeric_sort_key)
-            else:
-                sheet.set_options(redraw=False, sort_key=natural_sort_key)
-
-        sheet.extra_bindings("begin_sort_rows", _configure_vsm_sort_key)
-        
-        # Configura larghezze colonne
-        sheet.set_column_widths(col_widths)
-        
-        # Centra colonne numeriche e date (Descrizione rimane left-aligned)
-        sheet.align_columns(columns=align_cols, align="center")
-        if amount_cols:
-            sheet.align_columns(columns=amount_cols, align="right")
-        
-        # Abilita bindings
-        sheet.enable_bindings()
-        
-        # Step 4D.1: Binding per aggiornamento stato pulsante Actions
-        sheet.extra_bindings("cell_select", self.create_cell_select_handler(sheet))
-        sheet.extra_bindings("row_select", self.create_row_select_handler(sheet))
-        
-        # Step 4D.4: Binding per doppio click (apre edit evento VSM)
-        sheet.bind("<Double-Button-1>", lambda event: self._on_vsm_sheet_double_click(sheet, event))
-        
-        # Rendi readonly
-        for col_idx in range(n_cols):
-            sheet.readonly_columns(columns=[col_idx], readonly=True)
-        
-        sheet.pack(fill="both", expand=True)
-        
-        # Metadata storage (come nell'originale)
-        sheet._event_metadata = []  # Lista di dict con event_id, username, is_mine
-        
-        return sheet
 
     # NOTA: I metodi sort_treeview_column e update_sort_indicators sono stati rimossi
     # perché tksheet ha funzionalità di ordinamento integrate che si abilitano automaticamente
     # con enable_bindings(). L'utente può cliccare sugli header delle colonne per ordinare.
 
     def _create_supplier_sheet(self, parent):
-        """
-        Crea un tksheet per visualizzare i fornitori potenziali (tab Derisking).
-
-        Separato da _create_vsm_event_sheet perché la struttura dati è completamente
-        diversa (PotentialSupplier vs VSMEvent). Non ha event_type né Ripetitivo.
-
-        Args:
-            parent: Widget parent (tab frame)
-
-        Returns:
-            Sheet: Widget tksheet configurato con colonne fornitore
-        """
-        frame = ttk.Frame(parent)
-        frame.pack(fill="both", expand=True)
-
-        headers = [
-            tr("Supplier"), tr("Category"),
-            tr("Status"), tr("Contact"), tr("E-mail"),
-            tr("Phone"), tr("Web"), tr("Notes"), tr("User"),
-        ]
-        # Colonne da centrare: Stato, Telefono, Utente
-        align_cols = [2, 5, 8]
-        n_cols = len(headers)
-
-        # Larghezze fisse: Note è la colonna "lunga", le altre proporzionali
-        try:
-            import tkinter.font as tkfont
-            _hfont = tkfont.Font(family="Calibri", size=11, weight="bold")
-            _HEADER_PADDING = 30
-            _NOTE_WIDTH = 300
-            _NOTE_IDX = 7
-            col_widths = [
-                _NOTE_WIDTH if i == _NOTE_IDX
-                else max(80, _hfont.measure(h) + _HEADER_PADDING)
-                for i, h in enumerate(headers)
-            ]
-        except Exception:
-            col_widths = [300 if i == 8 else 140 for i in range(n_cols)]
-
-        sheet = Sheet(
-            frame,
-            theme="light blue",
-            header_font=("Calibri", 11, "bold"),
-            font=("Calibri", 11, "normal"),
-            headers=headers,
-            show_header=True,
-            show_row_index=False,
+        return create_supplier_sheet(
+            parent=parent,
+            on_cell_select=self.create_cell_select_handler(None),
+            on_row_select=self.create_row_select_handler(None),
+            on_double_click_cb=self._on_supplier_sheet_double_click,
         )
-
-        # Attributi di identificazione tab — NON impostare _vsm_event_type (non è un tab VSM-event)
-        sheet._vsm_headers = headers
-        sheet._vsm_col_widths = col_widths
-        sheet._vsm_align_cols = align_cols
-
-        sheet.set_column_widths(col_widths)
-        sheet.align_columns(columns=align_cols, align="center")
-
-        sheet.enable_bindings()
-
-        # binding per aggiornamento pulsante Actions
-        sheet.extra_bindings("cell_select", self.create_cell_select_handler(sheet))
-        sheet.extra_bindings("row_select", self.create_row_select_handler(sheet))
-
-        # Doppio click: silenzioso per ora (dialog fornitore non ancora implementato)
-        sheet.bind("<Double-Button-1>", lambda event: self._on_supplier_sheet_double_click(sheet, event))
-
-        for col_idx in range(n_cols):
-            sheet.readonly_columns(columns=[col_idx], readonly=True)
-
-        sheet.pack(fill="both", expand=True)
-
-        # Metadata separato dai VSMEvent — _event_metadata vuoto per compatibilità
-        # con _check_if_all_vsm_events_are_mine (restituisce False → Actions disabilitato)
-        sheet._event_metadata = []
-        sheet._supplier_metadata = []  # Lista di dict con supplier_id, username, is_mine
-
-        return sheet
 
     def _on_supplier_sheet_double_click(self, sheet, event=None):
         """
@@ -1997,62 +1478,12 @@ class MainWindow:
             )
 
     def _auto_size_supplier_sheet(self, sheet, data_rows):
-        """
-        Calcola larghezze colonne in base a header + contenuto celle e le applica.
-
-        Tutte le colonne vengono misurate dinamicamente tranne "Note", che usa una
-        larghezza fissa (1.5x il valore iniziale in _vsm_col_widths), calcolata una
-        sola volta e invariante nei refresh successivi.
-
-        Deve essere chiamata PRIMA di redraw(), dopo set_sheet_data().
-        """
-        headers = getattr(sheet, '_vsm_headers', [])
-        if not headers:
-            return
-
-        # Identifica la colonna Note tramite header (non indice hardcoded)
-        _note_header = tr("Notes")
-        note_idx = next((i for i, h in enumerate(headers) if h == _note_header), None)
-
-        try:
-            import tkinter.font as tkfont
-            cell_font = tkfont.Font(family="Calibri", size=11, weight="normal")
-            header_font = tkfont.Font(family="Calibri", size=11, weight="bold")
-        except Exception:
-            # tkfont non disponibile: ripristina larghezze fisse originali
-            if hasattr(sheet, '_vsm_col_widths'):
-                sheet.set_column_widths(sheet._vsm_col_widths)
-            return
-
-        _PADDING = 20
-
-        # Larghezza Note: calcolata una sola volta (prima chiamata), poi immutabile
-        if note_idx is not None and not hasattr(sheet, '_note_col_width'):
-            base_widths = getattr(sheet, '_vsm_col_widths', None)
-            if base_widths and note_idx < len(base_widths):
-                sheet._note_col_width = int(base_widths[note_idx] * 1.5)
-            else:
-                sheet._note_col_width = 450
-
-        widths = []
-        for col_idx, header_text in enumerate(headers):
-            if col_idx == note_idx:
-                widths.append(sheet._note_col_width)
-                continue
-
-            # Larghezza minima = header con padding
-            w = header_font.measure(header_text) + _PADDING
-
-            # Allarga se una cella supera l'header
-            for row in data_rows:
-                if col_idx < len(row):
-                    cw = cell_font.measure(str(row[col_idx])) + _PADDING
-                    if cw > w:
-                        w = cw
-
-            widths.append(max(80, w))
-
-        sheet.set_column_widths(widths)
+        """Calcola larghezze colonne supplier delegando al servizio dedicato."""
+        service_auto_size_supplier_sheet(
+            sheet=sheet,
+            data_rows=data_rows,
+            notes_header_text=tr("Notes"),
+        )
 
     def _populate_potential_suppliers_sheet(self, sheet, suppliers, *, resize_columns=True):
         """
@@ -2067,42 +1498,18 @@ class MainWindow:
             resize_columns: se False, salta il ricalcolo larghezze colonne (usato dal
                             filtro Global Search per evitare micro-spostamenti visivi)
         """
-        data_rows = []
-        metadata = []
-        for s in suppliers:
-            data_rows.append([
-                s.supplier_name or "",
-                s.category or "",
-                tr(s.supplier_status) if s.supplier_status else "",
-                s.contact_name or "",
-                s.email or "",
-                s.phone or "",
-                s.website or "",
-                s.notes or "",
-                s.username or "",
-            ])
-            is_mine = (s.username or "").lower() == (self.current_username or "").lower()
-            metadata.append({
-                "supplier_id": s.id,
-                "username": s.username or "",
-                "is_mine": is_mine,
-            })
-
-        sheet.set_sheet_data(data_rows, reset_col_positions=False)
-        # Larghezze dinamiche solo al caricamento iniziale, non durante i filtri search
-        if resize_columns:
-            self._auto_size_supplier_sheet(sheet, data_rows)
-        if hasattr(sheet, '_vsm_align_cols'):
-            sheet.align_columns(columns=sheet._vsm_align_cols, align="center")
-        sheet.redraw()
-
-        sheet._supplier_metadata = metadata
-        # Azzera _event_metadata: evita che codice VSM operi su righe fornitore
-        sheet._event_metadata = []
-
-        sheet._supplier_metadata = metadata
-        # Azzera _event_metadata: evita che codice VSM operi su righe fornitore
-        sheet._event_metadata = []
+        data_rows, metadata = build_supplier_rows_and_metadata(
+            suppliers=suppliers,
+            current_username=self.current_username,
+            translate_status=tr,
+        )
+        service_populate_supplier_sheet(
+            sheet=sheet,
+            data_rows=data_rows,
+            metadata=metadata,
+            resize_columns=resize_columns,
+            notes_header_text=tr("Notes"),
+        )
 
     def _get_vsm_dataset(self, vsm_username_filter):
         """Carica il dataset VSM grezzo in base allo scope utente del filtro UI.
@@ -2118,22 +1525,10 @@ class MainWindow:
         Returns:
             tuple(all_events: list[VSMEvent], extra_meta: list[dict] | None)
         """
-        with DatabaseManager(get_db_path()) as db_manager:
-            if vsm_username_filter is None:
-                # Tutti gli utenti: aggregazione multi-DB
-                raw = db_manager.get_all_vsm_events_aggregated(get_db_path())
-                all_events = [ev for ev, _im, _src in raw]
-                extra_meta = [{'is_mine': im, 'source_file': src} for _, im, src in raw]
-            elif vsm_username_filter == (self.current_username or '').lower():
-                # Utente corrente: path locale ottimizzato (nessuna aggregazione)
-                all_events = db_manager.get_all_vsm_events(username=self.current_username)
-                extra_meta = None
-            else:
-                # Altro utente specifico: aggregazione con filtro username
-                raw = db_manager.get_all_vsm_events_aggregated(get_db_path(), username=vsm_username_filter)
-                all_events = [ev for ev, _im, _src in raw]
-                extra_meta = [{'is_mine': im, 'source_file': src} for _, im, src in raw]
-        return all_events, extra_meta
+        return service_get_vsm_dataset(
+            vsm_username_filter=vsm_username_filter,
+            current_username=self.current_username,
+        )
 
     def _apply_vsm_filters(self, events, event_type, extra_meta=None):
         """Applica i filtri VSM avanzati (data, azione, ripetitivo, importi) a una lista di eventi.
@@ -2142,110 +1537,31 @@ class MainWindow:
         I filtri vuoti vengono ignorati. Restituisce una tupla (filtered_events, filtered_meta)
         con extra_meta allineato agli eventi filtrati (None se non era fornito).
         """
-        # Raccolta valori filtro (con guard per inizializzazione parziale)
-        _de_from = getattr(self, 'vsm_date_from_entry', None)
-        date_from_str = _de_from.get().strip() if _de_from else ""
-        _de_to = getattr(self, 'vsm_date_to_entry', None)
-        date_to_str = _de_to.get().strip() if _de_to else ""
-        _av = getattr(self, 'vsm_action_var', None)
-        action_filter = _av.get().strip() if _av else ""
-        _rv = getattr(self, 'vsm_repetitive_var', None)
-        repetitive_filter = _rv.get().strip() if _rv else ""
-        _tfv = getattr(self, 'vsm_theoretical_from_var', None)
-        theoretical_from_str = _tfv.get().strip() if _tfv else ""
-        _ttv = getattr(self, 'vsm_theoretical_to_var', None)
-        theoretical_to_str = _ttv.get().strip() if _ttv else ""
-        _afv = getattr(self, 'vsm_actual_from_var', None)
-        actual_from_str = _afv.get().strip() if _afv else ""
-        _atv = getattr(self, 'vsm_actual_to_var', None)
-        actual_to_str = _atv.get().strip() if _atv else ""
+        de_from = getattr(self, "vsm_date_from_entry", None)
+        de_to = getattr(self, "vsm_date_to_entry", None)
+        av = getattr(self, "vsm_action_var", None)
+        rv = getattr(self, "vsm_repetitive_var", None)
+        tfv = getattr(self, "vsm_theoretical_from_var", None)
+        ttv = getattr(self, "vsm_theoretical_to_var", None)
+        afv = getattr(self, "vsm_actual_from_var", None)
+        atv = getattr(self, "vsm_actual_to_var", None)
 
-        # Short-circuit: nessun filtro attivo
-        if not any([date_from_str, date_to_str, action_filter, repetitive_filter,
-                    theoretical_from_str, theoretical_to_str, actual_from_str, actual_to_str]):
-            return events, extra_meta
-
-        # Parse date range
-        date_from = date_to = None
-        _FMT = '%d/%m/%Y'
-        try:
-            if date_from_str:
-                date_from = datetime.strptime(date_from_str, _FMT).date()
-        except ValueError:
-            pass
-        try:
-            if date_to_str:
-                date_to = datetime.strptime(date_to_str, _FMT).date()
-        except ValueError:
-            pass
-
-        # Parse importi (accetta sia "10.000,50" che "10000.50")
-        def _parse_amount(s):
-            if not s:
-                return None
-            s = s.strip()
-            if ',' in s:
-                s = s.replace('.', '').replace(',', '.')
-            else:
-                s = s.replace(',', '')
-            try:
-                return float(s)
-            except ValueError:
-                return None
-
-        theoretical_from = _parse_amount(theoretical_from_str)
-        theoretical_to = _parse_amount(theoretical_to_str)
-        actual_from = _parse_amount(actual_from_str)
-        actual_to = _parse_amount(actual_to_str)
-
-        use_dual_value = event_type in ("Saving", "Cost Avoidance")
-        currency_code = get_currency_code()
-        meta_iter = extra_meta if extra_meta is not None else [None] * len(events)
-        filtered_pairs = []
-
-        for event, meta in zip(events, meta_iter):
-            # Filtro data
-            if event.event_date:
-                ev_date = event.event_date.date() if hasattr(event.event_date, 'date') else event.event_date
-                if date_from and ev_date < date_from:
-                    continue
-                if date_to and ev_date > date_to:
-                    continue
-            elif date_from or date_to:
-                continue  # Evento senza data escluso se filtro data attivo
-
-            # Filtro azione (solo Saving/CA; in Derisking l'azione è sempre "Derisking")
-            if action_filter and use_dual_value:
-                if tr(event.action) != action_filter:
-                    continue
-
-            # Filtro ripetitivo
-            if repetitive_filter:
-                want = repetitive_filter == tr("Yes")
-                if event.opex_ripetitivo != want:
-                    continue
-
-            # Filtro importo teorico
-            if theoretical_from is not None or theoretical_to is not None:
-                tval = event.calculate_theoretical_value()
-                if theoretical_from is not None and tval < theoretical_from:
-                    continue
-                if theoretical_to is not None and tval > theoretical_to:
-                    continue
-
-            # Filtro importo effettivo (solo Saving/CA)
-            if use_dual_value and (actual_from is not None or actual_to is not None):
-                aval = event.calculate_effective_value()
-                if actual_from is not None and aval < actual_from:
-                    continue
-                if actual_to is not None and aval > actual_to:
-                    continue
-
-            filtered_pairs.append((event, meta))
-
-        filtered_events = [p[0] for p in filtered_pairs]
-        filtered_meta = [p[1] for p in filtered_pairs] if extra_meta is not None else None
-        return filtered_events, filtered_meta
+        filters = {
+            "date_from": de_from.get().strip() if de_from else "",
+            "date_to": de_to.get().strip() if de_to else "",
+            "action": av.get().strip() if av else "",
+            "repetitive": rv.get().strip() if rv else "",
+            "theoretical_from": tfv.get().strip() if tfv else "",
+            "theoretical_to": ttv.get().strip() if ttv else "",
+            "actual_from": afv.get().strip() if afv else "",
+            "actual_to": atv.get().strip() if atv else "",
+        }
+        return service_apply_vsm_filters(
+            events=events,
+            event_type=event_type,
+            extra_meta=extra_meta,
+            filters=filters,
+        )
 
     def _populate_vsm_sheet(self, sheet, events, event_type=None, extra_metadata=None):
         """
@@ -2417,11 +1733,7 @@ class MainWindow:
         if not is_mine:
             # Apre in sola lettura invece di bloccare con un errore
             from ui.dialogs.vsm_event_dialog import VSMEventDialog
-            event_type_map = {
-                'vsm_saving': 'Saving',
-                'vsm_cost_avoidance': 'Cost Avoidance',
-            }
-            event_type = event_type_map.get(status)
+            event_type = status_to_event_type(status)
             if not event_type:
                 return
             dialog = VSMEventDialog(
@@ -2435,11 +1747,7 @@ class MainWindow:
             return
         
         # Determina event_type da status
-        event_type_map = {
-            'vsm_saving': 'Saving',
-            'vsm_cost_avoidance': 'Cost Avoidance',
-        }
-        event_type = event_type_map.get(status)
+        event_type = status_to_event_type(status)
         if not event_type:
             return  # Fail-safe
         
@@ -2511,21 +1819,14 @@ class MainWindow:
             return
         
         # Determina event_type da status
-        event_type_map = {
-            'vsm_saving': 'Saving',
-            'vsm_cost_avoidance': 'Cost Avoidance',
-        }
-        event_type = event_type_map.get(status)
+        event_type = status_to_event_type(status)
         if not event_type:
             return  # Fail-safe
         
-        # Elimina eventi
-        from services.vsm_persistence import delete_event_and_impacts, VSMError
+        from services.vsm_persistence import VSMError
         
         try:
-            with DatabaseManager(get_db_path()) as db_manager:
-                for event_id in events_to_delete:
-                    delete_event_and_impacts(db_manager, event_id)
+            delete_vsm_events_by_ids(events_to_delete)
             
             SimpleMessageDialog(self.root, tr("Success"), tr("{} VSM event(s) successfully deleted.").format(count), "info")
             
@@ -2579,11 +1880,9 @@ class MainWindow:
         ).result:
             return
 
-        from services.supplier_persistence import delete_supplier, SupplierError
+        from services.supplier_persistence import SupplierError
         try:
-            with DatabaseManager(get_db_path()) as db_manager:
-                for sid in suppliers_to_delete:
-                    delete_supplier(db_manager, sid)
+            delete_suppliers_by_ids(suppliers_to_delete)
 
             SimpleMessageDialog(
                 self.root,
@@ -2690,60 +1989,15 @@ class MainWindow:
         
         # Recupero evento completo dal backend
         try:
-            # Lazy import per evitare dipendenze circolari
-            from services.vsm_persistence import (
-                get_event_with_impacts,
-                save_event_with_impacts,
-                VSMError
-            )
-            
-            with DatabaseManager(get_db_path()) as db_manager:
-                # Recupera evento originale (con impatti, ma useremo solo l'evento)
-                original_event, _impacts = get_event_with_impacts(db_manager, event_id)
-                
-                logger.info(
-                    f"Duplicazione evento VSM {event_id}: "
-                    f"tipo={original_event.event_type}, data={original_event.event_date}"
-                )
-                
-                # Crea copia 1:1: stesso evento, id=None per nuovo insert
-                # Il dataclass VSMEvent supporta costruzione da attributi
-                from models.vsm_event import VSMEvent
-                duplicate_event = VSMEvent(
-                    id=None,  # Nuovo ID verrà assegnato dal DB
-                    event_date=original_event.event_date,
-                    username=original_event.username,
-                    buyer=original_event.buyer,
-                    event_type=original_event.event_type,
-                    action=original_event.action,
-                    description=original_event.description,
-                    reference=original_event.reference,
-                    importo_bdg=original_event.importo_bdg,
-                    importo_negoziato=original_event.importo_negoziato,
-                    importo_richiesto_iniziale=original_event.importo_richiesto_iniziale,
-                    quantita_annua=original_event.quantita_annua,
-                    percent_realizzo=original_event.percent_realizzo,
-                    driver=original_event.driver,
-                    giorni_pagamento_attuali=original_event.giorni_pagamento_attuali,
-                    giorni_pagamento_negoziati=original_event.giorni_pagamento_negoziati,
-                    spending_annuo=original_event.spending_annuo,
-                    opex_ripetitivo=original_event.opex_ripetitivo,
-                    note=original_event.note,
-                    # created_at e updated_at saranno impostati automaticamente dal DB
-                )
-                
-                # Salva copia (genera impatti automaticamente)
-                new_event_id = save_event_with_impacts(db_manager, duplicate_event)
-                
-                logger.info(f"Evento VSM duplicato: {event_id} → {new_event_id}")
+            from services.vsm_persistence import VSMError
+
+            new_event_id = duplicate_vsm_event_by_id(event_id)
+            logger.info(f"Evento VSM duplicato: {event_id} → {new_event_id}")
             
             # Status mapping per refresh (fallback safe)
-            event_type_map = {
-                'vsm_saving': 'Saving',
-                'vsm_cost_avoidance': 'Cost Avoidance',
-                'vsm_derisking': 'Derisking'
-            }
-            event_type = event_type_map.get(status)
+            event_type = status_to_event_type(status)
+            if status == "vsm_derisking":
+                event_type = "Derisking"
             
             if event_type:
                 # Auto-refresh sheet
@@ -2766,123 +2020,35 @@ class MainWindow:
             SimpleMessageDialog(self.root, tr("Error"), tr("Unable to duplicate the event:\n{}").format(e), "error")
 
     def _get_selected_row_indices(self, sheet):
-        """
-        Metodo helper per ottenere gli indici delle righe selezionate dal sheet.
-        Gestisce sia la selezione di celle che di righe complete.
-        Restituisce una lista di indici di riga.
-        """
-        row_indices = []
-        
-        # Metodo 1: Prova con get_currently_selected (per selezione cella singola)
-        currently_selected = sheet.get_currently_selected()
-        if currently_selected:
-            if hasattr(currently_selected, 'row') and currently_selected.row is not None:
-                row_indices.append(currently_selected.row)
-            elif isinstance(currently_selected, tuple) and len(currently_selected) >= 1:
-                row_indices.append(currently_selected[0])
-        
-        # Metodo 2: Prova con get_selected_rows (per selezione righe multiple)
-        if not row_indices:
-            selected_rows = sheet.get_selected_rows()
-            if selected_rows:
-                if isinstance(selected_rows, (list, set, tuple)):
-                    row_indices.extend(selected_rows)
-                else:
-                    row_indices.append(selected_rows)
-        
-        return row_indices
+        """Ritorna indici riga selezionati delegando alla policy condivisa."""
+        return policy_get_selected_row_indices(sheet)
     
     def _check_if_all_selected_are_mine(self, sheet, selected_indices):
-        """Verifica se tutte le RfQ selezionate appartengono all'utente corrente.
-        
-        Args:
-            sheet: Il widget Sheet da controllare
-            selected_indices: Lista di indici riga selezionati
-        
-        Returns:
-            bool: True se tutte le RfQ selezionate sono dell'utente corrente, False altrimenti
-        """
-        if not selected_indices:
-            return False
-        
-        # Se i metadati non sono disponibili, per sicurezza blocca le operazioni su RfQ legacy
-        if not hasattr(sheet, '_sheet_rows_metadata'):
-            logger.warning("Metadati sheet non disponibili - blocco operazioni per sicurezza")
-            return False
-        
-        for idx in selected_indices:
-            # Salta indici fuori range
-            if idx >= len(sheet._sheet_rows_metadata):
-                logger.warning(f"Indice {idx} fuori range metadati (len={len(sheet._sheet_rows_metadata)})")
-                continue
-            
-            metadata = sheet._sheet_rows_metadata[idx]
-            is_mine = metadata.get('is_mine', False)  # Default False per sicurezza
-            
-            if not is_mine:
-                return False  # Almeno una RfQ non è mia
-        
-        return True  # Tutte le RfQ selezionate sono mie
+        """Verifica ownership RFQ con fallback fail-safe."""
+        return policy_check_all_selected_are_mine(
+            sheet=sheet,
+            selected_indices=selected_indices,
+            metadata_attr="_sheet_rows_metadata",
+            entity_label="rfq",
+        )
     
     def _check_if_all_vsm_events_are_mine(self, sheet, selected_indices):
-        """Verifica se tutti gli eventi VSM selezionati appartengono all'utente corrente.
-        
-        Args:
-            sheet: Il widget Sheet VSM da controllare
-            selected_indices: Lista di indici riga selezionati
-        
-        Returns:
-            bool: True se tutti gli eventi VSM selezionati sono dell'utente corrente, False altrimenti
-        """
-        if not selected_indices:
-            return False
-        
-        # Se i metadati VSM non sono disponibili, blocca le operazioni
-        if not hasattr(sheet, '_event_metadata'):
-            logger.warning("Metadati VSM non disponibili - blocco operazioni per sicurezza")
-            return False
-        
-        for idx in selected_indices:
-            # Salta indici fuori range
-            if idx >= len(sheet._event_metadata):
-                logger.warning(f"Indice VSM {idx} fuori range metadati (len={len(sheet._event_metadata)})")
-                continue
-            
-            metadata = sheet._event_metadata[idx]
-            is_mine = metadata.get('is_mine', False)  # Default False per sicurezza
-            
-            if not is_mine:
-                return False  # Almeno un evento non è mio
-        
-        return True  # Tutti gli eventi selezionati sono miei
+        """Verifica ownership eventi VSM con fallback fail-safe."""
+        return policy_check_all_selected_are_mine(
+            sheet=sheet,
+            selected_indices=selected_indices,
+            metadata_attr="_event_metadata",
+            entity_label="vsm",
+        )
 
     def _check_if_all_suppliers_are_mine(self, sheet, selected_indices):
-        """Verifica se tutti i fornitori potenziali selezionati appartengono all'utente corrente.
-
-        Analogo a _check_if_all_vsm_events_are_mine ma per _supplier_metadata.
-
-        Args:
-            sheet:            Widget tksheet del tab Derisking
-            selected_indices: Lista di indici riga selezionati
-
-        Returns:
-            bool: True se tutti i fornitori selezionati sono dell'utente corrente
-        """
-        if not selected_indices:
-            return False
-
-        if not hasattr(sheet, '_supplier_metadata'):
-            logger.warning("Metadati fornitori non disponibili - blocco operazioni per sicurezza")
-            return False
-
-        for idx in selected_indices:
-            if idx >= len(sheet._supplier_metadata):
-                logger.warning("Indice fornitore %d fuori range metadati (len=%d)", idx, len(sheet._supplier_metadata))
-                continue
-            if not sheet._supplier_metadata[idx].get('is_mine', False):
-                return False  # Almeno un fornitore non è mio
-
-        return True  # Tutti i fornitori selezionati sono miei
+        """Verifica ownership fornitori Derisking con fallback fail-safe."""
+        return policy_check_all_selected_are_mine(
+            sheet=sheet,
+            selected_indices=selected_indices,
+            metadata_attr="_supplier_metadata",
+            entity_label="supplier",
+        )
 
     def archive_selected_request(self): self._change_request_status('archiviata')
     def reactivate_selected_request(self): self._change_request_status('attiva')
@@ -2914,11 +2080,7 @@ class MainWindow:
             return
         
         try:
-            # Usa db_manager per aggiornare lo stato
-            params = [(new_status, req_id) for req_id in ids]
-            # BUG #47 FIX: Usa context manager per garantire chiusura DB anche su eccezione
-            with DatabaseManager(get_db_path()) as db_manager:
-                db_manager.update_stato_richieste(params)
+            update_request_status(request_ids=ids, new_status=new_status)
         except DatabaseError as e:
             SimpleMessageDialog(self.root, tr("Error"), tr("Unable to update status: {}").format(e), "error")
         else:
@@ -2958,48 +2120,52 @@ class MainWindow:
         
         # Step 4D.1/4D.2: Gestione abilitazione pulsante Actions per VSM
         if status.startswith('vsm_'):
-            # Per VSM: abilita Actions se c'è almeno una riga selezionata
             selected_rows_indices = self._get_selected_row_indices(sheet)
-            has_selection = bool(selected_rows_indices)
-            num_selected = len(selected_rows_indices) if selected_rows_indices else 0
+            selected_count = len(selected_rows_indices) if selected_rows_indices else 0
             
             # Verifica ownership: Derisking usa _supplier_metadata, altri VSM usano _event_metadata
             if status == 'vsm_derisking':
-                all_mine = self._check_if_all_suppliers_are_mine(sheet, selected_rows_indices) if has_selection else False
+                all_mine = self._check_if_all_suppliers_are_mine(sheet, selected_rows_indices) if selected_count else False
             else:
-                all_mine = self._check_if_all_vsm_events_are_mine(sheet, selected_rows_indices) if has_selection else False
-            
-            # Calcola capacità per ogni tipo di azione VSM
-            can_delete = has_selection and all_mine  # Delete su uno o più eventi propri
-            can_duplicate = (num_selected == 1) and all_mine  # Duplicate solo su singolo evento proprio
-            
-            # Abilita Actions solo se c'è selezione valida (tutte mie)
-            can_act = has_selection and all_mine
-            self.btn_actions.config(state="normal" if can_act else "disabled")
+                all_mine = self._check_if_all_vsm_events_are_mine(sheet, selected_rows_indices) if selected_count else False
+
+            caps = compute_actions_capabilities(
+                status=status,
+                selected_count=selected_count,
+                all_mine=all_mine,
+            )
+            self.btn_actions.config(state="normal" if caps["can_act"] else "disabled")
             
             # Step 4D.2/4D.5: Popola menu Actions con opzioni VSM
-            self._populate_actions_menu(status, can_delete, can_duplicate)
+            self._populate_actions_menu(
+                status,
+                caps["can_delete"],
+                caps["can_duplicate"],
+                caps["can_change_status"],
+            )
             return
         
         # RFQ logic (invariata)
         selected_rows_indices = self._get_selected_row_indices(sheet)
-        has_sel = bool(selected_rows_indices)
-        num_selected = len(selected_rows_indices) if selected_rows_indices else 0
+        selected_count = len(selected_rows_indices) if selected_rows_indices else 0
         
         # Verifica se tutte le RfQ selezionate appartengono all'utente corrente
-        all_mine = self._check_if_all_selected_are_mine(sheet, selected_rows_indices) if has_sel else False
-        
-        # Calcola capacità per ogni tipo di azione
-        can_delete = has_sel and all_mine
-        can_duplicate = (num_selected == 1) and all_mine
-        can_change_status = has_sel and all_mine
-        
-        # Abilita Actions solo se c'è almeno una selezione valida (tutte mie)
-        can_act = has_sel and all_mine
-        self.btn_actions.config(state="normal" if can_act else "disabled")
+        all_mine = self._check_if_all_selected_are_mine(sheet, selected_rows_indices) if selected_count else False
+
+        caps = compute_actions_capabilities(
+            status=status,
+            selected_count=selected_count,
+            all_mine=all_mine,
+        )
+        self.btn_actions.config(state="normal" if caps["can_act"] else "disabled")
         
         # Popola il menu Actions dinamicamente in base al tab corrente
-        self._populate_actions_menu(status, can_delete, can_duplicate, can_change_status)
+        self._populate_actions_menu(
+            status,
+            caps["can_delete"],
+            caps["can_duplicate"],
+            caps["can_change_status"],
+        )
 
     def _populate_actions_menu(self, status, can_delete=False, can_duplicate=False, can_change_status=False):
         """Popola il menu Actions in base al tab corrente e capacità utente.
@@ -3014,54 +2180,32 @@ class MainWindow:
                            oppure se può editare (1 sola selezione) - per VSM (riuso stesso param)
             can_change_status: bool, se può archiviare/riattivare (solo RFQ)
         """
-        # Pulisci menu esistente
+        command_map = {
+            "delete": (tr("🗑 Delete"), self._delete_vsm_events if status.startswith("vsm_") else self.delete_selected_request),
+            "duplicate": (tr("🔁 Duplicate"), self._duplicate_vsm_event if status.startswith("vsm_") else self.duplicate_selected_request),
+            "archive": (tr("📦 Archive"), self.archive_selected_request),
+            "reactivate": (tr("↩️ Reactivate"), self.reactivate_selected_request),
+        }
+
+        menu_spec = build_actions_menu_spec(
+            status=status,
+            can_delete=can_delete,
+            can_duplicate=can_duplicate,
+            can_change_status=can_change_status,
+        )
+
         self.actions_menu.delete(0, 'end')
-        
-        # Step 4D.2/4D.4/4D.5: Branch VSM
-        if status.startswith('vsm_'):
-            # Elimina: disponibile per tutti i tab VSM (incluso Derisking)
+        for item in menu_spec:
+            if item[0] == "separator":
+                self.actions_menu.add_separator()
+                continue
+
+            _kind, key, enabled = item
+            label, cmd = command_map[key]
             self.actions_menu.add_command(
-                label=tr("🗑 Delete"),
-                command=self._delete_vsm_events,
-                state="normal" if can_delete else "disabled"
-            )
-            # Duplica: non applicabile per Derisking (fornitori, non eventi economici)
-            if status != 'vsm_derisking':
-                self.actions_menu.add_command(
-                    label=tr("🔁 Duplicate"),
-                    command=self._duplicate_vsm_event,
-                    state="normal" if can_duplicate else "disabled"
-                )
-            return  # Early return per VSM
-        
-        # RFQ logic (invariata)
-        # Azioni comuni a entrambi i tab (riuso metodi esistenti)
-        self.actions_menu.add_command(
-            label=tr("🗑 Delete"),
-            command=self.delete_selected_request,
-            state="normal" if can_delete else "disabled"
-        )
-        
-        self.actions_menu.add_command(
-            label=tr("🔁 Duplicate"),
-            command=self.duplicate_selected_request,
-            state="normal" if can_duplicate else "disabled"
-        )
-        
-        self.actions_menu.add_separator()
-        
-        # Azione specifica per tab (riuso metodi esistenti)
-        if status == 'attiva':
-            self.actions_menu.add_command(
-                label=tr("📦 Archive"),
-                command=self.archive_selected_request,
-                state="normal" if can_change_status else "disabled"
-            )
-        else:  # archiviata
-            self.actions_menu.add_command(
-                label=tr("↩️ Reactivate"),
-                command=self.reactivate_selected_request,
-                state="normal" if can_change_status else "disabled"
+                label=label,
+                command=cmd,
+                state="normal" if enabled else "disabled",
             )
 
     def _on_root_click(self, event):
@@ -3131,39 +2275,14 @@ class MainWindow:
         """Carica richieste per stato specifico con supporto multi-database."""
         try:
             username_filter = self._get_active_username_filter()
-
-            if pre_fetched_rows is not None:
-                all_rows = pre_fetched_rows
-                logger.info(f"[MULTI-DB] Caricamento da dati pre-caricati (filtro utente: {username_filter})...")
-            else:
-                # SEMPRE usa aggregazione multi-database per avere accesso a tutti gli utenti
-                logger.info(f"[MULTI-DB] Caricamento da tutti i database (filtro utente: {username_filter})...")
-
-                # BUG #47 FIX: Usa context manager per garantire chiusura DB
-                with DatabaseManager(get_db_path()) as db_manager:
-                    # Chiama il metodo aggregato che legge TUTTI i database
-                    all_rows = db_manager.get_all_richieste_aggregated(get_db_path())
-            
-            # Filtra per stato richiesto
-            # Struttura: [0] id_richiesta, [1] tipo_rdo, [2] data_emissione,
-            # [3] data_scadenza, [4] riferimento, [5] username, [6] stato, 
-            # [7] is_mine, [8] source_file
-            filtered_rows = [row for row in all_rows if row[6] == status]
-            
-            # SE C'È UN FILTRO UTENTE SPECIFICO, filtra anche per username
-            if username_filter is not None:
-                filtered_rows = [row for row in filtered_rows if row[5] and row[5].lower() == username_filter.lower()]
-                logger.info(f"[MULTI-DB] Trovate {len(filtered_rows)} RdO in stato '{status}' per utente '{username_filter}'")
-            else:
-                logger.info(f"[MULTI-DB] Trovate {len(filtered_rows)} RdO in stato '{status}' da tutti gli utenti")
-            
-            # BUGFIX: Applica filtro tipo RdO se presente (non solo "Tutte")
             tipo_filter = self.search_tipo.get()
-            if tipo_filter != tr("All"):
-                tipo_canonico = normalize_rfq_type(tipo_filter)
-                filtered_rows = [row for row in filtered_rows if row[1] == tipo_canonico]
-                logger.info(f"[MULTI-DB] Filtro tipo RdO '{tipo_filter}' applicato: {len(filtered_rows)} risultati")
-            
+            tipo_canonico = None if tipo_filter == tr("All") else normalize_rfq_type(tipo_filter)
+            filtered_rows = service_load_requests_by_status(
+                status=status,
+                username_filter=username_filter,
+                tipo_canonico=tipo_canonico,
+                pre_fetched_rows=pre_fetched_rows,
+            )
             self.update_treeview(tree, filtered_rows)
                 
         except DatabaseError as e:
@@ -3173,57 +2292,16 @@ class MainWindow:
     def update_treeview(self, sheet, requests):
         """Aggiorna il foglio tksheet con i dati delle richieste"""
         today = date.today()
-        data_rows = []
-        
-        # Variabile per tracciare la lunghezza massima del riferimento
-        max_ref_length = 0
-        
+        data_rows, metadata_rows, max_ref_length = build_rfq_sheet_payload(
+            requests=requests,
+            translate_rfq_type=translate_rfq_type,
+            format_date_for_display=self._format_date_for_display,
+        )
+
         # Inizializza lista metadati se non esiste
-        if not hasattr(sheet, '_sheet_rows_metadata'):
+        if not hasattr(sheet, "_sheet_rows_metadata"):
             sheet._sheet_rows_metadata = []
-        
-        sheet._sheet_rows_metadata = []  # Reset metadati
-        
-        for i, req in enumerate(requests):
-            # Traduci il tipo RFQ prima di inserirlo nel sheet
-            tipo_rdo_tradotto = translate_rfq_type(req[1])
-            riferimento = req[4] if req[4] else ""
-            username_value = ""
-            if len(req) > 5 and req[5]:
-                username_value = str(req[5]).strip()
-            
-            # BUG #3 FIX: Validazione robusta per metadati con logging dettagliato
-            # Salva metadati per questa riga (is_mine e source_file)
-            # La struttura aggregate è: [..., stato, is_mine, source_file]
-            if len(req) > 8:
-                is_mine = req[7]
-                source_file = req[8]
-                logger.debug(f"Riga {i} (ID {req[0]}): is_mine={is_mine}, source={source_file}")
-            else:
-                # Fallback per dati non aggregati
-                is_mine = True
-                source_file = 'local'
-                if len(req) < 6:
-                    logger.warning(f"Riga {i}: tuple troppo corta ({len(req)} elementi), dati incompleti. Usando default is_mine=True")
-            
-            sheet._sheet_rows_metadata.append({
-                'is_mine': is_mine,
-                'source_file': source_file
-            })
-            
-            # Aggiorna la lunghezza massima del riferimento
-            if riferimento:
-                max_ref_length = max(max_ref_length, len(riferimento))
-            
-            row = [
-                str(req[0]),  # ID
-                tipo_rdo_tradotto,  # Tipo
-                self._format_date_for_display(req[2]),  # Data emissione
-                self._format_date_for_display(req[3]),  # Data scadenza
-                riferimento,  # Riferimento
-                username_value  # Username
-            ]
-            data_rows.append(row)
+        sheet._sheet_rows_metadata = metadata_rows
         
         # Carica i dati nel sheet
         sheet.set_sheet_data(data_rows)
@@ -3347,13 +2425,21 @@ class MainWindow:
             return
 
         _FIELDS = (
-            'supplier_name', 'category', 'supplier_status',
-            'contact_name', 'email', 'phone', 'website', 'notes', 'username',
+            "supplier_name",
+            "category",
+            "supplier_status",
+            "contact_name",
+            "email",
+            "phone",
+            "website",
+            "notes",
+            "username",
         )
-        results = [
-            s for s in suppliers
-            if any(query in (getattr(s, f) or "").lower() for f in _FIELDS)
-        ]
+        results = filter_derisking_suppliers_by_query(
+            suppliers=suppliers,
+            query=query,
+            fields=_FIELDS,
+        )
 
         logger.info(f"[DerisSearch] query='{query}' risultati={len(results)}")
         self._populate_potential_suppliers_sheet(sheet, results, resize_columns=False)
@@ -3391,13 +2477,11 @@ class MainWindow:
             return
 
         # Filtra per event_type mantenendo allineamento con raw_meta
-        if raw_meta is not None:
-            pairs = [(ev, m) for ev, m in zip(raw_events, raw_meta) if ev.event_type == event_type]
-            results = [p[0] for p in pairs]
-            result_meta = [p[1] for p in pairs]
-        else:
-            results = [ev for ev in raw_events if ev.event_type == event_type]
-            result_meta = None
+        results, result_meta = split_vsm_events_by_type(
+            events=raw_events,
+            metadata=raw_meta,
+            event_type=event_type,
+        )
 
         # Applica Advanced Filters (stesso scope di _load_vsm_events)
         results, result_meta = self._apply_vsm_filters(results, event_type, extra_meta=result_meta)
@@ -3407,18 +2491,12 @@ class MainWindow:
             'description', 'reference', 'buyer', 'driver',
             'action', 'event_type', 'new_supplier', 'note',
         )
-        if result_meta is not None:
-            pairs = [
-                (ev, m) for ev, m in zip(results, result_meta)
-                if any(query in (getattr(ev, f) or "").lower() for f in _VSM_SEARCH_FIELDS)
-            ]
-            results = [p[0] for p in pairs]
-            result_meta = [p[1] for p in pairs]
-        else:
-            results = [
-                ev for ev in results
-                if any(query in (getattr(ev, f) or "").lower() for f in _VSM_SEARCH_FIELDS)
-            ]
+        results, result_meta = filter_vsm_events_by_query(
+            events=results,
+            metadata=result_meta,
+            query=query,
+            fields=_VSM_SEARCH_FIELDS,
+        )
 
         logger.info(f"[VSMSearch] query='{query}' event_type='{event_type}' risultati={len(results)}")
         self._populate_vsm_sheet(sheet, results, event_type=event_type, extra_metadata=result_meta)
@@ -3462,48 +2540,11 @@ class MainWindow:
         if not SimpleYesNoDialog(self.root, tr("Delete Confirmation"), msg).result: return
         
         try:
-            print(f"[MainWindow.delete_selected_request] Eliminazione di {len(request_ids)} richieste: {request_ids}")
-
-            # Rimuovi i file fisici degli allegati per ogni richiesta prima di eliminare le righe DB
             archive_path = get_fixed_attachments_dir()
-            try:
-                with DatabaseManager(get_db_path()) as db_manager:
-                    # Per ogni richiesta, recupera i percorsi_esterni e prova a rimuovere i file
-                    for req_id in request_ids:
-                        try:
-                            rows = db_manager.conn.execute(
-                                "SELECT percorso_esterno FROM allegati_richiesta WHERE id_richiesta = ? AND percorso_esterno IS NOT NULL",
-                                (req_id,)
-                            ).fetchall()
-                        except Exception:
-                            rows = []
-
-                        for row in rows:
-                            percorso = row[0]
-                            if not percorso:
-                                continue
-                            # Se percorso è relativo, cerca nella cartella Attachments
-                            if archive_path and not os.path.isabs(percorso):
-                                file_to_delete = os.path.join(archive_path, percorso)
-                            else:
-                                file_to_delete = percorso
-
-                            try:
-                                if os.path.exists(file_to_delete):
-                                    os.remove(file_to_delete)
-                                    logger.info(f"Allegato eliminato dal disco durante cancellazione RdO: {file_to_delete}")
-                                else:
-                                    logger.info(f"File allegato non trovato durante cancellazione RdO: {file_to_delete}")
-                            except Exception as disk_error:
-                                logger.warning(f"Impossibile eliminare il file allegato {file_to_delete}: {disk_error}")
-
-                    # Ora elimina le richieste e i record correlati nel DB
-                    count = db_manager.delete_richieste_batch(request_ids)
-
-            except DatabaseError as e:
-                raise
-
-            print(f"[MainWindow.delete_selected_request] Eliminate {count} richieste dal database")
+            count = delete_requests_with_attachments(
+                request_ids=request_ids,
+                archive_path=archive_path,
+            )
 
             # Ricarica i dati invece di cancellare elementi dalla view
             self.refresh_data()
@@ -3562,32 +2603,11 @@ class MainWindow:
             SimpleMessageDialog(self.root, tr("Error"), tr("Unable to determine the selected RfQ."), "error")
             return
 
-        new_request_id = None
-
         try:
-            # Helper function per ottenere colonne
-            def get_columns(table_name, exclude):
-                # BUG #47 FIX: Usa context manager per garantire chiusura DB anche su eccezione
-                with DatabaseManager(get_db_path()) as db_mgr:
-                    cols_info = db_mgr.get_table_columns(table_name)
-                excluded = set(exclude)
-                # SQLite PRAGMA table_info restituisce: colonna[0] = cid, colonna[1] = nome colonna, colonna[2] = tipo
-                # Usa colonna[1] per estrarre il nome della colonna
-                columns = [row[1] for row in cols_info if row[1] not in excluded]
-                print(f"[get_columns] Tabella {table_name}: colonne recuperate = {columns}")
-                print(f"[get_columns] Dettagli PRAGMA: {cols_info[:3] if cols_info else []}")  # Prime 3 righe per debug
-                return columns
-
-            # BUG #47 FIX: Usa context manager anche per duplicazione
-            with DatabaseManager(get_db_path()) as db_manager:
-                new_request_id = db_manager.duplicate_richiesta_full(original_id, get_columns)
-            
-            # BUG #3 FIX: Verifica SUBITO dopo duplicazione
+            new_request_id = duplicate_request_full(original_id=original_id)
             if new_request_id is None:
                 raise ValueError("Duplicazione fallita: ID nuova RdO non ottenuto")
-            
             logger.info(f"RdO duplicata: {original_id} -> {new_request_id}")
-
         except ValueError as ve:
             SimpleMessageDialog(self.root, tr("Error"), str(ve), "error")
             return
@@ -3789,13 +2809,14 @@ class MainWindow:
         
         tipo_rdo = normalize_rfq_type(dialog.result)
         
-        # BUG #32 FIX: Usa try-finally per garantire chiusura DB
-        db_manager = None
         try:
-            # Inserisce testata minima usando db_manager
             data_oggi = datetime.now().strftime('%Y-%m-%d')
-            db_manager = DatabaseManager(get_db_path())
-            id_nuova = db_manager.insert_richiesta_offerta(tipo_rdo, 'attiva', data_oggi, username=self.current_username)
+            id_nuova = create_request_shell(
+                tipo_rdo=tipo_rdo,
+                status="attiva",
+                issue_date=data_oggi,
+                username=self.current_username,
+            )
             
             logger.info(f"Creata nuova RdO guscio N° {id_nuova} (tipo: {tipo_rdo})")
             
@@ -3808,13 +2829,6 @@ class MainWindow:
         except DatabaseError as e:
             logger.error(f"Errore creazione RdO guscio: {e}", exc_info=True)
             SimpleMessageDialog(self.root, tr("Database Error"), tr("Unable to create the new RfQ: {}").format(e), "error")
-        finally:
-            # BUG #32 FIX: Garantisce chiusura connessione anche in caso di eccezione
-            if db_manager is not None:
-                try:
-                    db_manager.close()
-                except Exception as close_error:
-                    logger.warning(f"Errore chiusura database in open_new_request_window: {close_error}")
 
     def mega_export_excel(self):
         """
@@ -3954,308 +2968,11 @@ class MainWindow:
             SimpleMessageDialog(self.root, tr("Error"), tr("Error nel recupero delle RfQ da esportare: {}").format(e), "error")
             return
 
-        # 2. Chiedi Lingua
-        prompt = LanguagePrompt(self.root)
-        self.root.wait_window(prompt)
-        lang = prompt.choice  # 'ita' o 'eng'
-        if not lang:
-            return
-
-        # 3. Configurazione Testi e Header in base alla lingua
-        is_ita = (lang == 'ita')
-        headers_map = {
-            'cod': "Codice" if is_ita else "Code",
-            'att': "Allegato" if is_ita else "Attachment",
-            'desc': "Descrizione" if is_ita else "Description",
-            'qty': "Q.tà" if is_ita else "Q.ty",
-            'cod_g': "Cod. Grezzo" if is_ita else "Raw Code",
-            'dis_g': "Dis. Grezzo" if is_ita else "Raw Dwg",
-            'mat_cl': "Mat. C/L" if is_ita else "Work Order Mat.",
-            'vs_best': "VS. MIGLIORE" if is_ita else "YOUR BEST",
-            'rdo_num': "Richiesta N°" if is_ita else "RfQ N°",
-            'date': "Del" if is_ita else "Date",
-            'type': "Tipo" if is_ita else "Type"
-        }
-        # Mapping tipo RFQ canonical (sempre IT nel DB) → label EN per export.
-        # Mantenere allineato a utils/i18n_utils.normalize_rfq_type e translate_rfq_type.
-        _rfq_type_en = {
-            "Fornitura piena": "Full Supply",
-            "Conto lavoro":    "Work Order",
-        }
-
-        # 4. Setup Excel
-        wb = openpyxl.Workbook()
-        ws = wb.active
-        ws.title = "Export DataFlow"
-        
-        # Stili
-        thin_border = Border(left=Side(style='thin'), right=Side(style='thin'), top=Side(style='thin'), bottom=Side(style='thin'))
-        bold_font = Font(bold=True)
-        header_fill = PatternFill(start_color='DDDDDD', end_color='DDDDDD', fill_type='solid')  # Grigio chiaro
-        best_price_fill = PatternFill(start_color='90EE90', end_color='90EE90', fill_type='solid')  # Verde
-
-        # Sizing mirato mega export (workbook generato da codice, no template):
-        # valori per tipologia colonna + clamp min/max per evitare estremi.
-        _COL_RULES = {
-            1: {"min_width": 15, "max_width": 18},  # Codice / RFQ id
-            2: {"min_width": 15, "max_width": 28, "wrap_threshold": 34},  # Allegato
-            3: {"min_width": 10, "max_width": 12},  # Qta (numerica)
-            4: {"min_width": 35, "max_width": 52, "wrap_threshold": 46},  # Descrizione (testo lungo)
-            5: {"min_width": 15, "max_width": 24, "wrap_threshold": 32},  # Cod. Grezzo
-            6: {"min_width": 15, "max_width": 24, "wrap_threshold": 32},  # Dis. Grezzo
-            7: {"min_width": 20, "max_width": 30, "wrap_threshold": 36},  # Mat. C/L
-            8: {"min_width": 16, "max_width": 24, "wrap_threshold": 24},  # VS BEST / YOUR BEST
-        }
-        _SUPPLIER_MIN_WIDTH = 11
-        _SUPPLIER_MAX_WIDTH = 24
-        _SUPPLIER_WRAP_THRESHOLD = 22
-        _TEXT_PADDING = 2
-
-        def _text_len(value):
-            if value is None:
-                return 0
-            text = str(value).strip()
-            if not text:
-                return 0
-            return max(len(line) for line in text.splitlines())
-
-        def _enable_wrap_text(cell):
-            if cell.alignment and cell.alignment.wrap_text:
-                return
-            if cell.alignment:
-                new_alignment = copy(cell.alignment)
-                new_alignment.wrap_text = True
-                cell.alignment = new_alignment
-            else:
-                cell.alignment = Alignment(wrap_text=True)
-
-        col_text_max = {
-            1: len(headers_map['cod']),
-            2: len(headers_map['att']),
-            3: len(headers_map['qty']),
-            4: len(headers_map['desc']),
-            5: len(headers_map['cod_g']),
-            6: len(headers_map['dis_g']),
-            7: len(headers_map['mat_cl']),
-            8: len(headers_map['vs_best']),
-        }
-        supplier_col_text_max = {}
-        
-        current_row = 1
-        
-        try:
-            # 5. CICLO SULLE RDO - usa il database corretto per ogni RfQ
-            for req_id, source_db_path in request_data:
-                # Apri il database corretto per questa RfQ
-                db_manager = DatabaseManager(source_db_path)
-                
-                try:
-                    # Recupera dati testata
-                    rdo_data = db_manager.get_richiesta_full_data(req_id)
-                    if not rdo_data:
-                        continue
-                    de_db, ds_db, rif, tipo_raw = rdo_data
-                    
-                    # Normalizza tipo
-                    tipo_normalizzato = normalize_rfq_type(tipo_raw)
-                    is_cl = (tipo_normalizzato == 'Conto lavoro')
-                    
-                    # Recupera dettagli e fornitori
-                    items = db_manager.get_dettagli_by_richiesta(req_id)
-                    suppliers_rows = db_manager.get_fornitori_by_richiesta(req_id, order_by=True)
-                    suppliers = [r[0] for r in suppliers_rows]
-                    prices_rows = db_manager.get_offerte_by_richiesta(req_id)
-                    prices = {(id_d, nf): p for id_d, nf, p in prices_rows}
-                    
-                finally:
-                    # Chiudi il database manager dopo ogni RfQ
-                    db_manager.close()
-
-                # --- SCRITTURA BLOCCO TESTATA ---
-                ws.cell(row=current_row, column=1, value=f"{headers_map['rdo_num']} {req_id}").font = Font(size=12, bold=True)
-                ws.cell(row=current_row, column=4, value=f"{headers_map['date']}: {self._format_date_for_display(de_db)}")
-                ws.cell(row=current_row, column=7, value=f"Ref: {rif}")
-                current_row += 1
-                ws.cell(row=current_row, column=1, value=f"{headers_map['type']}: {tipo_normalizzato if is_ita else _rfq_type_en.get(tipo_normalizzato, tipo_normalizzato)}")
-                current_row += 2
-
-                # --- SCRITTURA HEADER TABELLA ---
-                col_headers = [
-                    headers_map['cod'], headers_map['att'], headers_map['qty'], headers_map['desc'],
-                    headers_map['cod_g'], headers_map['dis_g'], headers_map['mat_cl']
-                ]
-                
-                for i, h_text in enumerate(col_headers, start=1):
-                    c = ws.cell(row=current_row, column=i, value=h_text)
-                    c.font = bold_font
-                    c.border = thin_border
-                    c.fill = header_fill
-                    c.alignment = Alignment(horizontal='center')
-                    col_text_max[i] = max(col_text_max.get(i, 0), _text_len(h_text))
-
-                # Colonna separatore
-                c_sep = ws.cell(row=current_row, column=8, value=headers_map['vs_best'])
-                c_sep.font = bold_font
-                c_sep.border = thin_border
-                c_sep.alignment = Alignment(horizontal='center')
-                col_text_max[8] = max(col_text_max.get(8, 0), _text_len(headers_map['vs_best']))
-
-                # Colonne Fornitori
-                start_supplier_col = 9
-                for i, sup in enumerate(suppliers):
-                    supplier_col = start_supplier_col + i
-                    c = ws.cell(row=current_row, column=supplier_col, value=sup)
-                    c.font = bold_font
-                    c.border = thin_border
-                    c.alignment = Alignment(horizontal='center')
-                    sup_len = _text_len(sup)
-                    supplier_col_text_max[supplier_col] = max(supplier_col_text_max.get(supplier_col, 0), sup_len)
-                    if sup_len > _SUPPLIER_WRAP_THRESHOLD:
-                        _enable_wrap_text(c)
-                
-                current_row += 1
-
-                # --- SCRITTURA RIGHE ARTICOLI ---
-                for item in items:
-                    id_d, cod, all_file, desc, qta, c_g, d_g, m_cl = item
-                    
-                    c_cod = ws.cell(row=current_row, column=1, value=cod)
-                    c_cod.border = thin_border
-                    col_text_max[1] = max(col_text_max.get(1, 0), _text_len(cod))
-
-                    c_att = ws.cell(row=current_row, column=2, value=all_file)
-                    c_att.border = thin_border
-                    att_len = _text_len(all_file)
-                    col_text_max[2] = max(col_text_max.get(2, 0), att_len)
-                    if att_len > _COL_RULES[2]["wrap_threshold"]:
-                        _enable_wrap_text(c_att)
-
-                    qty_text = format_quantity_display(qta)
-                    c_qty = ws.cell(row=current_row, column=3, value=qty_text)
-                    c_qty.border = thin_border
-                    col_text_max[3] = max(col_text_max.get(3, 0), _text_len(qty_text))
-
-                    c_desc = ws.cell(row=current_row, column=4, value=desc)
-                    c_desc.border = thin_border
-                    desc_len = _text_len(desc)
-                    col_text_max[4] = max(col_text_max.get(4, 0), desc_len)
-                    if desc_len > _COL_RULES[4]["wrap_threshold"]:
-                        _enable_wrap_text(c_desc)
-                    
-                    val_cg = c_g if is_cl else ""
-                    c_cg = ws.cell(row=current_row, column=5, value=val_cg)
-                    c_cg.border = thin_border
-                    cg_len = _text_len(val_cg)
-                    col_text_max[5] = max(col_text_max.get(5, 0), cg_len)
-                    if cg_len > _COL_RULES[5]["wrap_threshold"]:
-                        _enable_wrap_text(c_cg)
-
-                    val_dg = d_g if is_cl else ""
-                    c_dg = ws.cell(row=current_row, column=6, value=val_dg)
-                    c_dg.border = thin_border
-                    dg_len = _text_len(val_dg)
-                    col_text_max[6] = max(col_text_max.get(6, 0), dg_len)
-                    if dg_len > _COL_RULES[6]["wrap_threshold"]:
-                        _enable_wrap_text(c_dg)
-
-                    val_mcl = m_cl if is_cl else ""
-                    c_mcl = ws.cell(row=current_row, column=7, value=val_mcl)
-                    c_mcl.border = thin_border
-                    mcl_len = _text_len(val_mcl)
-                    col_text_max[7] = max(col_text_max.get(7, 0), mcl_len)
-                    if mcl_len > _COL_RULES[7]["wrap_threshold"]:
-                        _enable_wrap_text(c_mcl)
-                    
-                    ws.cell(row=current_row, column=8, value="").border = thin_border
-                    # Prezzi
-                    min_price = None
-                    row_prices = []
-                    for sup in suppliers:
-                        p_val = prices.get((id_d, sup))
-                        if p_val:
-                            try:
-                                row_prices.append(float(str(p_val).replace(',', '.')))
-                            except:
-                                pass
-                    if row_prices:
-                        min_price = min(row_prices)
-                    for i, sup in enumerate(suppliers):
-                        col_idx = start_supplier_col + i
-                        cell = ws.cell(row=current_row, column=col_idx)
-                        price_val = prices.get((id_d, sup))
-                        
-                        if price_val is not None:
-                            try:
-                                val_float = float(str(price_val).replace(',', '.'))
-                                cell.value = val_float
-                                cell.number_format = '0.0000'
-                                if min_price is not None and val_float == min_price and val_float > 0:
-                                    cell.fill = best_price_fill
-                            except:
-                                cell.value = price_val
-                                cell.alignment = Alignment(horizontal='right')
-                            supplier_col_text_max[col_idx] = max(
-                                supplier_col_text_max.get(col_idx, 0),
-                                _text_len(cell.value)
-                            )
-                        cell.border = thin_border
-                    current_row += 1
-                
-                current_row += 3
-
-            # Applica larghezze finali alle colonne principali (1..8)
-            for col_idx, rule in _COL_RULES.items():
-                col_letter = openpyxl.utils.get_column_letter(col_idx)
-                measured = col_text_max.get(col_idx, 0) + _TEXT_PADDING
-                min_w = rule["min_width"]
-                max_w = max(rule["max_width"], min_w)
-                ws.column_dimensions[col_letter].width = min(max(measured, min_w), max_w)
-
-            # Applica larghezze finali alle colonne fornitori (9+ effettivamente usate)
-            for col_idx, measured_len in supplier_col_text_max.items():
-                if col_idx < 9:
-                    continue
-                col_letter = openpyxl.utils.get_column_letter(col_idx)
-                measured = measured_len + _TEXT_PADDING
-                ws.column_dimensions[col_letter].width = min(
-                    max(measured, _SUPPLIER_MIN_WIDTH),
-                    _SUPPLIER_MAX_WIDTH
-                )
-
-            # Normalizzazione finale: centra verticalmente le celle gia' popolate,
-            # preservando orizzontale, wrap_text e gli altri attributi di alignment.
-            max_used_row = max(1, current_row - 1)
-            max_used_col = max(1, ws.max_column)
-            for row_cells in ws.iter_rows(min_row=1, max_row=max_used_row, min_col=1, max_col=max_used_col):
-                for cell in row_cells:
-                    if cell.value is None:
-                        continue
-                    alignment = cell.alignment
-                    if alignment:
-                        if alignment.vertical == 'center':
-                            continue
-                        new_alignment = copy(alignment)
-                        new_alignment.vertical = 'center'
-                        cell.alignment = new_alignment
-                    else:
-                        cell.alignment = Alignment(vertical='center')
-
-            # 6. Salvataggio
-            default_name = f"Export_DataFlow_{datetime.now().strftime('%Y%m%d')}.xlsx"
-            save_path = filedialog.asksaveasfilename(
-                title=tr("Save Export"),
-                defaultextension=".xlsx",
-                initialfile=default_name,
-                filetypes=[("Excel Files", "*.xlsx")]
-            )
-            
-            if save_path:
-                wb.save(save_path)
-                SimpleMessageDialog(self.root, tr("Success"), tr("Export completed successfully:\n{}").format(save_path), "info")
-                logger.info(f"Export Excel salvato in: {save_path}")
-        except Exception as e:
-            logger.error(f"Errore Export Excel: {e}", exc_info=True)
-            SimpleMessageDialog(self.root, tr("Error"), tr("Error during export: {}").format(e), "error")
+        export_rfq_requests_excel(
+            parent=self.root,
+            request_data=request_data,
+            format_date_for_display=self._format_date_for_display,
+        )
 
     def _export_vsm_excel(self, status, sheet):
         """Esporta i dati VSM (Saving / Cost Avoidance) del tab corrente in un file Excel.
@@ -4269,15 +2986,7 @@ class MainWindow:
         }
         event_type = status_to_event_type.get(status, status)
 
-        # 1. Scelta lingua — identico a mega_export_excel
-        prompt = LanguagePrompt(self.root)
-        self.root.wait_window(prompt)
-        lang = prompt.choice  # 'ita' o 'eng'
-        if not lang:
-            return
-        is_ita = (lang == 'ita')
-
-        # 2. Re-load eventi dal DB rispettando scope utente e filtri attivi (allineato a _load_vsm_events)
+        # Re-load eventi dal DB rispettando scope utente e filtri attivi (allineato a _load_vsm_events)
         try:
             vsm_username_filter = self._get_active_username_filter(self.vsm_username_filter_var)
             all_events, extra_meta = self._get_vsm_dataset(vsm_username_filter)
@@ -4296,222 +3005,31 @@ class MainWindow:
             SimpleMessageDialog(self.root, tr("Warning"), tr("No data to export in the current view."), "warning")
             return
 
-        # 3. Intestazioni in base a lingua e tipo tab (hardcoded IT/EN come mega_export_excel)
-        use_dual = event_type in ("Saving", "Cost Avoidance")
-        action_map_en = {"Negoziazione": "Negotiation", "Altro": "Other"}
-        if is_ita:
-            if event_type == "Saving":
-                headers = ["Data", "Tipo", "Azione", "Descrizione",
-                           "Saving Teorico", "Saving Effettivo", "Realizzo %", "Variance %", "Ripetitivo", "Utente"]
-            elif event_type == "Cost Avoidance":
-                headers = ["Data", "Tipo", "Azione", "Descrizione",
-                           "CA Teorico", "CA Effettivo", "Realizzo %", "Variance %", "Ripetitivo", "Utente"]
-        else:
-            if event_type == "Saving":
-                headers = ["Date", "Type", "Action", "Description",
-                           "Theoretical Savings", "Actual Savings", "Realization %", "Variance %", "Repetitive", "User"]
-            elif event_type == "Cost Avoidance":
-                headers = ["Date", "Type", "Action", "Description",
-                           "CA Theoretical", "CA Actual", "Realization %", "Variance %", "Repetitive", "User"]
-
-        # 4. Costruzione righe con valori numerici raw (nessun simbolo €, nessuna formattazione display)
-        data_rows = []
-        for event in events:
-            valore_teorico = event.calculate_theoretical_value() or 0.0
-            date_str = event.event_date.strftime("%d/%m/%Y") if event.event_date else ""
-            desc = (event.description or event.reference or "")[:50]
-            action_str = event.action if is_ita else action_map_en.get(event.action, event.action)
-
-            if use_dual:
-                valore_effettivo = event.calculate_effective_value() or 0.0
-                if event.driver == "Pagamenti" and event.giorni_pagamento_attuali is not None and event.giorni_pagamento_negoziati is not None:
-                    _delta = event.giorni_pagamento_negoziati - event.giorni_pagamento_attuali
-                    _variance_pct = round((_delta / 30.0) * event.effective_payments_rate_pct, 2)
-                elif event_type == "Cost Avoidance":
-                    _baseline = event.importo_richiesto_iniziale or 0.0
-                    _variance_pct = round(
-                        (_baseline - (event.importo_negoziato or 0.0)) / _baseline * 100, 1
-                    ) if _baseline != 0.0 else 0.0
-                else:
-                    _baseline = event.importo_bdg or 0.0
-                    _variance_pct = round(
-                        (_baseline - (event.importo_negoziato or 0.0)) / _baseline * 100, 1
-                    ) if _baseline != 0.0 else 0.0
-                row = [
-                    date_str, event.event_type, action_str, desc,
-                    round(valore_teorico, 2), round(valore_effettivo, 2),
-                    round(event.percent_realizzo, 1), _variance_pct,
-                    "✓" if event.opex_ripetitivo else "", event.username
-                ]
-            data_rows.append(row)
-
-        # 5. Setup Excel — stessi stili di mega_export_excel
-        wb = openpyxl.Workbook()
-        ws = wb.active
-        ws.title = event_type[:31]
-
-        thin_border = Border(
-            left=Side(style='thin'), right=Side(style='thin'),
-            top=Side(style='thin'), bottom=Side(style='thin')
+        export_vsm_events_excel(
+            parent=self.root,
+            status=status,
+            sheet_col_widths=getattr(sheet, "_vsm_col_widths", None),
+            events=events,
         )
-        bold_font = Font(bold=True)
-        header_fill = PatternFill(start_color='DDDDDD', end_color='DDDDDD', fill_type='solid')
-
-        for col_idx, header in enumerate(headers, start=1):
-            cell = ws.cell(row=1, column=col_idx, value=header)
-            cell.font = bold_font
-            cell.border = thin_border
-            cell.fill = header_fill
-            cell.alignment = Alignment(horizontal='center')
-
-        # Indici colonne monetarie e percentuali per number_format (1-based)
-        monetary_cols = {5, 6} if use_dual else {6}
-        pct_cols = {7, 8} if use_dual else {7}
-        rep_col = 9 if use_dual else 8  # Colonna "Ripetitivo/Repetitive" (1-based)
-        money_fmt = get_currency_excel_number_format()
-
-        for row_idx, row_data in enumerate(data_rows, start=2):
-            for col_idx, value in enumerate(row_data, start=1):
-                cell = ws.cell(row=row_idx, column=col_idx, value=value)
-                cell.border = thin_border
-                if col_idx in monetary_cols:
-                    cell.number_format = money_fmt
-                elif col_idx in pct_cols:
-                    cell.number_format = '0.0'
-                elif col_idx == rep_col:
-                    cell.alignment = Alignment(horizontal='center')
-
-        # Larghezze colonne adattive (px tkinter ÷ 7 → unità Excel)
-        col_widths_px = getattr(sheet, '_vsm_col_widths', None)
-        if col_widths_px:
-            for i, px_width in enumerate(col_widths_px):
-                col_letter = ws.cell(row=1, column=i + 1).column_letter
-                ws.column_dimensions[col_letter].width = max(10, px_width / 7)
-
-        # 6. Salvataggio — identico a mega_export_excel
-        default_name = f"Export_VSM_{event_type.replace(' ', '_')}_{datetime.now().strftime('%Y%m%d')}.xlsx"
-        try:
-            save_path = filedialog.asksaveasfilename(
-                title=tr("Save Export"),
-                defaultextension=".xlsx",
-                initialfile=default_name,
-                filetypes=[("Excel Files", "*.xlsx")]
-            )
-            if save_path:
-                wb.save(save_path)
-                SimpleMessageDialog(self.root, tr("Success"), tr("Export completed successfully:\n{}").format(save_path), "info")
-                logger.info(f"Export VSM Excel salvato in: {save_path}")
-        except Exception as e:
-            logger.error(f"Errore Export VSM Excel: {e}", exc_info=True)
-            SimpleMessageDialog(self.root, tr("Error"), tr("Error during export: {}").format(e), "error")
 
     def _export_derisking_excel(self):
         """Esporta i fornitori potenziali del tab Derisking in un file Excel.
 
         Routing separato da _export_vsm_excel: usa PotentialSupplier, non VSMEvent.
         """
-        # 1. Scelta lingua — stesso pattern degli altri export
-        prompt = LanguagePrompt(self.root)
-        self.root.wait_window(prompt)
-        lang = prompt.choice  # 'ita' o 'eng'
-        if not lang:
-            return
-        is_ita = (lang == 'ita')
-
-        # 2. Carica tutti i fornitori potenziali dal DB (stesso pattern di _load_potential_suppliers)
+        # Carica tutti i fornitori potenziali dal DB (stesso pattern di _load_potential_suppliers)
         try:
-            from services.supplier_persistence import get_all_suppliers
             username_filter = self._get_active_username_filter(self.vsm_username_filter_var)
-            with DatabaseManager(get_db_path()) as db_manager:
-                suppliers = get_all_suppliers(db_manager, username=username_filter)
+            suppliers = load_derisking_suppliers_for_export(username_filter=username_filter)
         except Exception as e:
             logger.error(f"[export_derisking] Errore recupero fornitori: {e}", exc_info=True)
             SimpleMessageDialog(self.root, tr("Error"), tr("Error retrieving data: {}").format(e), "error")
             return
 
-        if not suppliers:
-            SimpleMessageDialog(self.root, tr("Warning"), tr("No data to export in the current view."), "warning")
-            return
-
-        # 3. Intestazioni localizzate (hardcoded IT/EN, stesso pattern di _export_vsm_excel)
-        if is_ita:
-            headers = ["Fornitore", "Categoria", "Stato", "Contatto", "E-mail", "Telefono", "Web", "Note", "User"]
-        else:
-            headers = ["Supplier", "Category", "Status", "Contact", "E-mail", "Phone", "Web", "Notes", "User"]
-
-        # Mapping canonical → label EN per la colonna Status (stesso pattern di action_map_en nel VSM export)
-        _STATUS_EXPORT_EN = {
-            "Nuovo":          "New",
-            "In valutazione": "Under Evaluation",
-            "Qualificato":    "Qualified",
-            "Scartato":       "Rejected",
-        }
-
-        # 4. Costruzione righe dal modello PotentialSupplier
-        data_rows = []
-        for s in suppliers:
-            status_display = (
-                s.supplier_status
-                if is_ita
-                else _STATUS_EXPORT_EN.get(s.supplier_status, s.supplier_status)
-            ) if s.supplier_status else ""
-            data_rows.append([
-                s.supplier_name,
-                s.category,
-                status_display,
-                s.contact_name,
-                s.email,
-                s.phone,
-                s.website,
-                s.notes,
-                s.username,
-            ])
-
-        # 5. Setup Excel — stessi stili di _export_vsm_excel
-        wb = openpyxl.Workbook()
-        ws = wb.active
-        ws.title = "Derisking"
-
-        thin_border = Border(
-            left=Side(style='thin'), right=Side(style='thin'),
-            top=Side(style='thin'), bottom=Side(style='thin')
+        export_derisking_suppliers_excel(
+            parent=self.root,
+            suppliers=suppliers,
         )
-        bold_font = Font(bold=True)
-        header_fill = PatternFill(start_color='DDDDDD', end_color='DDDDDD', fill_type='solid')
-
-        for col_idx, header in enumerate(headers, start=1):
-            cell = ws.cell(row=1, column=col_idx, value=header)
-            cell.font = bold_font
-            cell.border = thin_border
-            cell.fill = header_fill
-            cell.alignment = Alignment(horizontal='center')
-
-        for row_idx, row_data in enumerate(data_rows, start=2):
-            for col_idx, value in enumerate(row_data, start=1):
-                cell = ws.cell(row=row_idx, column=col_idx, value=value)
-                cell.border = thin_border
-
-        # Larghezze colonne ragionevoli per i campi supplier-based
-        col_widths = [30, 20, 18, 25, 30, 18, 30, 40, 15]
-        for i, width in enumerate(col_widths, start=1):
-            ws.column_dimensions[ws.cell(row=1, column=i).column_letter].width = width
-
-        # 6. Salvataggio — stesso pattern di _export_vsm_excel
-        default_name = f"Export_Derisking_{datetime.now().strftime('%Y%m%d')}.xlsx"
-        try:
-            save_path = filedialog.asksaveasfilename(
-                title=tr("Save Export"),
-                defaultextension=".xlsx",
-                initialfile=default_name,
-                filetypes=[("Excel Files", "*.xlsx")]
-            )
-            if save_path:
-                wb.save(save_path)
-                SimpleMessageDialog(self.root, tr("Success"), tr("Export completed successfully:\n{}").format(save_path), "info")
-                logger.info(f"Export Derisking Excel salvato in: {save_path}")
-        except Exception as e:
-            logger.error(f"Errore Export Derisking Excel: {e}", exc_info=True)
-            SimpleMessageDialog(self.root, tr("Error"), tr("Error during export: {}").format(e), "error")
 
     def _format_date_for_display(self, db_date):
         if not db_date: return ""
@@ -4717,14 +3235,10 @@ if __name__ == '__main__':
     if _pending_restart is not None:
         _cmd, _cwd = _pending_restart
         try:
-            if sys.platform == 'win32':
-                subprocess.Popen(
-                    _cmd,
-                    cwd=_cwd,
-                    creationflags=subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.DETACHED_PROCESS,
-                    close_fds=True
-                )
-            else:
-                subprocess.Popen(_cmd, cwd=_cwd, start_new_session=True)
+            launch_post_mainloop_restart(
+                cmd=_cmd,
+                cwd=_cwd,
+                platform_name=sys.platform,
+            )
         except Exception as e:
             logger.error(f"Errore nel riavvio post-mainloop: {e}")
