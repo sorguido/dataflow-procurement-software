@@ -22,7 +22,6 @@ from services.vsm_persistence import (
 # Import da utils
 from utils.i18n_utils import tr, get_current_language
 from utils.resource_utils import set_window_icon
-from utils.window_utils import center_window
 
 # Import models
 from models.vsm_event import VSMEvent
@@ -100,15 +99,16 @@ class VSMEventDialog(tk.Toplevel):
             # Modalità create: applica dinamismo iniziale
             self._on_event_type_changed()
         
-        # Finalize window
-        center_window(self)
-        self.wait_visibility()
-        
-        # Lock window geometry to prevent resize when switching drivers
+        # Finalize window geometry once (while still hidden) to avoid visible resize/flicker
         self.update_idletasks()
-        current_width = self.winfo_width()
-        current_height = self.winfo_height()
-        self.geometry(f"{current_width}x{current_height}")
+        base_width = self.winfo_reqwidth()
+        base_height = self.winfo_reqheight()
+        target_width = base_width * 2
+        screen_w = self.winfo_screenwidth()
+        screen_h = self.winfo_screenheight()
+        target_x = max(0, (screen_w - target_width) // 2)
+        target_y = max(0, (screen_h - base_height) // 2)
+        self.geometry(f"{target_width}x{base_height}+{target_x}+{target_y}")
         
         self.grab_set()
         self.deiconify()
@@ -164,6 +164,7 @@ class VSMEventDialog(tk.Toplevel):
         # Main container
         main_frame = ttk.Frame(self, padding="15")
         main_frame.pack(fill="both", expand=True)
+        main_frame.columnconfigure(0, weight=1)
         
         # === SEZIONE GENERALE ===
         general_frame = ttk.LabelFrame(main_frame, text=tr("General Information"), padding="10")
@@ -188,7 +189,7 @@ class VSMEventDialog(tk.Toplevel):
             state="disabled",
             width=22
         )
-        self.entry_event_type.grid(row=1, column=1, sticky="w", pady=5)
+        self.entry_event_type.grid(row=1, column=1, sticky="ew", pady=5)
         
         # Azione
         ttk.Label(general_frame, text=tr("Action:")).grid(row=2, column=0, sticky="w", padx=(0, 10), pady=5)
@@ -199,7 +200,7 @@ class VSMEventDialog(tk.Toplevel):
             state="readonly",
             width=20
         )
-        self.combo_action.grid(row=2, column=1, sticky="w", pady=5)
+        self.combo_action.grid(row=2, column=1, sticky="ew", pady=5)
         # Entry per Azione (stesso sistema di Tipo Evento, usato in modalità Derisking)
         self.entry_action = ttk.Entry(
             general_frame,
@@ -235,6 +236,7 @@ class VSMEventDialog(tk.Toplevel):
         self.economic_frame = ttk.LabelFrame(main_frame, text=tr("Economic Data"), padding="10")
         self.economic_frame.grid(row=3, column=0, sticky="ew", pady=(0, 10))
         self.economic_frame.columnconfigure(0, weight=1)
+        self.economic_frame.columnconfigure(1, weight=1)
         
         # --- SUB-FRAME PREZZO (driver Prezzo) ---
         self.price_fields_frame = ttk.Frame(self.economic_frame)
@@ -383,7 +385,7 @@ class VSMEventDialog(tk.Toplevel):
         if event_type == "Saving":
             # Saving: show driver combo (row 0) and delegate field layout to _on_driver_changed
             self.lbl_driver.grid(row=0, column=0, sticky="w", padx=(0, 10), pady=5)
-            self.combo_driver.grid(row=0, column=1, sticky="w", pady=5)
+            self.combo_driver.grid(row=0, column=1, sticky="ew", pady=5)
             # Call driver handler to position appropriate sub-frame at row 1
             self._on_driver_changed()
             # Mostra Combobox Azione, nascondi Entry
@@ -393,7 +395,7 @@ class VSMEventDialog(tk.Toplevel):
         elif event_type == "Cost Avoidance":
             # Cost Avoidance: show driver combo (row 0) and delegate field layout to _on_driver_changed
             self.lbl_driver.grid(row=0, column=0, sticky="w", padx=(0, 10), pady=5)
-            self.combo_driver.grid(row=0, column=1, sticky="w", pady=5)
+            self.combo_driver.grid(row=0, column=1, sticky="ew", pady=5)
             # Call driver handler to position appropriate sub-frame at row 1
             self._on_driver_changed()
             # Mostra Combobox Azione, nascondi Entry
@@ -406,7 +408,7 @@ class VSMEventDialog(tk.Toplevel):
             # Mostra Entry Azione (stesso sistema di Tipo Evento), nascondi Combobox
             self.action_var.set("Derisking")
             self.combo_action.grid_remove()
-            self.entry_action.grid(row=2, column=1, sticky="w", pady=5)
+            self.entry_action.grid(row=2, column=1, sticky="ew", pady=5)
             # Mostra sezione New Supplier Introduced (solo per Derisking)
             self.new_supplier_frame.grid(row=1, column=0, sticky="ew", pady=(0, 10))
     
@@ -439,16 +441,16 @@ class VSMEventDialog(tk.Toplevel):
             # Layout widgets inside price_fields_frame based on event_type
             if event_type == "Saving":
                 self.lbl_importo_bdg.grid(row=0, column=0, sticky="w", padx=(0, 10), pady=5)
-                self.entry_importo_bdg.grid(row=0, column=1, sticky="w", pady=5)
+                self.entry_importo_bdg.grid(row=0, column=1, sticky="ew", pady=5)
                 
                 self.lbl_importo_negoziato.grid(row=1, column=0, sticky="w", padx=(0, 10), pady=5)
-                self.entry_importo_negoziato.grid(row=1, column=1, sticky="w", pady=5)
+                self.entry_importo_negoziato.grid(row=1, column=1, sticky="ew", pady=5)
                 
                 self.lbl_quantita_annua.grid(row=2, column=0, sticky="w", padx=(0, 10), pady=5)
-                self.entry_quantita_annua.grid(row=2, column=1, sticky="w", pady=5)
+                self.entry_quantita_annua.grid(row=2, column=1, sticky="ew", pady=5)
                 
                 self.lbl_percent_realizzo.grid(row=3, column=0, sticky="w", padx=(0, 10), pady=5)
-                self.entry_percent_realizzo.grid(row=3, column=1, sticky="w", pady=5)
+                self.entry_percent_realizzo.grid(row=3, column=1, sticky="ew", pady=5)
                 
                 # Hide Cost Avoidance specific field
                 self.lbl_importo_richiesto.grid_remove()
@@ -456,16 +458,16 @@ class VSMEventDialog(tk.Toplevel):
                 
             elif event_type == "Cost Avoidance":
                 self.lbl_importo_richiesto.grid(row=0, column=0, sticky="w", padx=(0, 10), pady=5)
-                self.entry_importo_richiesto.grid(row=0, column=1, sticky="w", pady=5)
+                self.entry_importo_richiesto.grid(row=0, column=1, sticky="ew", pady=5)
                 
                 self.lbl_importo_negoziato.grid(row=1, column=0, sticky="w", padx=(0, 10), pady=5)
-                self.entry_importo_negoziato.grid(row=1, column=1, sticky="w", pady=5)
+                self.entry_importo_negoziato.grid(row=1, column=1, sticky="ew", pady=5)
                 
                 self.lbl_quantita_annua.grid(row=2, column=0, sticky="w", padx=(0, 10), pady=5)
-                self.entry_quantita_annua.grid(row=2, column=1, sticky="w", pady=5)
+                self.entry_quantita_annua.grid(row=2, column=1, sticky="ew", pady=5)
                 
                 self.lbl_percent_realizzo.grid(row=3, column=0, sticky="w", padx=(0, 10), pady=5)
-                self.entry_percent_realizzo.grid(row=3, column=1, sticky="w", pady=5)
+                self.entry_percent_realizzo.grid(row=3, column=1, sticky="ew", pady=5)
                 
                 # Hide Saving specific field
                 self.lbl_importo_bdg.grid_remove()
