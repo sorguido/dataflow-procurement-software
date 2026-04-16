@@ -69,8 +69,9 @@ class VSMEventDialog(tk.Toplevel):
             self.title(tr("View VSM Event"))
         else:
             self.title(tr("Edit VSM Event") if self.is_edit_mode else tr("New VSM Event"))
-        self.transient(parent)
-        self.resizable(False, False)
+        # Evita transient per mantenere i controlli finestra più standard
+        # (massimizzazione inclusa dove supportata dal window manager).
+        self.resizable(True, True)
         
         # Widget refs
         self.event_type_var = tk.StringVar(value=event_type)
@@ -103,12 +104,16 @@ class VSMEventDialog(tk.Toplevel):
         self.update_idletasks()
         base_width = self.winfo_reqwidth()
         base_height = self.winfo_reqheight()
-        target_width = base_width * 2
         screen_w = self.winfo_screenwidth()
         screen_h = self.winfo_screenheight()
+
+        # Dimensione iniziale più ampia ma non rigida; evita overflow su schermi piccoli.
+        target_width = min(max(base_width + 220, int(screen_w * 0.62)), int(screen_w * 0.9))
+        target_height = min(max(base_height + 90, int(screen_h * 0.62)), int(screen_h * 0.88))
         target_x = max(0, (screen_w - target_width) // 2)
-        target_y = max(0, (screen_h - base_height) // 2)
-        self.geometry(f"{target_width}x{base_height}+{target_x}+{target_y}")
+        target_y = max(0, (screen_h - target_height) // 2)
+        self.geometry(f"{target_width}x{target_height}+{target_x}+{target_y}")
+        self.minsize(base_width, base_height)
         
         self.grab_set()
         self.deiconify()
@@ -165,6 +170,8 @@ class VSMEventDialog(tk.Toplevel):
         main_frame = ttk.Frame(self, padding="15")
         main_frame.pack(fill="both", expand=True)
         main_frame.columnconfigure(0, weight=1)
+        # Consente al blocco Descrizione di assorbire espansione verticale.
+        main_frame.rowconfigure(2, weight=1)
         
         # === SEZIONE GENERALE ===
         general_frame = ttk.LabelFrame(main_frame, text=tr("General Information"), padding="10")
@@ -224,7 +231,7 @@ class VSMEventDialog(tk.Toplevel):
 
         # === SEZIONE DESCRIZIONE ===
         desc_frame = ttk.LabelFrame(main_frame, text=tr("Description"), padding="10")
-        desc_frame.grid(row=2, column=0, sticky="ew", pady=(0, 10))
+        desc_frame.grid(row=2, column=0, sticky="nsew", pady=(0, 10))
         desc_frame.columnconfigure(0, weight=1)
         desc_frame.rowconfigure(0, weight=1)
         

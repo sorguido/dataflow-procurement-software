@@ -56,7 +56,6 @@ def _status_canonical(label: str) -> str:
 
 
 from utils.resource_utils import set_window_icon
-from utils.window_utils import center_window
 from utils.validation_utils import is_valid_email, is_valid_website
 from ui.dialogs.common_dialogs import SimpleMessageDialog
 from ui.components.supplier_name_suggest import SupplierNameSuggestController
@@ -106,8 +105,9 @@ class PotentialSupplierDialog(tk.Toplevel):
         else:
             self.title(tr("New Supplier"))
 
-        self.transient(parent)
-        self.resizable(False, False)
+        # Evita transient per mantenere i controlli finestra standard del WM
+        # (massimizzazione inclusa dove disponibile).
+        self.resizable(True, True)
 
         # --- Variabili tk ---
         self.var_supplier_name = tk.StringVar()
@@ -139,9 +139,19 @@ class PotentialSupplierDialog(tk.Toplevel):
         if self.read_only:
             self._apply_read_only()
 
-        # Mostra finestra centrata
-        center_window(self)
-        self.wait_visibility()
+        # Geometria iniziale centrata e definita prima di mostrare la finestra.
+        self.update_idletasks()
+        base_width = self.winfo_reqwidth()
+        base_height = self.winfo_reqheight()
+        screen_w = self.winfo_screenwidth()
+        screen_h = self.winfo_screenheight()
+        target_width = min(max(base_width + 160, int(screen_w * 0.56)), int(screen_w * 0.82))
+        target_height = min(max(base_height + 80, int(screen_h * 0.58)), int(screen_h * 0.86))
+        x = max(0, (screen_w - target_width) // 2)
+        y = max(0, (screen_h - target_height) // 2)
+        self.geometry(f"{target_width}x{target_height}+{x}+{y}")
+        self.minsize(base_width, base_height)
+
         self.grab_set()
         self.deiconify()
 
@@ -160,6 +170,7 @@ class PotentialSupplierDialog(tk.Toplevel):
         main = ttk.Frame(self, padding="20")
         main.pack(fill="both", expand=True)
         main.columnconfigure(0, weight=1)
+        main.rowconfigure(2, weight=1)
 
         # --- Sezione: Informazioni Generali ---
         general = ttk.LabelFrame(main, text=tr("General Information"), padding="10")
@@ -260,8 +271,9 @@ class PotentialSupplierDialog(tk.Toplevel):
 
         # --- Sezione: Note ---
         notes_frame = ttk.LabelFrame(main, text=tr("Notes"), padding="10")
-        notes_frame.grid(row=2, column=0, sticky="ew", pady=(0, 15))
+        notes_frame.grid(row=2, column=0, sticky="nsew", pady=(0, 15))
         notes_frame.columnconfigure(0, weight=1)
+        notes_frame.rowconfigure(0, weight=1)
 
         self._text_notes = tk.Text(
             notes_frame, height=4, width=50, wrap="word", font=(None, 10)
