@@ -207,17 +207,22 @@ class DashboardController:
             clauses.append("LOWER(COALESCE(ro.username, '')) = ?"); params.append(username_filter)
 
         # Global Search: ricerca multi-campo con OR logic (OPZIONE A)
-        # Se presente, aggiunge un blocco OR che cerca in 6 campi principali
-        # Questo blocco coesiste con i filtri standard (combinazione AND)
+        # Mantiene i campi storici e aggiunge i campi della griglia materiali
+        # (Codice/Allegato/Descrizione/Cod. Grezzo/Allegato Grezzo/Mat. C/L).
+        # Questo blocco coesiste con i filtri standard (combinazione AND).
         if crit['global']:
             global_query = crit['global']
             global_clauses = [
                 "CAST(ro.id_richiesta AS TEXT) LIKE ?",
-                "LOWER(ro.riferimento) LIKE LOWER(?)",
-                "LOWER(rf.nome_fornitore) LIKE LOWER(?)",
-                "LOWER(dr.codice_materiale) LIKE LOWER(?)",
-                "LOWER(dr.descrizione_materiale) LIKE LOWER(?)",
-                "LOWER(ro.numeri_ordine) LIKE LOWER(?)"
+                "LOWER(COALESCE(ro.riferimento, '')) LIKE LOWER(?)",
+                "LOWER(COALESCE(rf.nome_fornitore, '')) LIKE LOWER(?)",
+                "LOWER(COALESCE(ro.numeri_ordine, '')) LIKE LOWER(?)",
+                "LOWER(COALESCE(dr.codice_materiale, '')) LIKE LOWER(?)",
+                "LOWER(COALESCE(dr.disegno, '')) LIKE LOWER(?)",
+                "LOWER(COALESCE(dr.descrizione_materiale, '')) LIKE LOWER(?)",
+                "LOWER(COALESCE(dr.codice_grezzo, '')) LIKE LOWER(?)",
+                "LOWER(COALESCE(dr.disegno_grezzo, '')) LIKE LOWER(?)",
+                "LOWER(COALESCE(dr.materiale_conto_lavoro, '')) LIKE LOWER(?)"
             ]
             clauses.append("(" + " OR ".join(global_clauses) + ")")
             # Aggiungi il parametro global_query per ogni campo OR
@@ -336,41 +341,50 @@ class DashboardController:
                     if tipo_rdo and row[1] != tipo_rdo:
                         continue
 
-                    # Global Search (se presente): verifica match OR su campi principali
+                    # Global Search (se presente): verifica match OR su campi
+                    # storici + campi griglia materiali
                     # OPZIONE A: global search + filtri standard coesistono con AND
                     if crit['global']:
                         global_query = crit['global'].lower()
 
-                        # Verifica match su campi immediati (num, ref)
+                        # Verifica match su campi immediati (id, riferimento)
                         num_match = global_query in str(row[0])
                         ref_match = row[4] and global_query in row[4].lower()
 
-                        # Se non matcha campi immediati, verifica campi dettaglio
+                        # Se non matcha campi immediati, verifica i campi
+                        # rimanenti nel DB sorgente della RdO.
                         if not (num_match or ref_match):
-                            # Controlla forn, cod, desc, ord nel DB source
                             source_db_path = row[8] if len(row) > 8 else 'local'
                             if source_db_path == 'local':
                                 source_db_path = get_db_path()
                             try:
                                 detail_match = False
                                 with DatabaseManager(source_db_path) as source_db_mgr:
-                                    # Query SQL per verificare match OR su dettagli
                                     cursor = source_db_mgr.conn.cursor()
                                     detail_sql = """
-                                        SELECT 1 FROM richieste_offerta ro
+                                        SELECT 1
+                                        FROM richieste_offerta ro
                                         LEFT JOIN dettagli_richiesta dr ON ro.id_richiesta=dr.id_richiesta
                                         LEFT JOIN richiesta_fornitori rf ON ro.id_richiesta=rf.id_richiesta
                                         WHERE ro.id_richiesta=?
                                         AND (
                                             LOWER(COALESCE(rf.nome_fornitore, '')) LIKE LOWER(?)
-                                            OR LOWER(COALESCE(dr.codice_materiale, '')) LIKE LOWER(?)
-                                            OR LOWER(COALESCE(dr.descrizione_materiale, '')) LIKE LOWER(?)
                                             OR LOWER(COALESCE(ro.numeri_ordine, '')) LIKE LOWER(?)
+                                            OR LOWER(COALESCE(dr.codice_materiale, '')) LIKE LOWER(?)
+                                            OR LOWER(COALESCE(dr.disegno, '')) LIKE LOWER(?)
+                                            OR LOWER(COALESCE(dr.descrizione_materiale, '')) LIKE LOWER(?)
+                                            OR LOWER(COALESCE(dr.codice_grezzo, '')) LIKE LOWER(?)
+                                            OR LOWER(COALESCE(dr.disegno_grezzo, '')) LIKE LOWER(?)
+                                            OR LOWER(COALESCE(dr.materiale_conto_lavoro, '')) LIKE LOWER(?)
                                         )
                                         LIMIT 1
                                     """
                                     cursor.execute(detail_sql, (
                                         row[0],
+                                        f'%{global_query}%',
+                                        f'%{global_query}%',
+                                        f'%{global_query}%',
+                                        f'%{global_query}%',
                                         f'%{global_query}%',
                                         f'%{global_query}%',
                                         f'%{global_query}%',
