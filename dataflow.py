@@ -3009,72 +3009,13 @@ class MainWindow:
         try:
             # Verifica se ci sono filtri di ricerca attivi
             if self._has_active_search_filters():
-                # CI SONO FILTRI ATTIVI: esegui la stessa query di search_requests per ottenere TUTTI i risultati
-                logger.info("[export_excel] Filtri di ricerca attivi - recupero tutti i risultati filtrati")
-                
-                username_filter = self._get_active_username_filter()
-                crit = {k: v.get().strip() for k, v in self.search_vars.items()}
-                dates = {k: format_date_for_db(v.get().strip()) for k, v in self.date_entries.items()}
-                
-                # Gestione tipo RdO
-                tipo_rdo = None
-                if self.search_tipo.get() != tr("All"):
-                    tipo_rdo = normalize_rfq_type(self.search_tipo.get())
-                
-                # Usa SEMPRE aggregazione multi-database per avere dati da tutti gli utenti
-                # Poi filtra in memoria per username specifico se necessario
-                with DatabaseManager(get_db_path()) as db_manager:
-                    all_results = db_manager.get_all_richieste_aggregated(get_db_path())
-                
-                # Filtra in memoria applicando TUTTI i criteri
-                for row in all_results:
-                    # Filtro stato
-                    if row[6] != status:
-                        continue
-                    # Filtro username
-                    if username_filter and (not row[5] or row[5].lower() != username_filter.lower()):
-                        continue
-                    # Filtro tipo RdO
-                    if tipo_rdo and row[1] != tipo_rdo:
-                        continue
-                    # Filtri di testo
-                    if crit['num'] and crit['num'] not in str(row[0]):
-                        continue
-                    if crit['ref'] and (not row[4] or crit['ref'].lower() not in row[4].lower()):
-                        continue
-                    # Filtri data
-                    if dates['emm_da'] and (not row[2] or row[2] < dates['emm_da']):
-                        continue
-                    if dates['emm_a'] and (not row[2] or row[2] > dates['emm_a']):
-                        continue
-                    if dates['scad_da'] and (not row[3] or row[3] < dates['scad_da']):
-                        continue
-                    if dates['scad_a'] and (not row[3] or row[3] > dates['scad_a']):
-                        continue
-                    
-                    # Filtri su dettagli (fornitore, materiale, ecc.)
-                    if any([crit['forn'], crit['cod'], crit['desc'], crit['ord'], 
-                           crit['cod_grezzo'], crit['dis_grezzo'], crit['mat_cl']]):
-                        source_db_path = row[8] if len(row) > 8 else 'local'
-                        if source_db_path == 'local':
-                            source_db_path = get_db_path()
-                        try:
-                            with DatabaseManager(source_db_path) as source_db_mgr:
-                                detail_match = source_db_mgr.check_richiesta_detail_criteria(
-                                    row[0],
-                                    {
-                                        'forn': crit['forn'], 'cod': crit['cod'], 'desc': crit['desc'],
-                                        'ord': crit['ord'], 'cod_grezzo': crit['cod_grezzo'],
-                                        'dis_grezzo': crit['dis_grezzo'], 'mat_cl': crit['mat_cl']
-                                    }
-                                )
-                            if not detail_match:
-                                continue
-                        except Exception as e:
-                            logger.warning(f"Errore verifica criteri dettaglio per RdO {row[0]}: {e}")
-                            continue
-                    
-                    # Tutti i filtri passati - salva ID e percorso database
+                # CI SONO FILTRI ATTIVI: usa la STESSA pipeline della dashboard RFQ
+                # (inclusa Global Search) e riusa il dataset già visualizzato nel tab corrente.
+                logger.info("[export_excel] Filtri attivi - riuso pipeline search_requests per coerenza vista/export")
+                self.search_requests()
+                filtered_rows = list(getattr(current_tree, "_sheet_requests", []) or [])
+
+                for row in filtered_rows:
                     source_db_path = row[8] if len(row) > 8 else 'local'
                     if source_db_path == 'local':
                         source_db_path = get_db_path()
