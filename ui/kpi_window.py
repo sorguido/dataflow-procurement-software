@@ -12,10 +12,14 @@ Fase 3: UI collegata al KPI engine.
 import tkinter as tk
 from tkinter import ttk, filedialog
 import logging
-from datetime import date, timedelta, datetime as _dt
+from datetime import date, timedelta
 
 from utils.window_utils import center_window
 from utils.resource_utils import set_window_icon
+from utils.export_filename import (
+    build_excel_export_filename,
+    normalize_export_lang,
+)
 from utils.i18n_utils import tr, get_current_language
 from utils.format_utils import format_currency_display, get_currency_code
 from ui.dialogs.common_dialogs import LanguagePrompt, SimpleMessageDialog
@@ -725,8 +729,29 @@ class KpiWindow(tk.Toplevel):
             return
 
         # 6. Dialog salvataggio
-        ts           = _dt.now().strftime('%Y%m%d_%H%M')
-        default_name = f"KPI_DataFlow_{ts}.xlsx"
+        lang_tag = normalize_export_lang(lang)
+        if scope_dlg.scope == "all":
+            default_name = build_excel_export_filename(
+                "DataFlow",
+                "KPI",
+                "AllTabs",
+                "Export",
+                lang_tag,
+            )
+        else:
+            section_map = {
+                "RFQ": "RFQ",
+                "Saving": "Saving",
+                "Cost Avoidance": "CostAvoidance",
+                "Derisking": "Derisking",
+            }
+            section_token = section_map.get(current_section, "RFQ")
+            default_name = build_excel_export_filename(
+                "DataFlow",
+                "KPI",
+                section_token,
+                lang_tag,
+            )
         save_path = filedialog.asksaveasfilename(
             parent=self,
             title=tr("Save KPI Export"),

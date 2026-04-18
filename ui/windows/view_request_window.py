@@ -19,6 +19,11 @@ from database_manager import DatabaseManager, DatabaseError
 
 # Import da utils
 from utils.resource_utils import resource_path, set_window_icon
+from utils.export_filename import (
+    build_excel_export_filename,
+    build_rfq_context,
+    normalize_export_lang,
+)
 from utils.window_utils import center_window, calculate_optimal_window_size
 from utils.i18n_utils import (
     tr,
@@ -682,16 +687,33 @@ class ViewRequestWindow(tk.Toplevel):
             else:
                 template_name = "template_rdo_eng.xlsx"
 
+        lang_tag = normalize_export_lang(chosen_language)
+        rfq_context = build_rfq_context(self.request_id)
+
         if chosen_language == 'ita':
             texts = {
                 "save_title": "Salva Riepilogo",
-                "initial_file": f"Riepilogo_RdO_{self.request_id}.xlsx",
+                "initial_file": build_excel_export_filename(
+                    "DataFlow",
+                    "Request",
+                    lang_tag,
+                    "RdO",
+                    "Summary",
+                    rfq_context,
+                ),
                 "vs_best": "VS. MIGLIORE"
             }
         else:
             texts = {
                 "save_title": "Save Summary",
-                "initial_file": f"Summary_RfQ_{self.request_id}.xlsx",
+                "initial_file": build_excel_export_filename(
+                    "DataFlow",
+                    "Request",
+                    lang_tag,
+                    "RfQ",
+                    "Summary",
+                    rfq_context,
+                ),
                 "vs_best": "BEST DELIVERY"
             }
             

@@ -16,6 +16,11 @@ from database_manager import DatabaseManager, DatabaseError
 from services.app_paths import get_db_path, get_fixed_attachments_dir
 from utils.window_utils import center_window
 from utils.resource_utils import set_window_icon, resource_path
+from utils.export_filename import (
+    build_excel_export_filename,
+    build_rfq_context,
+    normalize_export_lang,
+)
 from utils.i18n_utils import tr, get_current_language
 from utils.format_utils import parse_float_from_comma_string
 from utils.validation_utils import sanitize_filename
@@ -554,12 +559,29 @@ class SQDCAnalysisWindow(tk.Toplevel):
         
         language = get_current_language()
         
+        lang_tag = normalize_export_lang(language)
+        rfq_context = build_rfq_context(self.request_id)
+
         if language == 'it':
             template_name = "template_sqdc.xlsx"
-            default_name = f"SQDC_Analisi_RdO_{self.request_id}.xlsx"
+            default_name = build_excel_export_filename(
+                "DataFlow",
+                "SQDC",
+                "RdO",
+                "Analysis",
+                lang_tag,
+                rfq_context,
+            )
         else:
             template_name = "template_sqdc_eng.xlsx"
-            default_name = f"SQDC_Analysis_RfQ_{self.request_id}.xlsx"
+            default_name = build_excel_export_filename(
+                "DataFlow",
+                "SQDC",
+                "RfQ",
+                "Analysis",
+                lang_tag,
+                rfq_context,
+            )
         
         template_path = resource_path(os.path.join("add_data", template_name))
         

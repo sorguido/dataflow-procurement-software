@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import logging
 from copy import copy
-from datetime import datetime
 
 import openpyxl
 from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
@@ -21,6 +20,10 @@ from ui.dialogs.common_dialogs import LanguagePrompt, SimpleMessageDialog
 from utils.format_utils import (
     format_quantity_display,
     get_currency_excel_number_format,
+)
+from utils.export_filename import (
+    build_excel_export_filename,
+    normalize_export_lang,
 )
 from utils.i18n_utils import normalize_rfq_type, tr
 
@@ -304,7 +307,13 @@ def export_rfq_requests_excel(*, parent, request_data, format_date_for_display):
                 else:
                     cell.alignment = Alignment(vertical="center")
 
-        default_name = f"Export_DataFlow_{datetime.now().strftime('%Y%m%d')}.xlsx"
+        default_name = build_excel_export_filename(
+            "DataFlow",
+            "Dashboard",
+            "RFQ",
+            "Export",
+            normalize_export_lang(lang),
+        )
         save_path = filedialog.asksaveasfilename(
             title=tr("Save Export"),
             defaultextension=".xlsx",
@@ -432,7 +441,19 @@ def export_vsm_events_excel(*, parent, status, sheet_col_widths, events):
             col_letter = ws.cell(row=1, column=i + 1).column_letter
             ws.column_dimensions[col_letter].width = max(10, px_width / 7)
 
-    default_name = f"Export_VSM_{event_type.replace(' ', '_')}_{datetime.now().strftime('%Y%m%d')}.xlsx"
+    if event_type == "Saving":
+        section = "VSM_Saving"
+    elif event_type == "Cost Avoidance":
+        section = "VSM_CostAvoidance"
+    else:
+        section = f"VSM_{event_type}"
+    default_name = build_excel_export_filename(
+        "DataFlow",
+        "Dashboard",
+        section,
+        "Export",
+        normalize_export_lang(lang),
+    )
     try:
         save_path = filedialog.asksaveasfilename(
             title=tr("Save Export"),
@@ -515,7 +536,13 @@ def export_derisking_suppliers_excel(*, parent, suppliers):
     for i, width in enumerate(col_widths, start=1):
         ws.column_dimensions[ws.cell(row=1, column=i).column_letter].width = width
 
-    default_name = f"Export_Derisking_{datetime.now().strftime('%Y%m%d')}.xlsx"
+    default_name = build_excel_export_filename(
+        "DataFlow",
+        "Dashboard",
+        "VSM_Derisking",
+        "Export",
+        normalize_export_lang(lang),
+    )
     try:
         save_path = filedialog.asksaveasfilename(
             title=tr("Save Export"),
