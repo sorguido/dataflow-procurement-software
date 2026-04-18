@@ -1609,6 +1609,55 @@ class MainWindow:
         afv = getattr(self, "vsm_actual_from_var", None)
         atv = getattr(self, "vsm_actual_to_var", None)
 
+        # Validazione conservativa importi: accetta solo formati non ambigui
+        # (es: 1234 / 1234,56 / 1234.56) e rifiuta separatori migliaia ambigui
+        # (es: 1,234.56 / 1.234,56).
+        amount_vars = {
+            "theoretical_from": tfv,
+            "theoretical_to": ttv,
+            "actual_from": afv,
+            "actual_to": atv,
+        }
+        amount_labels = {
+            "theoretical_from": tr("Theoretical From:"),
+            "theoretical_to": tr("To:"),
+            "actual_from": tr("Actual From:"),
+            "actual_to": tr("To:"),
+        }
+        amount_pattern = re.compile(r"^[+-]?\d+(?:[.,]\d{1,2})?$")
+        invalid_fields = []
+        for key, var in amount_vars.items():
+            if not var:
+                continue
+            raw = (var.get() or "").strip()
+            if not raw:
+                continue
+            if not amount_pattern.fullmatch(raw):
+                invalid_fields.append(amount_labels.get(key, key))
+                # Disattiva il filtro ambiguo per evitare interpretazioni errate/silenziose.
+                var.set("")
+
+        if invalid_fields:
+            unique_labels = []
+            seen_labels = set()
+            for label in invalid_fields:
+                if label in seen_labels:
+                    continue
+                seen_labels.add(label)
+                unique_labels.append(label)
+            fields_text = ", ".join(unique_labels)
+            SimpleMessageDialog(
+                self.root,
+                tr("Invalid Input"),
+                tr(
+                    "Some amount filters were ignored because the format is ambiguous.\n"
+                    "Fields: {}\n\n"
+                    "Use only: 1234, 1234,56 or 1234.56\n"
+                    "(without thousands separators)."
+                ).format(fields_text),
+                "warning",
+            )
+
         filters = {
             "date_from": de_from.get().strip() if de_from else "",
             "date_to": de_to.get().strip() if de_to else "",
