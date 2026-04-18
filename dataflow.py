@@ -53,6 +53,7 @@ import gettext
 import subprocess
 import threading
 import unicodedata
+from collections import defaultdict, deque
 
 # Importa costanti UI/layout
 from constants import (
@@ -1720,6 +1721,10 @@ class MainWindow:
         # eliminando il micro-tremolio visivo durante search/refresh.
         sheet.set_sheet_data(data_rows, reset_col_positions=False)
         sheet._event_metadata = metadata
+        # Baseline per riallineamento metadata dopo sort visuale (tksheet sort nativo).
+        sheet._event_metadata_source = [dict(meta) for meta in metadata]
+        sheet._event_rows_data_source = [tuple(row) for row in data_rows]
+        sheet._metadata_needs_resync = False
 
         # Larghezze colonne: parte dal template salvato in _create_vsm_event_sheet, poi aggiusta
         # la colonna "Nuovo Fornitore" (Derisking, indice 1) in base al contenuto effettivo.
@@ -2083,7 +2088,87 @@ class MainWindow:
 
     def _get_selected_row_indices(self, sheet):
         """Ritorna indici riga selezionati delegando alla policy condivisa."""
+        self._sync_sheet_metadata_with_visible_rows(sheet)
         return policy_get_selected_row_indices(sheet)
+
+    @staticmethod
+    def _row_signature(row_data):
+        """Firma stabile di una riga visuale, usata per riallineare metadata."""
+        if not row_data:
+            return tuple()
+        return tuple("" if value is None else str(value) for value in row_data)
+
+    def _resync_single_metadata_list(self, sheet, *, metadata_attr, metadata_source_attr, row_source_attr):
+        """Riallinea una lista metadata all'ordine righe correntemente visualizzato nel sheet."""
+        if not getattr(sheet, "_metadata_needs_resync", False):
+            return
+        if not hasattr(sheet, metadata_attr):
+            return
+
+        source_metadata = getattr(sheet, metadata_source_attr, None)
+        source_rows = getattr(sheet, row_source_attr, None)
+        if not isinstance(source_metadata, list) or not isinstance(source_rows, list):
+            return
+        if len(source_metadata) != len(source_rows):
+            return
+
+        try:
+            total_rows = sheet.get_total_rows()
+        except Exception:
+            return
+
+        if total_rows != len(source_rows):
+            # Dataset cambiato (reload parziale): lascia invariato, verrà riallineato al prossimo populate.
+            return
+
+        buckets = defaultdict(deque)
+        for row_values, metadata in zip(source_rows, source_metadata):
+            buckets[self._row_signature(row_values)].append(metadata)
+
+        reordered_metadata = []
+        current_rows = []
+        for row_idx in range(total_rows):
+            try:
+                row_values = sheet.get_row_data(row_idx)
+            except Exception:
+                return
+            current_rows.append(tuple(row_values) if row_values else tuple())
+            sig = self._row_signature(row_values)
+            if not buckets[sig]:
+                # Ambiguità/non allineabilità: non forzare riallineamento parziale.
+                return
+            reordered_metadata.append(buckets[sig].popleft())
+
+        setattr(sheet, metadata_attr, reordered_metadata)
+        # Aggiorna baseline all'ordine corrente, così sort multipli restano consistenti.
+        setattr(sheet, metadata_source_attr, [dict(meta) for meta in reordered_metadata])
+        setattr(sheet, row_source_attr, current_rows)
+
+    def _sync_sheet_metadata_with_visible_rows(self, sheet):
+        """Riallinea metadata↔righe per RFQ / VSM / Derisking dopo sort visuale."""
+        if sheet is None:
+            return
+
+        self._resync_single_metadata_list(
+            sheet,
+            metadata_attr="_sheet_rows_metadata",
+            metadata_source_attr="_sheet_rows_metadata_source",
+            row_source_attr="_sheet_rows_data_source",
+        )
+        self._resync_single_metadata_list(
+            sheet,
+            metadata_attr="_event_metadata",
+            metadata_source_attr="_event_metadata_source",
+            row_source_attr="_event_rows_data_source",
+        )
+        self._resync_single_metadata_list(
+            sheet,
+            metadata_attr="_supplier_metadata",
+            metadata_source_attr="_supplier_metadata_source",
+            row_source_attr="_supplier_rows_data_source",
+        )
+        # Se arrivo qui, tutti i metadata presenti sono coerenti con lo stato visuale attuale.
+        sheet._metadata_needs_resync = False
     
     def _check_if_all_selected_are_mine(self, sheet, selected_indices):
         """Verifica ownership RFQ con fallback fail-safe."""
@@ -2364,6 +2449,10 @@ class MainWindow:
         if not hasattr(sheet, "_sheet_rows_metadata"):
             sheet._sheet_rows_metadata = []
         sheet._sheet_rows_metadata = metadata_rows
+        # Baseline per riallineamento metadata dopo sort visuale (tksheet sort nativo).
+        sheet._sheet_rows_metadata_source = [dict(meta) for meta in metadata_rows]
+        sheet._sheet_rows_data_source = [tuple(row) for row in data_rows]
+        sheet._metadata_needs_resync = False
         
         # Carica i dati nel sheet
         sheet.set_sheet_data(data_rows)
@@ -2715,6 +2804,7 @@ class MainWindow:
     def on_sheet_double_click(self, sheet, event=None):
         """Gestisce il doppio click su una riga del sheet per aprire la RdO con debounce"""
         try:
+            self._sync_sheet_metadata_with_visible_rows(sheet)
             # Verifica che non ci sia già una finestra in apertura (debounce)
             if hasattr(self, '_opening_request') and self._opening_request:
                 return

@@ -85,4 +85,8 @@ def populate_supplier_sheet(*, sheet, data_rows, metadata, resize_columns, notes
     sheet.redraw()
 
     sheet._supplier_metadata = metadata
+    # Baseline per riallineamento metadata dopo sort visuale (tksheet sort nativo).
+    sheet._supplier_metadata_source = [dict(meta) for meta in metadata]
+    sheet._supplier_rows_data_source = [tuple(row) for row in data_rows]
+    sheet._metadata_needs_resync = False
     sheet._event_metadata = []

@@ -54,12 +54,17 @@ def create_request_sheet(*, parent, on_cell_select, on_row_select, on_double_cli
 
     sheet.extra_bindings("cell_select", on_cell_select)
     sheet.extra_bindings("row_select", on_row_select)
+    # Se l'utente ordina la vista, i metadata esterni vanno riallineati al primo uso.
+    def mark_metadata_dirty(_event_data):
+        sheet._metadata_needs_resync = True
+    sheet.extra_bindings("begin_sort_rows", mark_metadata_dirty)
     sheet._last_click_time = 0
     sheet._last_click_row = None
     sheet.bind("<Double-Button-1>", lambda event: on_double_click_cb(sheet, event))
 
     sheet.pack(fill="both", expand=True)
     sheet._sheet_data = []
+    sheet._metadata_needs_resync = False
     return sheet
 
 
@@ -174,6 +179,7 @@ def create_vsm_event_sheet(*, parent, event_type, on_cell_select, on_row_select,
             return natural_sort_key(value)
 
     def configure_vsm_sort_key(_event_data):
+        sheet._metadata_needs_resync = True
         selected = sheet.get_currently_selected()
         column = selected.column if selected is not None else None
         if column in amount_cols:
@@ -197,6 +203,7 @@ def create_vsm_event_sheet(*, parent, event_type, on_cell_select, on_row_select,
 
     sheet.pack(fill="both", expand=True)
     sheet._event_metadata = []
+    sheet._metadata_needs_resync = False
     return sheet
 
 
@@ -246,6 +253,10 @@ def create_supplier_sheet(*, parent, on_cell_select, on_row_select, on_double_cl
     sheet.enable_bindings()
     sheet.extra_bindings("cell_select", on_cell_select)
     sheet.extra_bindings("row_select", on_row_select)
+    # Se l'utente ordina la vista, i metadata esterni vanno riallineati al primo uso.
+    def mark_metadata_dirty(_event_data):
+        sheet._metadata_needs_resync = True
+    sheet.extra_bindings("begin_sort_rows", mark_metadata_dirty)
     sheet.bind("<Double-Button-1>", lambda event: on_double_click_cb(sheet, event))
 
     for col_idx in range(n_cols):
@@ -255,4 +266,5 @@ def create_supplier_sheet(*, parent, on_cell_select, on_row_select, on_double_cl
 
     sheet._event_metadata = []
     sheet._supplier_metadata = []
+    sheet._metadata_needs_resync = False
     return sheet
