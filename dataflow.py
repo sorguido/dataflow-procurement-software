@@ -128,7 +128,6 @@ from services.excel_export_service import (
     export_rfq_requests_excel,
     export_vsm_events_excel,
     export_derisking_suppliers_excel,
-    load_derisking_suppliers_for_export,
 )
 from services.dashboard_selection_policy import (
     get_selected_row_indices as policy_get_selected_row_indices,
@@ -1566,6 +1565,9 @@ class MainWindow:
             current_username=self.current_username,
             translate_status=tr,
         )
+        # Cache dominio coerente con la vista corrente (subset realmente visualizzato).
+        # Usata dall'export Derisking per rispettare semantica EXPORT = QUELLO CHE VEDO.
+        sheet._visible_suppliers = list(suppliers or [])
         service_populate_supplier_sheet(
             sheet=sheet,
             data_rows=data_rows,
@@ -1691,6 +1693,9 @@ class MainWindow:
         data_rows = []
         metadata = []
         currency_code = get_currency_code()
+        # Cache dominio coerente con la vista corrente (subset realmente visualizzato).
+        # Usata dall'export Saving/Cost Avoidance per rispettare EXPORT = QUELLO CHE VEDO.
+        sheet._visible_vsm_events = list(events or [])
         
         # Usa event_type dalla sheet se non passato direttamente
         if event_type is None:
@@ -3122,27 +3127,18 @@ class MainWindow:
         Gestisce solo status in {'vsm_saving', 'vsm_cost_avoidance'}.
         Il tab Derisking è gestito separatamente da _export_derisking_excel().
         """
-        status_to_event_type = {
-            'vsm_saving': 'Saving',
-            'vsm_cost_avoidance': 'Cost Avoidance',
-        }
-        event_type = status_to_event_type.get(status, status)
-
-        # Re-load eventi dal DB rispettando scope utente e filtri attivi (allineato a _load_vsm_events)
+        # Riallinea esplicitamente la vista ai filtri correnti (inclusa Global Search).
+        # Mantiene il comportamento accettato: export può forzare l'aggiornamento UI.
         try:
-            vsm_username_filter = self._get_active_username_filter(self.vsm_username_filter_var)
-            all_events, extra_meta = self._get_vsm_dataset(vsm_username_filter)
-            if extra_meta is not None:
-                pairs = [(ev, m) for ev, m in zip(all_events, extra_meta) if ev.event_type == event_type]
-                events = [p[0] for p in pairs]
-            else:
-                events = [e for e in all_events if e.event_type == event_type]
-            events, _unused_meta = self._apply_vsm_filters(events, event_type)
+            if sheet is not None:
+                sheet._visible_vsm_events = []
+            self.search_requests()
         except Exception as e:
-            logger.error(f"[export_vsm] Errore recupero eventi: {e}", exc_info=True)
+            logger.error(f"[export_vsm] Errore riallineamento vista prima export: {e}", exc_info=True)
             SimpleMessageDialog(self.root, tr("Error"), tr("Error retrieving data: {}").format(e), "error")
             return
 
+        events = list(getattr(sheet, "_visible_vsm_events", []) or [])
         if not events:
             SimpleMessageDialog(self.root, tr("Warning"), tr("No data to export in the current view."), "warning")
             return
@@ -3159,15 +3155,17 @@ class MainWindow:
 
         Routing separato da _export_vsm_excel: usa PotentialSupplier, non VSMEvent.
         """
-        # Carica tutti i fornitori potenziali dal DB (stesso pattern di _load_potential_suppliers)
+        # Riallinea esplicitamente la vista ai filtri correnti (inclusa Global Search).
+        # Mantiene il comportamento accettato: export può forzare l'aggiornamento UI.
         try:
-            username_filter = self._get_active_username_filter(self.vsm_username_filter_var)
-            suppliers = load_derisking_suppliers_for_export(username_filter=username_filter)
+            self.sheet_derisking._visible_suppliers = []
+            self.search_requests()
         except Exception as e:
-            logger.error(f"[export_derisking] Errore recupero fornitori: {e}", exc_info=True)
+            logger.error(f"[export_derisking] Errore riallineamento vista prima export: {e}", exc_info=True)
             SimpleMessageDialog(self.root, tr("Error"), tr("Error retrieving data: {}").format(e), "error")
             return
 
+        suppliers = list(getattr(self.sheet_derisking, "_visible_suppliers", []) or [])
         export_derisking_suppliers_excel(
             parent=self.root,
             suppliers=suppliers,
