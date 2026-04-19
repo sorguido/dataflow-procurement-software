@@ -158,6 +158,67 @@ def get_qty_column_text():
     return "Q.ty" if get_current_language() == 'en' else "Q.tà"
 
 
+_DERISKING_STATUS_IT_TO_EN = {
+    "Nuovo": "New",
+    "In valutazione": "Under Evaluation",
+    "Qualificato": "Qualified",
+    "Scartato": "Rejected",
+}
+_DERISKING_STATUS_EN_TO_IT = {v: k for k, v in _DERISKING_STATUS_IT_TO_EN.items()}
+
+
+def normalize_derisking_status(value):
+    """Normalizza uno status Derisking al valore canonico italiano."""
+    if value is None:
+        return value
+
+    try:
+        raw = str(value).strip()
+    except Exception:
+        return value
+
+    if not raw:
+        return raw
+
+    if raw in _DERISKING_STATUS_IT_TO_EN:
+        return raw
+    if raw in _DERISKING_STATUS_EN_TO_IT:
+        return _DERISKING_STATUS_EN_TO_IT[raw]
+
+    raw_lower = raw.lower()
+    for canonical_it in _DERISKING_STATUS_IT_TO_EN:
+        if canonical_it.lower() == raw_lower:
+            return canonical_it
+    for label_en, canonical_it in _DERISKING_STATUS_EN_TO_IT.items():
+        if label_en.lower() == raw_lower:
+            return canonical_it
+
+    return raw
+
+
+def _derisking_status_msgid_en(value):
+    """Ritorna il msgid EN stabile per uno status Derisking."""
+    canonical_it = normalize_derisking_status(value)
+    return _DERISKING_STATUS_IT_TO_EN.get(canonical_it, canonical_it)
+
+
+def translate_derisking_status(value, *, language_code=None):
+    """Traduce uno status Derisking con fallback coerente al dominio."""
+    if value is None:
+        return value
+
+    msgid_en = _derisking_status_msgid_en(value)
+
+    if language_code is not None:
+        code = str(language_code).strip().lower()
+        if code in {"en", "eng"}:
+            return msgid_en
+        if code in {"it", "ita"}:
+            return normalize_derisking_status(value)
+
+    return tr(msgid_en)
+
+
 def normalize_rfq_type(rfq_type):
     """
     Normalizza un tipo di RFQ da qualsiasi lingua al valore canonico italiano.

@@ -25,7 +25,7 @@ from utils.export_filename import (
     build_excel_export_filename,
     normalize_export_lang,
 )
-from utils.i18n_utils import normalize_rfq_type, tr
+from utils.i18n_utils import normalize_rfq_type, tr, translate_derisking_status
 
 
 logger = logging.getLogger(__name__)
@@ -488,17 +488,11 @@ def export_derisking_suppliers_excel(*, parent, suppliers):
     else:
         headers = ["Supplier", "Category", "Status", "Contact", "E-mail", "Phone", "Web", "Notes", "User"]
 
-    status_export_en = {
-        "Nuovo": "New",
-        "In valutazione": "Under Evaluation",
-        "Qualificato": "Qualified",
-        "Scartato": "Rejected",
-    }
-
     data_rows = []
     for s in suppliers:
-        status_display = (
-            s.supplier_status if is_ita else status_export_en.get(s.supplier_status, s.supplier_status)
+        status_display = translate_derisking_status(
+            s.supplier_status,
+            language_code="ita" if is_ita else "eng",
         ) if s.supplier_status else ""
         data_rows.append([
             s.supplier_name,

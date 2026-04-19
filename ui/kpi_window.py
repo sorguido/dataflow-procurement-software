@@ -20,7 +20,7 @@ from utils.export_filename import (
     build_excel_export_filename,
     normalize_export_lang,
 )
-from utils.i18n_utils import tr, get_current_language
+from utils.i18n_utils import tr, get_current_language, translate_derisking_status
 from utils.format_utils import format_currency_display, get_currency_code
 from ui.dialogs.common_dialogs import LanguagePrompt, SimpleMessageDialog
 from services.kpi_engine import (
@@ -1039,8 +1039,6 @@ class KpiWindow(tk.Toplevel):
 
     def _update_derisking_cards(self, data: dict):
         """Aggiorna le card Derisking con i dati restituiti dall'engine."""
-        is_ita = get_current_language() == "it"
-
         # Card fisse
         lbl = self._derisking_labels.get("total_suppliers")
         if lbl:
@@ -1061,6 +1059,11 @@ class KpiWindow(tk.Toplevel):
         status_counts = data.get("status_counts", {})
         parent = self._derisking_cards_parent
         for col_idx, (stato, count) in enumerate(status_counts.items()):
-            lbl_val = self._build_kpi_card(frame, stato, row=0, col=col_idx)
+            lbl_val = self._build_kpi_card(
+                frame,
+                translate_derisking_status(stato),
+                row=0,
+                col=col_idx,
+            )
             lbl_val.config(text=_fmt_int(count), foreground="#222222")
             frame.columnconfigure(col_idx, weight=1)

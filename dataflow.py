@@ -87,7 +87,8 @@ from utils.i18n_utils import (
     get_pos_column_text,
     get_qty_column_text,
     normalize_rfq_type,
-    translate_rfq_type
+    translate_rfq_type,
+    translate_derisking_status,
 )
 from utils.validation_utils import sanitize_filename, format_date_for_db, format_price_display
 
@@ -1563,7 +1564,7 @@ class MainWindow:
         data_rows, metadata = build_supplier_rows_and_metadata(
             suppliers=suppliers,
             current_username=self.current_username,
-            translate_status=tr,
+            translate_status=translate_derisking_status,
         )
         # Cache dominio coerente con la vista corrente (subset realmente visualizzato).
         # Usata dall'export Derisking per rispettare semantica EXPORT = QUELLO CHE VEDO.
