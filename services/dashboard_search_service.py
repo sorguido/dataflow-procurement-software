@@ -3,6 +3,34 @@
 from __future__ import annotations
 
 
+_GLOBAL_SEARCH_EN_TO_IT_EXACT = {
+    # Closed vocabulary: VSM action
+    "negotiation": "negoziazione",
+    "other": "altro",
+    "derisking": "derisking",
+    # Closed vocabulary: Derisking supplier status
+    "new": "nuovo",
+    "under evaluation": "in valutazione",
+    "qualified": "qualificato",
+    "rejected": "scartato",
+    # Backward-compatible alias for historical EN wording.
+    "approved": "qualificato",
+}
+
+
+def _normalize_global_search_query_for_closed_domains(query):
+    """Normalize known EN labels to canonical IT values for closed i18n vocabularies."""
+    if query is None:
+        return ""
+
+    normalized = str(query).strip().lower()
+    if not normalized:
+        return normalized
+
+    # Keep normalization explicit and predictable: exact-label replacement only.
+    return _GLOBAL_SEARCH_EN_TO_IT_EXACT.get(normalized, normalized)
+
+
 def has_active_search_filters(*, search_values, search_tipo_value, all_label, date_values):
     """Return True when any RFQ search filter is active."""
     for value in search_values.values():
@@ -21,7 +49,8 @@ def has_active_search_filters(*, search_values, search_tipo_value, all_label, da
 
 def filter_derisking_suppliers_by_query(*, suppliers, query, fields=None):
     """Filter suppliers using case-insensitive substring match across configured fields."""
-    if not query:
+    normalized_query = _normalize_global_search_query_for_closed_domains(query)
+    if not normalized_query:
         return list(suppliers)
 
     target_fields = fields or (
@@ -38,7 +67,7 @@ def filter_derisking_suppliers_by_query(*, suppliers, query, fields=None):
     return [
         supplier
         for supplier in suppliers
-        if any(query in (getattr(supplier, field_name) or "").lower() for field_name in target_fields)
+        if any(normalized_query in (getattr(supplier, field_name) or "").lower() for field_name in target_fields)
     ]
 
 
@@ -52,15 +81,16 @@ def split_vsm_events_by_type(*, events, metadata, event_type):
 
 def filter_vsm_events_by_query(*, events, metadata, query, fields):
     """Apply text search on VSM events while preserving metadata alignment."""
+    normalized_query = _normalize_global_search_query_for_closed_domains(query)
     if metadata is not None:
         pairs = [
             (ev, meta)
             for ev, meta in zip(events, metadata)
-            if any(query in (getattr(ev, field_name) or "").lower() for field_name in fields)
+            if any(normalized_query in (getattr(ev, field_name) or "").lower() for field_name in fields)
         ]
         return [pair[0] for pair in pairs], [pair[1] for pair in pairs]
     return [
         ev
         for ev in events
-        if any(query in (getattr(ev, field_name) or "").lower() for field_name in fields)
+        if any(normalized_query in (getattr(ev, field_name) or "").lower() for field_name in fields)
     ], None
