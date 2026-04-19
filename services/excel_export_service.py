@@ -25,7 +25,12 @@ from utils.export_filename import (
     build_excel_export_filename,
     normalize_export_lang,
 )
-from utils.i18n_utils import normalize_rfq_type, tr, translate_derisking_status
+from utils.i18n_utils import (
+    normalize_rfq_type,
+    tr,
+    translate_derisking_status,
+    translate_vsm_action,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -349,7 +354,6 @@ def export_vsm_events_excel(*, parent, status, sheet_col_widths, events):
         return
 
     use_dual = event_type in ("Saving", "Cost Avoidance")
-    action_map_en = {"Negoziazione": "Negotiation", "Altro": "Other"}
     if is_ita:
         if event_type == "Saving":
             headers = [
@@ -378,7 +382,7 @@ def export_vsm_events_excel(*, parent, status, sheet_col_widths, events):
         valore_teorico = event.calculate_theoretical_value() or 0.0
         date_str = event.event_date.strftime("%d/%m/%Y") if event.event_date else ""
         desc = (event.description or event.reference or "")[:50]
-        action_str = event.action if is_ita else action_map_en.get(event.action, event.action)
+        action_str = translate_vsm_action(event.action, language_code=lang)
 
         if use_dual:
             valore_effettivo = event.calculate_effective_value() or 0.0

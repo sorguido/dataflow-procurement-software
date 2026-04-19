@@ -89,6 +89,7 @@ from utils.i18n_utils import (
     normalize_rfq_type,
     translate_rfq_type,
     translate_derisking_status,
+    translate_vsm_action,
 )
 from utils.validation_utils import sanitize_filename, format_date_for_db, format_price_display
 
@@ -1730,7 +1731,7 @@ class MainWindow:
                 row = [
                     event.event_date.strftime("%d/%m/%Y") if event.event_date else "",
                     event.event_type,
-                    tr(event.action),
+                    translate_vsm_action(event.action),
                     (event.description or event.reference or "")[:50],
                     format_currency_display(valore_teorico, currency_code=currency_code),
                     format_currency_display(valore_effettivo, currency_code=currency_code),

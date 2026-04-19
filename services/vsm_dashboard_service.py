@@ -9,7 +9,7 @@ from datetime import datetime
 
 from database_manager import DatabaseManager
 from services.app_paths import get_db_path
-from utils.i18n_utils import tr
+from utils.i18n_utils import tr, translate_vsm_action
 
 
 def get_vsm_dataset(*, vsm_username_filter, current_username):
@@ -100,7 +100,7 @@ def apply_vsm_filters(*, events, event_type, extra_meta=None, filters=None):
             continue
 
         if action_filter and use_dual_value:
-            if tr(event.action) != action_filter:
+            if translate_vsm_action(event.action) != action_filter:
                 continue
 
         if repetitive_filter:

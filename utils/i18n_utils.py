@@ -166,6 +166,13 @@ _DERISKING_STATUS_IT_TO_EN = {
 }
 _DERISKING_STATUS_EN_TO_IT = {v: k for k, v in _DERISKING_STATUS_IT_TO_EN.items()}
 
+_VSM_ACTION_IT_TO_EN = {
+    "Negoziazione": "Negotiation",
+    "Altro": "Other",
+    "Derisking": "Derisking",
+}
+_VSM_ACTION_EN_TO_IT = {v: k for k, v in _VSM_ACTION_IT_TO_EN.items()}
+
 
 def normalize_derisking_status(value):
     """Normalizza uno status Derisking al valore canonico italiano."""
@@ -215,6 +222,58 @@ def translate_derisking_status(value, *, language_code=None):
             return msgid_en
         if code in {"it", "ita"}:
             return normalize_derisking_status(value)
+
+    return tr(msgid_en)
+
+
+def normalize_vsm_action(value):
+    """Normalizza una action VSM al valore canonico italiano."""
+    if value is None:
+        return value
+
+    try:
+        raw = str(value).strip()
+    except Exception:
+        return value
+
+    if not raw:
+        return raw
+
+    if raw in _VSM_ACTION_IT_TO_EN:
+        return raw
+    if raw in _VSM_ACTION_EN_TO_IT:
+        return _VSM_ACTION_EN_TO_IT[raw]
+
+    raw_lower = raw.lower()
+    for canonical_it in _VSM_ACTION_IT_TO_EN:
+        if canonical_it.lower() == raw_lower:
+            return canonical_it
+    for label_en, canonical_it in _VSM_ACTION_EN_TO_IT.items():
+        if label_en.lower() == raw_lower:
+            return canonical_it
+
+    return raw
+
+
+def _vsm_action_msgid_en(value):
+    """Ritorna il msgid EN stabile per una action VSM."""
+    canonical_it = normalize_vsm_action(value)
+    return _VSM_ACTION_IT_TO_EN.get(canonical_it, canonical_it)
+
+
+def translate_vsm_action(value, *, language_code=None):
+    """Traduce una action VSM con fallback coerente al dominio."""
+    if value is None:
+        return value
+
+    msgid_en = _vsm_action_msgid_en(value)
+
+    if language_code is not None:
+        code = str(language_code).strip().lower()
+        if code in {"en", "eng"}:
+            return msgid_en
+        if code in {"it", "ita"}:
+            return normalize_vsm_action(value)
 
     return tr(msgid_en)
 

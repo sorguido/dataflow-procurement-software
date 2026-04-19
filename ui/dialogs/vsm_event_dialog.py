@@ -20,7 +20,12 @@ from services.vsm_persistence import (
 )
 
 # Import da utils
-from utils.i18n_utils import tr, get_current_language
+from utils.i18n_utils import (
+    tr,
+    get_current_language,
+    normalize_vsm_action,
+    translate_vsm_action,
+)
 from utils.resource_utils import set_window_icon
 
 # Import models
@@ -123,26 +128,11 @@ class VSMEventDialog(tk.Toplevel):
     
     def _get_action_internal(self):
         """Converte il valore display di action al valore interno (italiano)."""
-        display = self.action_var.get()
-        # Reverse mapping: cerca la corrispondenza italiana
-        if display == tr("Negotiation"):
-            return "Negoziazione"
-        elif display == "Derisking":
-            return "Derisking"
-        elif display == tr("Other"):
-            return "Altro"
-        return display  # Fallback per valori già in italiano
+        return normalize_vsm_action(self.action_var.get())
     
     def _set_action_display(self, internal_value):
         """Converte il valore interno (italiano) al valore display (tradotto)."""
-        if internal_value == "Negoziazione":
-            self.action_var.set(tr("Negotiation"))
-        elif internal_value == "Derisking":
-            self.action_var.set("Derisking")
-        elif internal_value == "Altro":
-            self.action_var.set(tr("Other"))
-        else:
-            self.action_var.set(internal_value)
+        self.action_var.set(translate_vsm_action(internal_value))
     
     def _get_driver_internal(self):
         """Converte il valore display di driver al valore interno (italiano)."""
@@ -204,7 +194,11 @@ class VSMEventDialog(tk.Toplevel):
         self.combo_action = ttk.Combobox(
             general_frame,
             textvariable=self.action_var,
-            values=[tr("Negotiation"), "Derisking", tr("Other")],
+            values=[
+                translate_vsm_action("Negoziazione"),
+                translate_vsm_action("Derisking"),
+                translate_vsm_action("Altro"),
+            ],
             state="readonly",
             width=20
         )
