@@ -14,7 +14,6 @@ _GLOBAL_SEARCH_EN_TO_IT_EXACT = {
     "qualified": "qualificato",
     "rejected": "scartato",
     # Backward-compatible alias for historical EN wording.
-    "approved": "qualificato",
 }
 
 
@@ -26,6 +25,9 @@ def _normalize_global_search_query_for_closed_domains(query):
     normalized = str(query).strip().lower()
     if not normalized:
         return normalized
+
+    if normalized == "under":
+        return "in valutazione"
 
     # Keep normalization explicit and predictable: exact-label replacement only.
     return _GLOBAL_SEARCH_EN_TO_IT_EXACT.get(normalized, normalized)
