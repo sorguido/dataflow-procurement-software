@@ -144,6 +144,7 @@ from services.vsm_dashboard_service import (
     apply_vsm_filters as service_apply_vsm_filters,
 )
 from services.derisking_dashboard_service import (
+    get_derisking_dataset as service_get_derisking_dataset,
     build_supplier_rows_and_metadata,
     auto_size_supplier_sheet as service_auto_size_supplier_sheet,
     populate_supplier_sheet as service_populate_supplier_sheet,
@@ -1458,6 +1459,9 @@ class MainWindow:
         metadata = sheet._supplier_metadata[row_idx]
         supplier_id = metadata.get('supplier_id')
         is_mine = metadata.get('is_mine', False)
+        source_db_path = metadata.get('source_file')
+        if source_db_path == 'local':
+            source_db_path = None
 
         if not supplier_id:
             return
@@ -1470,6 +1474,7 @@ class MainWindow:
                 self.current_username,
                 supplier_id=supplier_id,
                 read_only=not is_mine,
+                source_db_path=source_db_path,
                 refresh_derisking_cb=lambda: self._load_potential_suppliers(self.sheet_derisking),
             )
             self.root.wait_window(dlg)
@@ -1526,11 +1531,9 @@ class MainWindow:
         Rispetta il filtro utente condiviso vsm_username_filter_var.
         """
         try:
-            from services.supplier_persistence import get_all_suppliers
             username_filter = self._get_active_username_filter(self.vsm_username_filter_var)
-            with DatabaseManager(get_db_path()) as db_manager:
-                suppliers = get_all_suppliers(db_manager, username=username_filter)
-            self._populate_potential_suppliers_sheet(sheet, suppliers)
+            suppliers, extra_meta = self._get_derisking_dataset(username_filter)
+            self._populate_potential_suppliers_sheet(sheet, suppliers, extra_metadata=extra_meta)
             logger.debug(f"Caricati {len(suppliers)} fornitori potenziali")
         except Exception as e:
             logger.error(f"Errore caricamento fornitori potenziali: {e}")
@@ -1541,6 +1544,13 @@ class MainWindow:
                 "error",
             )
 
+    def _get_derisking_dataset(self, derisking_username_filter):
+        """Carica il dataset Derisking grezzo in base allo scope utente del filtro UI."""
+        return service_get_derisking_dataset(
+            derisking_username_filter=derisking_username_filter,
+            current_username=self.current_username,
+        )
+
     def _auto_size_supplier_sheet(self, sheet, data_rows):
         """Calcola larghezze colonne supplier delegando al servizio dedicato."""
         service_auto_size_supplier_sheet(
@@ -1549,7 +1559,7 @@ class MainWindow:
             notes_header_text=tr("Notes"),
         )
 
-    def _populate_potential_suppliers_sheet(self, sheet, suppliers, *, resize_columns=True):
+    def _populate_potential_suppliers_sheet(self, sheet, suppliers, *, resize_columns=True, extra_metadata=None):
         """
         Popola il tksheet Derisking con una lista di PotentialSupplier.
 
@@ -1561,11 +1571,13 @@ class MainWindow:
             suppliers:      list[PotentialSupplier]
             resize_columns: se False, salta il ricalcolo larghezze colonne (usato dal
                             filtro Global Search per evitare micro-spostamenti visivi)
+            extra_metadata: lista opzionale di dict {is_mine, source_file} per riga.
         """
         data_rows, metadata = build_supplier_rows_and_metadata(
             suppliers=suppliers,
             current_username=self.current_username,
             translate_status=translate_derisking_status,
+            extra_metadata=extra_metadata,
         )
         # Cache dominio coerente con la vista corrente (subset realmente visualizzato).
         # Usata dall'export Derisking per rispettare semantica EXPORT = QUELLO CHE VEDO.
@@ -2304,20 +2316,17 @@ class MainWindow:
         self.dashboard_controller._update_filter_panel_for_current_tab()
 
     def _update_advanced_filters_toggle(self):
-        """Disabilita visivamente Advanced Filters sul tab Derisking.
+        """Aggiorna lo stato visivo del toggle Advanced Filters.
 
-        Derisking è supplier-based: i filtri avanzati VSM/RFQ non sono applicabili.
-        Chiude il pannello se era aperto prima dell'arrivo su Derisking.
+        Derisking usa ora una configurazione minima del pannello filtri
+        (solo visibilità utente), quindi il toggle resta sempre abilitato.
         """
         _, status = self.get_current_tree_and_status()
         toolbar = getattr(self, 'main_dashboard_toolbar', None)
         if toolbar is None:
             return
-        is_derisking = (status == 'vsm_derisking')
-        toolbar.set_advanced_filters_enabled(not is_derisking)
-        if is_derisking and hasattr(self, 'collapsible_filters') and self.collapsible_filters.is_expanded():
-            self.collapsible_filters.toggle()
-            toolbar.filters_toggle_label.config(text=f"⌄ {tr('Advanced Filters')}")
+        if status.startswith('vsm_') or status in ('attiva', 'archiviata'):
+            toolbar.set_advanced_filters_enabled(True)
     def update_button_visibility(self):
         """Aggiorna lo stato del pulsante Actions in base alla selezione e proprietà delle RfQ"""
         sheet, status = self.get_current_tree_and_status()
@@ -2619,21 +2628,18 @@ class MainWindow:
         Filtra i fornitori potenziali per sottostringa in tutti i campi visibili.
         Query vuota = ripristina dataset completo (stesso comportamento degli altri tab).
         """
-        from services.supplier_persistence import get_all_suppliers
-
         query = self.search_vars['global'].get().strip().lower()
         username_filter = self._get_active_username_filter(self.vsm_username_filter_var)
 
         try:
-            with DatabaseManager(get_db_path()) as db_manager:
-                suppliers = get_all_suppliers(db_manager, username=username_filter)
+            suppliers, extra_meta = self._get_derisking_dataset(username_filter)
         except Exception as e:
             logger.error(f"[DerisSearch] Errore caricamento fornitori: {e}", exc_info=True)
             return
 
         if not query:
             # Query vuota: ripristina dataset completo
-            self._populate_potential_suppliers_sheet(sheet, suppliers)
+            self._populate_potential_suppliers_sheet(sheet, suppliers, extra_metadata=extra_meta)
             return
 
         _FIELDS = (
@@ -2652,9 +2658,21 @@ class MainWindow:
             query=query,
             fields=_FIELDS,
         )
+        result_meta = None
+        if extra_meta is not None:
+            # Mantiene allineamento metadati↔righe filtrate per ownership/source_db.
+            keyed_meta = {}
+            for _supplier, _meta in zip(suppliers, extra_meta):
+                keyed_meta[id(_supplier)] = _meta
+            result_meta = [keyed_meta.get(id(_supplier), {}) for _supplier in results]
 
         logger.info(f"[DerisSearch] query='{query}' risultati={len(results)}")
-        self._populate_potential_suppliers_sheet(sheet, results, resize_columns=False)
+        self._populate_potential_suppliers_sheet(
+            sheet,
+            results,
+            resize_columns=False,
+            extra_metadata=result_meta,
+        )
 
     def _search_vsm_events(self, sheet, status):
         """Handler di ricerca globale per il modulo VSM.

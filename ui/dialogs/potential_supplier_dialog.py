@@ -8,6 +8,7 @@ Nessuna dipendenza da VSMEvent o da logica economica.
 import tkinter as tk
 from tkinter import ttk
 import logging
+import os
 import webbrowser
 
 from database_manager import DatabaseManager, DatabaseError
@@ -55,7 +56,15 @@ class PotentialSupplierDialog(tk.Toplevel):
             # salvataggio avvenuto con successo
     """
 
-    def __init__(self, parent, current_username, supplier_id=None, read_only=False, refresh_derisking_cb=None):
+    def __init__(
+        self,
+        parent,
+        current_username,
+        supplier_id=None,
+        read_only=False,
+        refresh_derisking_cb=None,
+        source_db_path=None,
+    ):
         """
         Args:
             parent:               Widget parent (root o altra finestra)
@@ -63,13 +72,23 @@ class PotentialSupplierDialog(tk.Toplevel):
             supplier_id:          None → modalità NEW; int → modalità EDIT
             read_only:            Se True, tutti i campi disabilitati (sola lettura)
             refresh_derisking_cb: Callback opzionale da passare a ManageSupplierCategoriesDialog
+            source_db_path:       DB sorgente del record (solo lettura per record esterni)
         """
         super().__init__(parent)
 
         self.current_username = current_username
         self.supplier_id = supplier_id
         self.is_edit_mode = supplier_id is not None
+        self.source_db_path = source_db_path
         self.read_only = read_only
+        # Hardening ownership: se il record proviene da DB esterno, forza sola lettura.
+        try:
+            local_db = os.path.normpath(os.path.abspath(get_db_path()))
+            source_db = os.path.normpath(os.path.abspath(source_db_path)) if source_db_path else local_db
+            if source_db != local_db:
+                self.read_only = True
+        except Exception:
+            pass
         self._refresh_derisking_cb = refresh_derisking_cb
         self.result = None  # True dopo salvataggio riuscito
         self._supplier_index = None
@@ -79,7 +98,7 @@ class PotentialSupplierDialog(tk.Toplevel):
         self.withdraw()
         set_window_icon(self)
 
-        if read_only:
+        if self.read_only:
             self.title(tr("View Supplier"))
         elif self.is_edit_mode:
             self.title(tr("Edit Supplier"))
@@ -348,7 +367,8 @@ class PotentialSupplierDialog(tk.Toplevel):
     def _load_supplier_data(self):
         """Carica i dati del fornitore dal DB e popola i campi."""
         try:
-            with DatabaseManager(get_db_path()) as db:
+            target_db_path = self.source_db_path or get_db_path()
+            with DatabaseManager(target_db_path, read_only=self.read_only) as db:
                 supplier = get_supplier_by_id(db, self.supplier_id)
         except DatabaseError as e:
             logger.error("Errore caricamento fornitore ID %s: %s", self.supplier_id, e)

@@ -90,9 +90,19 @@ class DashboardController:
             return  # Inizializzazione non ancora completata
         _, status = self.app.get_current_tree_and_status()
         is_vsm = bool(status and status.startswith('vsm_'))
+        date_widgets = getattr(self.app, '_vsm_common_date_widgets', [])
         if is_vsm:
             self.app.rfq_filter_subframe.grid_remove()
             self.app.vsm_filter_subframe.grid()
+            # Derisking espone solo il filtro utente: i campi data VSM non sono applicabili.
+            for _w in date_widgets:
+                try:
+                    if status == 'vsm_derisking':
+                        _w.grid_remove()
+                    else:
+                        _w.grid()
+                except Exception:
+                    pass
             # Mostra lo spec frame VSM corretto per il tab attivo, nasconde gli altri
             if hasattr(self.app, '_vsm_spec_frames'):
                 show_frame = self.app._vsm_spec_frames.get(status)
@@ -109,6 +119,12 @@ class DashboardController:
         else:
             self.app.vsm_filter_subframe.grid_remove()
             self.app.rfq_filter_subframe.grid()
+            # Ripristina i widget data VSM quando si esce dal contesto Derisking.
+            for _w in date_widgets:
+                try:
+                    _w.grid()
+                except Exception:
+                    pass
 
     def refresh_data(self):
         """Ricarica i dati preservando i filtri di ricerca attivi"""

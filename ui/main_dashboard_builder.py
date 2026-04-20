@@ -197,7 +197,8 @@ def build_main_dashboard(app):
     app.vsm_actual_to_var = tk.StringVar()
 
     # --- Riga 0: filtri comuni a tutti i tab VSM (Utente, Dal, Al) ---
-    ttk.Label(_vsf, text=tr("User:")).grid(row=0, column=0, sticky="w", padx=(0, 5), pady=5)
+    app.vsm_user_filter_label = ttk.Label(_vsf, text=tr("User:"))
+    app.vsm_user_filter_label.grid(row=0, column=0, sticky="w", padx=(0, 5), pady=5)
     _vsm_cb = ttk.Combobox(
         _vsf,
         textvariable=app.vsm_username_filter_var,
@@ -208,7 +209,8 @@ def build_main_dashboard(app):
     _vsm_cb.bind("<<ComboboxSelected>>", lambda _e: app._on_vsm_username_filter_changed())
     app.vsm_user_filter_combos = [_vsm_cb]
 
-    ttk.Label(_vsf, text=tr("From:")).grid(row=0, column=2, sticky="w", padx=(10, 5), pady=5)
+    app.vsm_date_from_label = ttk.Label(_vsf, text=tr("From:"))
+    app.vsm_date_from_label.grid(row=0, column=2, sticky="w", padx=(10, 5), pady=5)
     app.vsm_date_from_entry = DateEntry(
         _vsf, date_pattern='dd/mm/yyyy',
         locale=('it_IT' if get_current_language() == 'it' else 'en_US'),
@@ -216,13 +218,20 @@ def build_main_dashboard(app):
     app.vsm_date_from_entry.grid(row=0, column=3, sticky="w", pady=5)
     app.vsm_date_from_entry.delete(0, 'end')
 
-    ttk.Label(_vsf, text=tr("To:")).grid(row=0, column=4, sticky="w", padx=(10, 5), pady=5)
+    app.vsm_date_to_label = ttk.Label(_vsf, text=tr("To:"))
+    app.vsm_date_to_label.grid(row=0, column=4, sticky="w", padx=(10, 5), pady=5)
     app.vsm_date_to_entry = DateEntry(
         _vsf, date_pattern='dd/mm/yyyy',
         locale=('it_IT' if get_current_language() == 'it' else 'en_US'),
     )
     app.vsm_date_to_entry.grid(row=0, column=5, sticky="w", pady=5)
     app.vsm_date_to_entry.delete(0, 'end')
+    app._vsm_common_date_widgets = [
+        app.vsm_date_from_label,
+        app.vsm_date_from_entry,
+        app.vsm_date_to_label,
+        app.vsm_date_to_entry,
+    ]
 
     # --- Spec frame Saving / Cost Avoidance (riga 1, condiviso) ---
     _vsm_sc_spec = ttk.Frame(_vsf)

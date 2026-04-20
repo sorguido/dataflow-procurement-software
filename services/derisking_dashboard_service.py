@@ -2,13 +2,55 @@
 
 from __future__ import annotations
 
+from database_manager import DatabaseManager
+from services.app_paths import get_db_path
+from services.supplier_persistence import get_all_suppliers
 
-def build_supplier_rows_and_metadata(*, suppliers, current_username, translate_status):
+
+def get_derisking_dataset(*, derisking_username_filter, current_username):
+    """Load Derisking supplier dataset according to active username scope."""
+    with DatabaseManager(get_db_path()) as db_manager:
+        if derisking_username_filter is None:
+            raw = db_manager.get_all_potential_suppliers_aggregated(get_db_path())
+            suppliers = [supplier for supplier, _src in raw]
+            extra_meta = [
+                {
+                    "is_mine": (
+                        src == "local"
+                        and (supplier.username or "").lower() == (current_username or "").lower()
+                    ),
+                    "source_file": src,
+                }
+                for supplier, src in raw
+            ]
+        elif derisking_username_filter == (current_username or "").lower():
+            suppliers = get_all_suppliers(db_manager, username=current_username)
+            extra_meta = None
+        else:
+            raw = db_manager.get_all_potential_suppliers_aggregated(
+                get_db_path(),
+                username=derisking_username_filter,
+            )
+            suppliers = [supplier for supplier, _src in raw]
+            extra_meta = [
+                {
+                    "is_mine": (
+                        src == "local"
+                        and (supplier.username or "").lower() == (current_username or "").lower()
+                    ),
+                    "source_file": src,
+                }
+                for supplier, src in raw
+            ]
+    return suppliers, extra_meta
+
+
+def build_supplier_rows_and_metadata(*, suppliers, current_username, translate_status, extra_metadata=None):
     """Build sheet rows and ownership metadata for PotentialSupplier records."""
     data_rows = []
     metadata = []
 
-    for supplier in suppliers:
+    for i, supplier in enumerate(suppliers):
         data_rows.append([
             supplier.supplier_name or "",
             supplier.category or "",
@@ -21,10 +63,16 @@ def build_supplier_rows_and_metadata(*, suppliers, current_username, translate_s
             supplier.username or "",
         ])
         is_mine = (supplier.username or "").lower() == (current_username or "").lower()
+        source_file = "local"
+        if extra_metadata is not None and i < len(extra_metadata):
+            _meta = extra_metadata[i] or {}
+            is_mine = _meta.get("is_mine", is_mine)
+            source_file = _meta.get("source_file", "local")
         metadata.append({
             "supplier_id": supplier.id,
             "username": supplier.username or "",
             "is_mine": is_mine,
+            "source_file": source_file,
         })
 
     return data_rows, metadata

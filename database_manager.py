@@ -2679,10 +2679,10 @@ class DatabaseManager:
                            email, phone, website, notes, username,
                            created_at, updated_at
                     FROM potential_suppliers
-                    WHERE username = ?
+                    WHERE LOWER(COALESCE(username, '')) = LOWER(?)
                     ORDER BY supplier_name ASC
                     """,
-                    (username,),
+                    (username.strip(),),
                 )
             else:
                 self.cursor.execute(
@@ -2699,6 +2699,115 @@ class DatabaseManager:
         except Exception as e:
             print(f"[DB Manager] Errore get_all_potential_suppliers: {e}")
             raise DatabaseError(str(e)) from e
+
+    def get_all_potential_suppliers_aggregated(self, my_db_full_path: str, username: str = None) -> list:
+        """
+        Recupera fornitori potenziali da tutti i database sibling nella cartella condivisa.
+
+        Pattern gemello dei metodi aggregati RFQ/VSM:
+        - DB locale letto con metodi interni esistenti
+        - DB esterni letti in sola lettura via sqlite3 diretto
+
+        Args:
+            my_db_full_path: Percorso completo del database corrente.
+            username: Se specificato, filtra per username (case-insensitive).
+
+        Returns:
+            list of (PotentialSupplier, source_file: str)
+        """
+        from models.potential_supplier import PotentialSupplier
+
+        results = []
+
+        # 1) Dataset locale
+        try:
+            local_rows = self.get_all_potential_suppliers(username=username)
+            for row in local_rows:
+                results.append((PotentialSupplier.from_row(row), 'local'))
+        except Exception as e:
+            print(f"[Supplier Aggregation] Errore DB locale: {e}")
+
+        # 2) DB sibling nella stessa root condivisa
+        try:
+            my_db_norm = os.path.normpath(os.path.abspath(my_db_full_path))
+            user_df_dir = os.path.dirname(os.path.dirname(my_db_norm))
+            root_shared_dir = os.path.dirname(user_df_dir)
+            search_pattern = os.path.join(root_shared_dir, "**", "dataflow_db_*.db")
+            found_files = glob.glob(search_pattern, recursive=True)
+            found_files = [os.path.normpath(os.path.abspath(f)) for f in found_files]
+            print(f"[Supplier Aggregation] Root: {root_shared_dir}, DB trovati: {len(found_files)}")
+        except Exception as e:
+            print(f"[Supplier Aggregation] Ricerca DB sibling fallita: {e}")
+            return results
+
+        for found_file in found_files:
+            if found_file.lower() == my_db_norm.lower():
+                continue  # locale già incluso
+
+            try:
+                uri = "file:{}?mode=ro".format(found_file.replace("\\", "/"))
+                conn = sqlite3.connect(uri, uri=True)
+                try:
+                    cursor = conn.cursor()
+                    cursor.execute("PRAGMA table_info(potential_suppliers)")
+                    available_cols = {row[1] for row in cursor.fetchall()}
+                    if not available_cols:
+                        continue
+                    if not {"supplier_id", "supplier_name"}.issubset(available_cols):
+                        continue
+
+                    category_expr = (
+                        "COALESCE(category, '')"
+                        if "category" in available_cols
+                        else ("COALESCE(macrocategory, '')" if "macrocategory" in available_cols else "''")
+                    )
+                    status_expr = "COALESCE(supplier_status, 'Nuovo')" if "supplier_status" in available_cols else "'Nuovo'"
+                    contact_expr = "COALESCE(contact_name, '')" if "contact_name" in available_cols else "''"
+                    email_expr = "COALESCE(email, '')" if "email" in available_cols else "''"
+                    phone_expr = "COALESCE(phone, '')" if "phone" in available_cols else "''"
+                    website_expr = "COALESCE(website, '')" if "website" in available_cols else "''"
+                    notes_expr = "COALESCE(notes, '')" if "notes" in available_cols else "''"
+                    username_expr = "COALESCE(username, '')" if "username" in available_cols else "''"
+                    created_expr = "created_at" if "created_at" in available_cols else "NULL"
+                    updated_expr = "updated_at" if "updated_at" in available_cols else "NULL"
+
+                    _q = (
+                        "SELECT supplier_id, "
+                        "       COALESCE(supplier_name, ''), "
+                        f"      {category_expr} AS category, "
+                        f"      {status_expr} AS supplier_status, "
+                        f"      {contact_expr} AS contact_name, "
+                        f"      {email_expr} AS email, "
+                        f"      {phone_expr} AS phone, "
+                        f"      {website_expr} AS website, "
+                        f"      {notes_expr} AS notes, "
+                        f"      {username_expr} AS username, "
+                        f"      {created_expr} AS created_at, "
+                        f"      {updated_expr} AS updated_at "
+                        "FROM potential_suppliers "
+                        "{where} "
+                        "ORDER BY supplier_name ASC"
+                    )
+                    if username:
+                        if "username" not in available_cols:
+                            continue
+                        cursor.execute(
+                            _q.format(where="WHERE LOWER(COALESCE(username, '')) = LOWER(?)"),
+                            (username.strip(),),
+                        )
+                    else:
+                        cursor.execute(_q.format(where=""))
+
+                    for row in cursor.fetchall():
+                        results.append((PotentialSupplier.from_row(row), found_file))
+                finally:
+                    conn.close()
+            except Exception as e:
+                print(f"[Supplier Aggregation] Errore lettura {os.path.basename(found_file)}: {e}")
+                continue
+
+        print(f"[Supplier Aggregation] Totale fornitori aggregati: {len(results)}")
+        return results
 
     def get_distinct_macrocategories(self) -> list:
         """
