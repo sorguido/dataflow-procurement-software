@@ -133,8 +133,9 @@ class PotentialSupplierDialog(tk.Toplevel):
         self.geometry(f"{target_width}x{target_height}+{x}+{y}")
         self.minsize(base_width, base_height)
 
-        self.grab_set()
         self.deiconify()
+        self.wait_visibility()
+        self.grab_set()
 
     def destroy(self):
         if self._suggest_controller is not None:

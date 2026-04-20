@@ -132,8 +132,9 @@ class VSMEventDialog(tk.Toplevel):
         self.geometry(f"{target_width}x{target_height}+{target_x}+{target_y}")
         self.minsize(base_width, base_height)
         
-        self.grab_set()
         self.deiconify()
+        self.wait_visibility()
+        self.grab_set()
     
     # === HELPER METHODS PER CONVERSIONE VALORI TRADOTTI/INTERNI ===
     

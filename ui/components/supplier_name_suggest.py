@@ -39,6 +39,12 @@ class SupplierNameSuggestController:
         self._bind_ids = []
         self._bind_events()
 
+    def _entry_is_alive(self) -> bool:
+        try:
+            return bool(self.entry is not None and self.entry.winfo_exists())
+        except Exception:
+            return False
+
     def _bind_events(self):
         self._bind_ids.append(("<KeyRelease>", self.entry.bind("<KeyRelease>", self._on_key_release, add="+")))
         self._bind_ids.append(("<Down>", self.entry.bind("<Down>", self._on_down_key, add="+")))
@@ -48,7 +54,20 @@ class SupplierNameSuggestController:
         self._bind_ids.append(("<FocusOut>", self.entry.bind("<FocusOut>", self._on_focus_out, add="+")))
 
     def destroy(self):
+        if self._hide_after_id is not None and self._entry_is_alive():
+            try:
+                self.entry.after_cancel(self._hide_after_id)
+            except Exception:
+                pass
+        self._hide_after_id = None
         self._hide_popup()
+        if self._popup is not None:
+            try:
+                self._popup.destroy()
+            except Exception:
+                pass
+            self._popup = None
+            self._listbox = None
         for event_name, bind_id in self._bind_ids:
             try:
                 self.entry.unbind(event_name, bind_id)
@@ -105,24 +124,40 @@ class SupplierNameSuggestController:
         return None
 
     def _on_focus_out(self, event=None):
+        if not self._entry_is_alive():
+            return
         if self._hide_after_id is not None:
             try:
                 self.entry.after_cancel(self._hide_after_id)
             except Exception:
                 pass
-        self._hide_after_id = self.entry.after(120, self._hide_popup_if_focus_lost)
+        try:
+            self._hide_after_id = self.entry.after(120, self._hide_popup_if_focus_lost)
+        except Exception:
+            self._hide_after_id = None
 
     def _hide_popup_if_focus_lost(self):
         self._hide_after_id = None
         if self._popup is None:
             return
-        focused = self.entry.focus_get()
+        if not self._entry_is_alive():
+            self._hide_popup()
+            return
+        try:
+            focused = self.entry.focus_get()
+        except (tk.TclError, KeyError):
+            self._hide_popup()
+            return
         if focused is self.entry or focused is self._listbox:
             return
-        pointer_widget = self.entry.winfo_containing(
-            self.entry.winfo_pointerx(),
-            self.entry.winfo_pointery(),
-        )
+        try:
+            pointer_widget = self.entry.winfo_containing(
+                self.entry.winfo_pointerx(),
+                self.entry.winfo_pointery(),
+            )
+        except (tk.TclError, KeyError):
+            self._hide_popup()
+            return
         if pointer_widget is self._listbox:
             return
         self._hide_popup()
@@ -189,7 +224,8 @@ class SupplierNameSuggestController:
         if self._popup is None:
             return
         try:
-            self._popup.withdraw()
+            if self._popup.winfo_exists():
+                self._popup.withdraw()
         except Exception:
             pass
         self._suggestions = []
