@@ -2065,6 +2065,12 @@ msgstr ""
 "Unable to load event:\n"
 "{}"
 
+msgid "Unable to load event data from the selected source."
+msgstr "Unable to load event data from the selected source."
+
+msgid "Event not found in the selected source."
+msgstr "Event not found in the selected source."
+
 msgid "Annual Q.ty must be greater than zero."
 msgstr "Annual Q.ty must be greater than zero."
 

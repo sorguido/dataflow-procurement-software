@@ -1851,6 +1851,9 @@ class MainWindow:
         metadata = sheet._event_metadata[row_idx]
         event_id = metadata['event_id']
         is_mine = metadata['is_mine']
+        source_db_path = metadata.get('source_file')
+        if source_db_path == 'local':
+            source_db_path = None
         
         # Valida ownership
         if not is_mine:
@@ -1865,6 +1868,7 @@ class MainWindow:
                 event_type=event_type,
                 event_id=event_id,
                 read_only=True,
+                source_db_path=source_db_path,
             )
             self.root.wait_window(dialog)
             return
@@ -1882,7 +1886,8 @@ class MainWindow:
                 self.root,
                 current_username=self.current_username,
                 event_type=event_type,
-                event_id=event_id
+                event_id=event_id,
+                source_db_path=source_db_path,
             )
             self.root.wait_window(dialog)
             

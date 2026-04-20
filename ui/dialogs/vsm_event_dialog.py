@@ -3,6 +3,7 @@ VSM Event Dialog - Dialog per creazione/modifica eventi VSM.
 Form dinamico che mostra solo campi pertinenti al tipo evento selezionato.
 """
 
+import os
 import tkinter as tk
 from tkinter import ttk
 from tkcalendar import DateEntry
@@ -47,7 +48,15 @@ class VSMEventDialog(tk.Toplevel):
     Form dinamico con campi condizionali basati su event_type.
     """
     
-    def __init__(self, parent, current_username, event_type="Saving", event_id=None, read_only=False):
+    def __init__(
+        self,
+        parent,
+        current_username,
+        event_type="Saving",
+        event_id=None,
+        read_only=False,
+        source_db_path=None,
+    ):
         """
         Inizializza il dialog.
         
@@ -57,6 +66,7 @@ class VSMEventDialog(tk.Toplevel):
             event_type: Tipo evento di default ("Saving", "Cost Avoidance", "Derisking")
             event_id: Se None, modalità create; se int, modalità edit
             read_only: Se True, apre in sola lettura (eventi di altri utenti)
+            source_db_path: Percorso DB sorgente (solo per load in contesto aggregato)
         """
         super().__init__(parent)
         
@@ -65,6 +75,7 @@ class VSMEventDialog(tk.Toplevel):
         self.event_id = event_id
         self.is_edit_mode = event_id is not None
         self.read_only = read_only
+        self.source_db_path = source_db_path
         self.result = None  # Usato per indicare successo salvataggio
         
         # Setup finestra
@@ -506,7 +517,22 @@ class VSMEventDialog(tk.Toplevel):
     def _load_event_data(self):
         """Carica dati evento esistente (modalità edit)."""
         try:
-            with DatabaseManager(get_db_path()) as db_manager:
+            target_db_path = get_db_path()
+            if self.source_db_path and os.path.exists(self.source_db_path):
+                target_db_path = self.source_db_path
+            elif self.source_db_path:
+                logger.warning(
+                    "VSMEventDialog: source_db_path non valido '%s', fallback su DB locale",
+                    self.source_db_path,
+                )
+
+            logger.debug(
+                "VSMEventDialog load event_id=%s from db=%s (read_only=%s)",
+                self.event_id,
+                target_db_path,
+                self.read_only,
+            )
+            with DatabaseManager(target_db_path, read_only=self.read_only) as db_manager:
                 event, _impacts = get_event_with_impacts(db_manager, self.event_id)
             
             # Salva evento caricato per preservare campi non mostrati in UI
@@ -581,10 +607,15 @@ class VSMEventDialog(tk.Toplevel):
         
         except Exception as e:
             logger.error(f"Errore caricamento evento {self.event_id}: {e}", exc_info=True)
+            detail = tr("Unable to load event data from the selected source.")
+            if isinstance(e, VSMError):
+                e_str = str(e).lower()
+                if "non trovato" in e_str or "not found" in e_str:
+                    detail = tr("Event not found in the selected source.")
             SimpleMessageDialog(
                 self,
                 tr("Error"),
-                tr("Unable to load event:\n{}").format(e),
+                tr("Unable to load event:\n{}").format(detail),
                 "error"
             )
             self.destroy()

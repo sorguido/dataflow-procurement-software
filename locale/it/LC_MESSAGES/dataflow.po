@@ -2079,6 +2079,12 @@ msgstr ""
 "Impossibile caricare l'evento:\n"
 "{}"
 
+msgid "Unable to load event data from the selected source."
+msgstr "Impossibile caricare i dati evento dalla sorgente selezionata."
+
+msgid "Event not found in the selected source."
+msgstr "Evento non trovato nella sorgente selezionata."
+
 msgid "Annual Q.ty must be greater than zero."
 msgstr "Quantità Annua deve essere maggiore di zero."
 
