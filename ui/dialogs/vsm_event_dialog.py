@@ -552,7 +552,11 @@ class VSMEventDialog(tk.Toplevel):
             else:
                 self._set_action_display(event.action)
             
-            # Campo User già popolato con current_username in __init__, non sovrascrivere
+            # In EDIT/READ-ONLY il campo User deve riflettere il proprietario del record caricato.
+            self.entry_buyer.configure(state="normal")
+            self.entry_buyer.delete(0, tk.END)
+            self.entry_buyer.insert(0, event.username or "")
+            self.entry_buyer.configure(state="disabled")
             
             self.text_description.insert("1.0", event.description)
             
