@@ -155,4 +155,4 @@ Quando viene emesso un ordine di acquisto a seguito della RdO:
 È possibile inserire più ordini per la stessa RdO (uno per fornitore o per tranche).
 
 ---
-[← Pagina precedente](02-Schermata-principale) | [Pagina successiva →](04-Gestire-una-RdO-esistente)
+[← Pagina precedente](IT-02-Schermata-principale) | [Pagina successiva →](IT-04-Gestire-una-RdO-esistente)

@@ -93,7 +93,7 @@ Quando si segnala un problema al supporto tecnico:
 3. Cercare le righe con `ERROR` o `CRITICAL` nelle ore in cui si è verificato il problema.
 4. Allegare il file `dataflow.log` alla segnalazione (non copiare solo poche righe: l'intero file è utile per il contesto).
 
-Vedere la sezione [Supporto](14-Supporto.md) per i recapiti di segnalazione.
+Vedere la sezione [Supporto](IT-14-Supporto) per i recapiti di segnalazione.
 
 ---
-[← Pagina precedente](12-Glossario) | [Pagina successiva →](14-Supporto)
+[← Pagina precedente](IT-12-Glossario) | [Pagina successiva →](IT-14-Supporto)

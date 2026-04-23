@@ -104,4 +104,4 @@ Il file Excel generato contiene:
 Se la RdO appartiene a un altro utente, la finestra SQDC si apre in modalità sola lettura: è possibile consultare i pesi e i punteggi salvati, esportare in Excel, ma non modificare nulla.
 
 ---
-[← Pagina precedente](04-Gestire-una-RdO-esistente) | [Pagina successiva →](06-Value-Stream-Mapping)
+[← Pagina precedente](IT-04-Gestire-una-RdO-esistente) | [Pagina successiva →](IT-06-Value-Stream-Mapping)

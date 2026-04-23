@@ -103,4 +103,4 @@ Una volta ogni 3–6 mesi, è utile:
 3. **Riesaminare gli eventi VSM** con % Realizzo ancora bassa: o aggiornarle se la negoziazione è diventata definitiva, o documentare perché il realizzo è rimasto parziale.
 
 ---
-[← Pagina precedente](10-Problemi-comuni-e-soluzioni) | [Pagina successiva →](12-Glossario)
+[← Pagina precedente](IT-10-Problemi-comuni-e-soluzioni) | [Pagina successiva →](IT-12-Glossario)

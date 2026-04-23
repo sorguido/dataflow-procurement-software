@@ -1,38 +1,38 @@
-# DataFlow – Guida Utente
+# DataFlow – User Guide
 
-DataFlow è un'applicazione desktop per la gestione delle attività dell'ufficio acquisti. Permette di gestire richieste di offerta (RdO), tracciare le attività di negoziazione attraverso il Value Stream Mapping, monitorare i KPI di Saving e Cost Avoidance, e costruire un registro dei fornitori potenziali per il Derisking della supply chain.
-
----
-
-## Indice della guida
-
-| # | Sezione | Argomento |
-|:---:|---------|-----------|
-| 1 | [Primi passi](01-Primi-passi) | Installazione, primo avvio, identità utente |
-| 2 | [Schermata principale](02-Schermata-principale) | Layout, barra degli strumenti, ricerca, filtri, tab |
-| 3 | [Creare una nuova RdO](03-Creare-una-nuova-RdO) | Tipi di RdO, inserimento articoli, importazione da Excel |
-| 4 | [Gestire una RdO esistente](04-Gestire-una-RdO-esistente) | Griglia prezzi, note, fornitori, allegati, ordini di acquisto |
-| 5 | [Analisi SQDC](05-Analisi-SQDC) | Pesi, punteggi, calcolo automatico costo, export |
-| 6 | [Value Stream Mapping](06-Value-Stream-Mapping) | Saving, Cost Avoidance, Derisking, eventi ripetitivi |
-| 7 | [KPI Dashboard](07-KPI-Dashboard) | Filtri temporali, carry-over, grafici, export Excel |
-| 8 | [Impostazioni e manutenzione](08-Impostazioni-e-manutenzione) | Database, backup, lingua |
-| 9 | [Lavoro multiutente](09-Lavoro-multiutente) | Condivisione database su rete, modalità sola lettura |
-| 10 | [Problemi comuni e soluzioni](10-Problemi-comuni-e-soluzioni) | Database bloccato, allegati mancanti, errori di importazione |
-| 11 | [Best practices](11-Best-practices) | Consigli operativi per uso quotidiano |
-| 12 | [Glossario](12-Glossario) | Termini procurement e termini applicativi |
-| 13 | [Log e diagnostica](13-Log-e-diagnostica) | Dove trovare i log, cosa significano |
-| 14 | [Supporto](14-Supporto) | Contatti e segnalazione bug |
+DataFlow is a desktop application for procurement management. It handles RFQs (Requests for Quotation), tracks negotiation activities through Value Stream Mapping, monitors Savings and Cost Avoidance KPIs, and builds a potential supplier registry for supply chain Derisking.
 
 ---
 
-## A chi è destinata questa guida
+## Table of Contents
 
-Questa guida è indirizzata agli **utilizzatori finali** dell'ufficio acquisti: buyer, category manager e responsabili procurement. Non richiede competenze informatiche.
+| # | Section | Topic |
+|:---:|---------|-------|
+| 1 | [Getting Started](EN-01-Getting-Started) | Installation, first launch, user identity |
+| 2 | [Main Screen](EN-02-Main-Screen) | Layout, toolbar, search, filters, tabs |
+| 3 | [Create a New RFQ](EN-03-Create-a-New-RFQ) | RFQ types, adding items, Excel import |
+| 4 | [Manage an Existing RFQ](EN-04-Manage-an-Existing-RFQ) | Price grid, notes, suppliers, attachments, purchase orders |
+| 5 | [SQDC Analysis](EN-05-SQDC-Analysis) | Weights, scores, automatic cost calculation, export |
+| 6 | [Value Stream Mapping](EN-06-Value-Stream-Mapping) | Savings, Cost Avoidance, Derisking, recurring events |
+| 7 | [KPI Dashboard](EN-07-KPI-Dashboard) | Time filters, carry-over, charts, Excel export |
+| 8 | [Settings and Maintenance](EN-08-Settings-and-Maintenance) | Database, backup, language |
+| 9 | [Multi-User Work](EN-09-Multi-User-Work) | Shared network database, read-only mode |
+| 10 | [Common Issues and Solutions](EN-10-Common-Issues-and-Solutions) | Locked database, missing attachments, import errors |
+| 11 | [Best Practices](EN-11-Best-Practices) | Operational tips for daily use |
+| 12 | [Glossary](EN-12-Glossary) | Procurement terms and application-specific terms |
+| 13 | [Logs and Diagnostics](EN-13-Logs-and-Diagnostics) | Where to find logs and how to read them |
+| 14 | [Support](EN-14-Support) | Contact and bug reporting |
 
-## Versione applicazione
+---
 
-Questa guida si riferisce a **DataFlow v2.1.0**. Le schermate e i comportamenti descritti si basano su questa versione.
+## Who This Guide Is For
 
-## Lingua dell'interfaccia
+This guide is written for **end users** in the purchasing department: buyers, category managers, and procurement leads. No technical background is required.
 
-DataFlow è disponibile in **italiano** e **inglese**. La lingua può essere cambiata in qualsiasi momento dalla schermata Impostazioni senza perdere dati. Questa guida utilizza i termini dell'interfaccia italiana.
+## Application Version
+
+This guide refers to **DataFlow v2.2.0**. All screens and behaviors described are based on this version.
+
+## Interface Language
+
+DataFlow is available in **Italian** and **English**. The language can be changed at any time from the Settings screen without losing any data. This guide uses English interface labels.

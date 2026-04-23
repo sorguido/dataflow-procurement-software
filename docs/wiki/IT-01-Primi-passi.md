@@ -55,7 +55,7 @@ Se si vuole usare una cartella condivisa su rete (per lavoro multiutente):
 
 > Dopo aver cambiato la posizione, il database vecchio **non viene spostato automaticamente**. Copiare manualmente la cartella `DataFlow/` nella nuova posizione prima di riavviare, oppure l'applicazione creerà un nuovo database vuoto.
 
-Vedere la sezione [Lavoro multiutente](09-Lavoro-multiutente.md) per le istruzioni complete.
+Vedere la sezione [Lavoro multiutente](IT-09-Lavoro-multiutente) per le istruzioni complete.
 
 ---
 
@@ -77,4 +77,4 @@ Per familiarizzare con l'applicazione, ecco come creare la prima Richiesta di Of
 Dai successivi avvii, DataFlow si apre direttamente sulla schermata principale senza richiedere di nuovo l'identità. L'applicazione ricorda la posizione del database e la lingua e valuta selezionate.
 
 ---
-[Pagina successiva →](02-Schermata-principale)
+[Pagina successiva →](IT-02-Schermata-principale)

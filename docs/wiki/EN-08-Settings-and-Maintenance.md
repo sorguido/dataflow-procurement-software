@@ -91,7 +91,7 @@ Diagnostic logs are written automatically to:
 - **Windows:** `%LOCALAPPDATA%\DataFlow\dataflow.log`
 - **Linux:** `~/.local/share/DataFlow/dataflow.log`
 
-See the [Logs and Diagnostics](13-Logs-and-Diagnostics.md) section for more details.
+See the [Logs and Diagnostics](EN-13-Logs-and-Diagnostics) section for more details.
 
 ---
 [← Previous page](EN-07-KPI-Dashboard) | [Next page →](EN-09-Multi-User-Work)

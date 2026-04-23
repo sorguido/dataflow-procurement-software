@@ -193,4 +193,4 @@ Quando si modifica un evento, DataFlow **ricalcola e ricrea automaticamente** tu
 Gli eventi di altri utenti sono visibili nell'elenco ma si aprono in **modalità sola lettura**. Viene mostrata la finestra con tutti i dati, ma i campi sono disabilitati e l'unico pulsante disponibile è **✖ Chiudi**.
 
 ---
-[← Pagina precedente](05-Analisi-SQDC) | [Pagina successiva →](07-KPI-Dashboard)
+[← Pagina precedente](IT-05-Analisi-SQDC) | [Pagina successiva →](IT-07-KPI-Dashboard)

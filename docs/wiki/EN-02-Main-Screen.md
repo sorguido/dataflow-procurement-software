@@ -126,7 +126,7 @@ Display the list of economic Value Stream Mapping events, with the following col
 
 - Date, Type, Action, Description, Reference, Driver, Theoretical Value, Actual Value, % Realisation, Recurring, User
 
-**Double-click** to open the event details. See the [Value Stream Mapping](06-Value-Stream-Mapping.md) section for full instructions.
+**Double-click** to open the event details. See the [Value Stream Mapping](EN-06-Value-Stream-Mapping) section for full instructions.
 
 ### Derisking Tab
 

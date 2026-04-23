@@ -55,7 +55,7 @@ To use a shared network folder (for multi-user work):
 
 > After changing the location, the existing database is **not moved automatically**. Before restarting, manually copy the entire `DataFlow/` folder to the new location — otherwise the application will create a new, empty database.
 
-See the [Multi-User Work](09-Multi-User-Work.md) section for full instructions.
+See the [Multi-User Work](EN-09-Multi-User-Work) section for full instructions.
 
 ---
 

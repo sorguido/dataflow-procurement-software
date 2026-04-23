@@ -126,7 +126,7 @@ Mostrano l'elenco degli eventi Value Stream Mapping di tipo economico, con le co
 
 - Data, Tipo, Azione, Descrizione, Riferimento, Driver, Valore Teorico, Valore Effettivo, % Realizzo, Ripetitivo, Utente
 
-Fare **doppio clic** per aprire il dettaglio dell'evento. Vedere la sezione [Value Stream Mapping](06-Value-Stream-Mapping.md) per le istruzioni complete.
+Fare **doppio clic** per aprire il dettaglio dell'evento. Vedere la sezione [Value Stream Mapping](IT-06-Value-Stream-Mapping) per le istruzioni complete.
 
 ### Tab Derisking
 
@@ -153,4 +153,4 @@ Fare clic sull'intestazione di una colonna per ordinare la lista in modo crescen
 | Aprire la guida | Pulsante **❓ Guida** |
 
 ---
-[← Pagina precedente](01-Primi-passi) | [Pagina successiva →](03-Creare-una-nuova-RdO)
+[← Pagina precedente](IT-01-Primi-passi) | [Pagina successiva →](IT-03-Creare-una-nuova-RdO)

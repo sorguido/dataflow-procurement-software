@@ -101,4 +101,4 @@ Se la cartella di rete non è raggiungibile all'avvio, DataFlow non trova il dat
 DataFlow non gestisce in automatico i conflitti di merge tra due database che hanno evoluto indipendentemente.
 
 ---
-[← Pagina precedente](08-Impostazioni-e-manutenzione) | [Pagina successiva →](10-Problemi-comuni-e-soluzioni)
+[← Pagina precedente](IT-08-Impostazioni-e-manutenzione) | [Pagina successiva →](IT-10-Problemi-comuni-e-soluzioni)

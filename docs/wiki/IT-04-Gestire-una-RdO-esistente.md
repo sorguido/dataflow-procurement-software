@@ -172,4 +172,4 @@ Per generare una RdO stampabile:
 Il pulsante **📥 Export Excel** nella barra degli strumenti principale esporta invece **tutte** le RdO del database in un unico file.
 
 ---
-[← Pagina precedente](03-Creare-una-nuova-RdO) | [Pagina successiva →](05-Analisi-SQDC)
+[← Pagina precedente](IT-03-Creare-una-nuova-RdO) | [Pagina successiva →](IT-05-Analisi-SQDC)

@@ -109,4 +109,4 @@ Se si vuole ripristinare un backup precedente:
 > Prima di sovrascrivere il database corrente con un backup, assicurarsi di non perdere dati importanti inseriti successivamente al backup. L'operazione è irreversibile se il vecchio file viene eliminato.
 
 ---
-[← Pagina precedente](09-Lavoro-multiutente) | [Pagina successiva →](11-Best-practices)
+[← Pagina precedente](IT-09-Lavoro-multiutente) | [Pagina successiva →](IT-11-Best-practices)
