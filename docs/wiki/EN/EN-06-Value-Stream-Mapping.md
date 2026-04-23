@@ -115,6 +115,8 @@ The Derisking tab does not record economic events; instead, it builds a **regist
 2. Click **➕ New Event**.
 3. The **"New Supplier"** window opens.
 
+While typing in the **Supplier** field, DataFlow can suggest names already present in RFQs or Derisking. If the entered name is very similar to an existing one, a non-blocking warning may appear before saving.
+
 ### Supplier Record Fields
 
 | Section | Field | Notes |

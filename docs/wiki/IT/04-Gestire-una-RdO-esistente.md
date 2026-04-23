@@ -28,7 +28,7 @@ La griglia prezzi è completamente editabile:
 - I prezzi usano la virgola come separatore decimale (`12,50`).
 - Le celle dei prezzi lasciate vuote indicano che il fornitore non ha fornito offerta.
 
-Per le RdO di tipo Conto lavoro, le colonne **Cod. Grezzo**, **Dis. Grezzo** e **Mat. C/L** sono editabili allo stesso modo delle altre.
+Per le RdO di tipo Conto lavoro, le colonne **Cod. Grezzo**, **Allegato Grezzo** e **Mat. C/L** sono editabili allo stesso modo delle altre.
 
 ---
 
@@ -41,6 +41,8 @@ I fornitori già presenti nella RdO determinano le colonne prezzo. Per modificar
 3. Fare clic su **💾 Salva**.
 
 > Attenzione: **rimuovere un fornitore dall'elenco elimina anche tutti i prezzi inseriti per quel fornitore**. L'operazione non è reversibile.
+>
+> Durante la modifica dell'elenco, DataFlow può proporre nomi fornitore già presenti in altre RdO o nel Derisking. Se un nome è molto simile a uno esistente, prima del salvataggio può comparire un avviso non bloccante.
 
 ---
 
@@ -57,8 +59,8 @@ DataFlow distingue due tipologie di allegati:
 
 1. Fare clic su **📄 Gestisci Offerte Fornitori** oppure **📁 Gestisci Documenti Interni**.
 2. Per le offerte fornitore: selezionare prima il fornitore dal menu a tendina.
-3. Fare clic su **➕ Aggiungi...**
-4. Selezionare il file nella finestra di dialogo.
+3. Fare clic su **➕ Aggiungi...** e selezionare il file nella finestra di dialogo.
+4. In alternativa, trascinare direttamente il file nell'elenco allegati.
 5. Il file viene copiato nella cartella `Attachments/{numero RdO}/` e il percorso relativo viene salvato nel database.
 
 > Il file originale **non viene spostato né eliminato**. DataFlow conserva la propria copia.
@@ -146,13 +148,25 @@ Viene creata una copia con nuova data di emissione e numero progressivo. I prezz
 
 ---
 
-## Esportare la griglia prezzi in Excel
+## Esportare la RdO
+
+Nel pannello della RdO è disponibile il menu **📊 Esporta**, con due opzioni:
+
+### Excel
 
 Per condividere il confronto prezzi con colleghi o responsabili:
 
-1. Nel pannello della RdO, fare clic su **📊 Esporta Excel**.
+1. Nel pannello della RdO, fare clic su **📊 Esporta** → **📗 Excel**.
 2. Scegliere la lingua del file (Italiano / English).
 3. Selezionare la cartella e il nome del file.
 4. Il file Excel viene generato con intestazioni in grassetto e sfondo grigio, prezzi formattati, e una colonna per ciascun fornitore.
 
-Il pulsante **📊 Export Excel** nella barra degli strumenti principale esporta invece **tutte** le RdO del database in un unico file.
+### PDF
+
+Per generare una RdO stampabile:
+
+1. Nel pannello della RdO, fare clic su **📊 Esporta** → **📄 PDF**.
+2. Nella finestra di export, configurare facoltativamente il logo aziendale oppure usare **Modifica PDF** per personalizzare il testo del PDF.
+3. Fare clic su **Conferma Export PDF** e scegliere il file di destinazione.
+
+Il pulsante **📥 Export Excel** nella barra degli strumenti principale esporta invece **tutte** le RdO del database in un unico file.

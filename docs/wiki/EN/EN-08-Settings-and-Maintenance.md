@@ -52,15 +52,21 @@ Settings are saved in `config.ini` under the `[AutoBackup]` section.
 
 ---
 
-## Interface Language
+## Language and Currency
 
 1. In the **"Language"** dropdown, select:
    - **Italiano**
    - **English**
-2. Click **💾 Save Language**.
-3. A message informs you that a restart is required for the language change to take effect.
+2. In the **"Currency"** dropdown, select:
+   - **None**
+   - **EUR**
+   - **USD**
+   - **GBP**
+   - **CHF**
+3. Click **💾 Save Settings**.
+4. A message informs you that a restart is required for the change to take effect.
 
-The language is saved in `config.ini` under the `language` key. After restarting, all menus, labels, and windows will be displayed in the selected language.
+The language and currency are saved in `config.ini`. After restarting, the selected language is applied to the interface and the selected currency is used for amount formatting where applicable.
 
 ---
 
@@ -70,7 +76,7 @@ Application settings are stored in the `config.ini` file, located in the same fo
 
 | Section | Content |
 |---------|---------|
-| `[Settings]` | Language, database path, payment terms financial coefficient |
+| `[Settings]` | Language, currency, database path, payment terms financial coefficient |
 | `[AutoBackup]` | Enable/disable, hour, backup destination folder |
 | `[User]` | First name, last name, generated username |
 

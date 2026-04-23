@@ -28,7 +28,7 @@ The price grid is fully editable:
 - Prices use a comma as the decimal separator (`12,50`).
 - Empty price cells indicate that no quote was received from that supplier.
 
-For Subcontracting RFQs, the **Raw Code**, **Raw Drawing**, and **Sub. Material** columns are editable in the same way as the others.
+For Work Order RFQs, the **Raw Code**, **Raw Attachment**, and **Material for Processing** columns are editable in the same way as the others.
 
 ---
 
@@ -41,6 +41,8 @@ The suppliers already on the RFQ determine the price columns. To modify them:
 3. Click **💾 Save**.
 
 > Warning: **removing a supplier from the list also deletes all prices entered for that supplier**. This action cannot be undone.
+>
+> While editing the list, DataFlow can suggest supplier names already present in RFQs or Derisking. Similar names may trigger a non-blocking duplicate warning before saving.
 
 ---
 
@@ -57,8 +59,8 @@ DataFlow distinguishes two types of attachments:
 
 1. Click **📄 Manage Supplier Quotes** or **📁 Manage Internal Documents**.
 2. For supplier quotes: first select the supplier from the dropdown.
-3. Click **➕ Add...**
-4. Select the file in the file dialog.
+3. Click **➕ Add...** and select the file in the file dialog.
+4. Alternatively, drag the file directly onto the attachment list.
 5. The file is copied to the `Attachments/{RFQ number}/` folder and the relative path is saved in the database.
 
 > The original file is **not moved or deleted**. DataFlow keeps its own copy.
@@ -146,13 +148,25 @@ A copy is created with a new issue date and sequential number. Prices entered in
 
 ---
 
-## Exporting the Price Grid to Excel
+## Exporting the RFQ
+
+The RFQ panel includes a **📊 Export** menu with two options:
+
+### Excel
 
 To share the price comparison with colleagues or management:
 
-1. In the RFQ panel, click **📊 Export Excel**.
+1. In the RFQ panel, click **📊 Export** → **📗 Excel**.
 2. Choose the file language (Italian / English).
 3. Select the destination folder and file name.
 4. The Excel file is generated with bold headers, grey background, formatted prices, and one column per supplier.
 
-The **📊 Export Excel** button in the main toolbar exports **all** RFQs in the database into a single file.
+### PDF
+
+To generate a printable RFQ document:
+
+1. In the RFQ panel, click **📊 Export** → **📄 PDF**.
+2. In the export dialog, optionally configure the company logo or open **Edit PDF** to customise the PDF text template.
+3. Click **Confirm PDF Export** and choose the destination file.
+
+The **📥 Export Excel** button in the main toolbar exports **all** RFQs in the database into a single file.

@@ -54,7 +54,7 @@ Shows KPIs related to RFQ issuance activity.
 | Total RFQs | Active + Archived |
 | Non-Expired RFQs | RFQs with a future expiry date |
 | Expired RFQs | RFQs with a past expiry date |
-| Subcontracting | RFQs of subcontracting type |
+| Work Order | RFQs of work-order type |
 | Full Supply | RFQs of full supply type |
 
 ### Chart

@@ -7,7 +7,7 @@ DataFlow handles two types of Request for Quotation:
 | Type | When to use |
 |------|-------------|
 | **Full Supply** | Supply of components or finished products. The supplier provides everything (material + processing). |
-| **Subcontracting** | The raw material is supplied by the company; the supplier performs the processing only. Requires entering the raw material code, drawing reference, and material description. |
+| **Work Order** | The raw material is supplied by the company; the supplier performs the processing only. Requires entering the raw material code, attachment reference, and material description. |
 
 ---
 
@@ -16,7 +16,7 @@ DataFlow handles two types of Request for Quotation:
 1. Click **➕ New Event** in the toolbar while on the **Active RFQs** or **Archived RFQs** tab.
 2. In the type selection window, choose:
    - **📦 Full Supply**
-   - **🔧 Subcontracting**
+   - **🔧 Work Order**
    - **❌ Cancel** to go back
 3. The **control panel** for the new RFQ opens automatically.
 
@@ -42,7 +42,7 @@ The window title reads: `Control Panel - User: [name] - Request N° [number] - [
 | **📁 Manage Internal Documents** | Opens the attachment manager for internal documents (specs, drawings, etc.) |
 | **Suppliers (N)** or **➕ Add Suppliers** | Opens the window to enter or modify the supplier list |
 | **📝 Note** or **📝 Add Note** | Opens the rich-text note editor (bold, italic, underline) |
-| **📊 Export Excel** | Exports the price grid to an Excel file |
+| **📊 Export** | Opens the RFQ export menu with **Excel** and **PDF** options |
 | **📊 SQDC** or **📊 SQDC ✓** | Opens the SQDC analysis (✓ indicates a saved analysis already exists) |
 
 ---
@@ -56,6 +56,8 @@ It is recommended to set up suppliers before entering prices in the grid:
 3. Click **💾 Save**.
 
 > DataFlow does not accept duplicate supplier names (case-insensitive). If the same name is entered twice, saving is blocked with a warning.
+>
+> While typing, DataFlow can suggest supplier names already used in RFQs or Derisking. Similar names may also trigger a non-blocking warning before saving.
 
 Each supplier adds **one price column** to the grid.
 
@@ -80,15 +82,15 @@ The **price grid** occupies the central area of the control panel. To add items:
 | **[Supplier 1]** | Unit price quoted by supplier 1 |
 | **[Supplier 2…]** | One column per supplier entered |
 
-### Additional Columns for Subcontracting RFQs
+### Additional Columns for Work Order RFQs
 
 Three extra columns appear after the base columns:
 
 | Column | Content |
 |--------|---------|
 | **Raw Code** | Code of the raw material supplied by the company |
-| **Raw Drawing** | Drawing number of the raw material |
-| **Sub. Material** | Description of the material to be processed |
+| **Raw Attachment** | Attachment or drawing reference of the raw material |
+| **Material for Processing** | Description of the material to be processed |
 
 ### Entering Prices
 
@@ -109,7 +111,7 @@ If an Excel file with the item list already exists, rows can be imported without
 2. Select the Excel file in the file dialog.
 3. The system reads the file and inserts the rows into the grid.
 
-> The Excel file must match the expected format (the same format produced by DataFlow's Export Excel function). If the format is invalid, an error message will describe the problem.
+> The Excel file must match the expected format (the same format produced by DataFlow's **Export → Excel** option). If the format is invalid, an error message will describe the problem.
 
 ---
 

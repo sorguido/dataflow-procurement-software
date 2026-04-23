@@ -115,6 +115,8 @@ Il tab Derisking non registra eventi economici ma costruisce un **registro di fo
 2. Fare clic su **➕ Nuovo Evento**.
 3. Si apre la finestra **"Nuovo Fornitore"**.
 
+Durante la digitazione nel campo **Fornitore**, DataFlow può proporre nomi già presenti in RdO o Derisking. Se il nome inserito è molto simile a uno esistente, prima del salvataggio può comparire un avviso non bloccante.
+
 ### Campi della scheda fornitore
 
 | Sezione | Campo | Note |

@@ -49,8 +49,8 @@ Total annual expenditure with a supplier, used as the calculation base for savin
 **SQDC**  
 A multi-criteria evaluation framework: Safety, Quality, Delivery, Cost. Used to compare suppliers in a structured and objective way.
 
-**Subcontracting**  
-A supply type in which the raw material is provided by the buying company and the supplier performs only the processing or manufacturing work. Corresponds to the "Subcontracting" RFQ type in DataFlow.
+**Work Order**  
+A supply type in which the raw material is provided by the buying company and the supplier performs only the processing or manufacturing work. Corresponds to the "Work Order" RFQ type in DataFlow.
 
 ---
 

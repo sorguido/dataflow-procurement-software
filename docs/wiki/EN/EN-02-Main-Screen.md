@@ -20,7 +20,7 @@ The main screen is organised vertically into five areas:
 |--------|--------|
 | **➕ New Event** | Creates a new RFQ (on RFQ tabs) or a new Value Stream Mapping event (on Savings / Cost Avoidance / Derisking tabs) |
 | **⚡ Actions** | Context menu with actions for the selected row (active only when a row is selected) |
-| **📊 Export Excel** | Exports the full RFQ list to an Excel file |
+| **📥 Export Excel** | Exports the full RFQ list to an Excel file |
 | **≋ KPI** | Opens the KPI analysis window |
 | **⚙️ Settings** | Opens the application settings |
 | **≡ License** | Displays the software licence |
@@ -37,14 +37,18 @@ The Actions menu is **always disabled** until a row is selected. It becomes acti
 
 ## Global Search Bar
 
-The wide search field at the centre of the bar is the fastest way to find anything. It searches simultaneously across:
+The wide search field at the centre of the bar is the fastest way to find anything. On RFQ tabs, it searches simultaneously across:
 
 - RFQ number
 - Project reference
 - Supplier name
 - Material code
+- Drawing / attachment
 - Material description
 - Purchase order number
+- Raw code
+- Raw attachment
+- Material for processing
 
 **How to use it:**
 1. Type a keyword (e.g. a supplier name, a part code, a project reference).
@@ -52,7 +56,9 @@ The wide search field at the centre of the bar is the fastest way to find anythi
 3. Results are shown in the active tab. All other tabs update in parallel.
 4. To clear the search, empty the field and press **Enter**.
 
-The search is **case-insensitive** and uses **OR** logic: a result is shown if it contains the search text in at least one of the six fields.
+On the Savings, Cost Avoidance, and Derisking tabs, the same search bar checks the main visible text fields of the active list.
+
+The search is **case-insensitive** and uses **OR** logic: a result is shown if it contains the search text in at least one searched field.
 
 ---
 
@@ -67,15 +73,15 @@ For more precise searches, click the **⌄ Advanced Filters** label (to the righ
 | Field | Description |
 |-------|-------------|
 | RFQ Number | Search by identifier |
-| RFQ Type | Dropdown: All / Full Supply / Subcontracting |
+| RFQ Type | Dropdown: All / Full Supply / Work Order |
 | Reference | Free text on the project reference |
 | Supplier | Supplier name (partial match supported) |
 | Material Code | Item code |
 | Material Description | Item description |
 | PO Number | Purchase order number |
-| Raw Material Code | Subcontracting RFQs only |
-| Raw Material Drawing | Subcontracting RFQs only |
-| Subcontract Material | Subcontracting RFQs only |
+| Raw Code | Work Order RFQs only |
+| Raw Attachment | Work Order RFQs only |
+| Material for Processing | Work Order RFQs only |
 | User | Filter by buyer (dropdown listing all users) |
 | Issue Date From / To | Issue date range |
 | Expiry Date From / To | Expiry date range |
@@ -104,7 +110,7 @@ Filters use **AND** logic: each active field adds an additional constraint to th
 Display the list of requests for quotation in a table with the following columns:
 
 - **N°** – Sequential number assigned automatically
-- **Type** – Full Supply / Subcontracting
+- **Type** – Full Supply / Work Order
 - **Issue Date**
 - **Expiry Date** – Expired RFQs are highlighted in red
 - **Reference** – Project name or brief description

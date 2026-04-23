@@ -52,15 +52,21 @@ Le impostazioni vengono salvate nel file `config.ini` nella sezione `[AutoBackup
 
 ---
 
-## Lingua dell'interfaccia
+## Lingua e valuta
 
 1. Nel menu a tendina **"Lingua"**, selezionare:
    - **Italiano**
    - **English**
-2. Fare clic su **💾 Salva Lingua**.
-3. Un messaggio avvisa che il cambio di lingua richiede il riavvio dell'applicazione.
+2. Nel menu a tendina **"Valuta"**, selezionare:
+   - **Nessuna**
+   - **EUR**
+   - **USD**
+   - **GBP**
+   - **CHF**
+3. Fare clic su **💾 Salva Impostazioni**.
+4. Un messaggio avvisa che il cambio richiede il riavvio dell'applicazione.
 
-La lingua viene salvata nel file `config.ini` alla voce `language`. Al riavvio, tutti i menu, le etichette e le finestre verranno mostrate nella lingua selezionata.
+Lingua e valuta vengono salvate nel file `config.ini`. Al riavvio, la lingua selezionata viene applicata all'interfaccia e la valuta scelta viene usata dove applicabile per la formattazione degli importi.
 
 ---
 
@@ -70,7 +76,7 @@ Le impostazioni dell'applicazione sono salvate nel file `config.ini`. Questo fil
 
 | Sezione | Contenuto |
 |---------|-----------|
-| `[Settings]` | Lingua, percorso database, coefficiente finanziario pagamenti |
+| `[Settings]` | Lingua, valuta, percorso database, coefficiente finanziario pagamenti |
 | `[AutoBackup]` | Attivazione, ora, cartella destinazione backup |
 | `[User]` | Nome, cognome, nome utente generato |
 

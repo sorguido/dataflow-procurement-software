@@ -20,7 +20,7 @@ La schermata principale è organizzata verticalmente in cinque aree:
 |----------|--------|
 | **➕ Nuovo Evento** | Crea una nuova RdO (sui tab RdO) oppure un nuovo evento Value Stream Mapping (sui tab Saving / Cost Avoidance / Derisking) |
 | **⚡ Actions** | Menu contestuale con azioni sulla riga selezionata (attivo solo se una riga è selezionata) |
-| **📊 Export Excel** | Esporta l'elenco RdO in un file Excel |
+| **📥 Export Excel** | Esporta l'elenco RdO in un file Excel |
 | **≋ KPI** | Apre la finestra di analisi KPI |
 | **⚙️ Impostazioni** | Apre le impostazioni dell'applicazione |
 | **≡ License** | Visualizza la licenza software |
@@ -37,14 +37,18 @@ Il menu Actions è **sempre disabilitato** finché non si seleziona una riga. Di
 
 ## Barra di ricerca globale
 
-Il campo di ricerca ampio al centro della barra è la modalità più rapida per trovare qualsiasi elemento. Cerca contemporaneamente su:
+Il campo di ricerca ampio al centro della barra è la modalità più rapida per trovare qualsiasi elemento. Nei tab RdO cerca contemporaneamente su:
 
 - Numero RdO
 - Riferimento progetto
 - Nome fornitore
 - Codice materiale
+- Disegno / allegato
 - Descrizione materiale
 - Numero ordine di acquisto
+- Cod. Grezzo
+- Allegato Grezzo
+- Mat. C/L
 
 **Come usarla:**
 1. Digitare una parola chiave (es. il nome di un fornitore, un codice pezzo, un riferimento progetto).
@@ -52,7 +56,9 @@ Il campo di ricerca ampio al centro della barra è la modalità più rapida per 
 3. I risultati vengono mostrati nel tab attivo. Tutti gli altri tab si aggiornano in parallelo.
 4. Per cancellare la ricerca, svuotare il campo e premere **Invio**.
 
-La ricerca è **case-insensitive** e usa la logica **OR**: un risultato viene mostrato se contiene il testo cercato almeno in uno dei sei campi.
+Nei tab Saving, Cost Avoidance e Derisking, la stessa barra cerca invece nei principali campi testuali visibili dell'elenco attivo.
+
+La ricerca è **case-insensitive** e usa la logica **OR**: un risultato viene mostrato se contiene il testo cercato almeno in uno dei campi interrogati.
 
 ---
 

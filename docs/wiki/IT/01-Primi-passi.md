@@ -74,4 +74,4 @@ Per familiarizzare con l'applicazione, ecco come creare la prima Richiesta di Of
 
 ## Avvio successivo al primo
 
-Dai successivi avvii, DataFlow si apre direttamente sulla schermata principale senza richiedere di nuovo l'identità. L'applicazione ricorda la posizione del database e la lingua selezionata.
+Dai successivi avvii, DataFlow si apre direttamente sulla schermata principale senza richiedere di nuovo l'identità. L'applicazione ricorda la posizione del database e la lingua e valuta selezionate.

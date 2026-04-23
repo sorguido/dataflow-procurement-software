@@ -42,7 +42,7 @@ Il titolo della finestra mostra: `Control Panel - User: [nome] - Request N° [nu
 | **📁 Gestisci Documenti Interni** | Apre la gestione allegati per i documenti interni (capitolati, specifiche, ecc.) |
 | **Fornitori (N)** o **➕ Aggiungi Fornitori** | Apre la finestra per inserire o modificare l'elenco fornitori |
 | **📝 Nota** o **📝 Aggiungi Nota** | Apre l'editor note con formattazione testo (grassetto, corsivo, sottolineato) |
-| **📊 Esporta Excel** | Esporta la griglia prezzi in un file Excel |
+| **📊 Esporta** | Apre il menu export della RdO con le opzioni **Excel** e **PDF** |
 | **📊 SQDC** o **📊 SQDC ✓** | Apre l'analisi SQDC (il ✓ indica che esiste già un'analisi salvata) |
 
 ---
@@ -56,6 +56,8 @@ Prima di inserire i prezzi nella griglia è consigliabile impostare i fornitori:
 3. Fare clic su **💾 Salva**.
 
 > DataFlow non accetta nomi fornitore duplicati (case-insensitive). Se si inserisce due volte lo stesso nome, il salvataggio viene bloccato con un avviso.
+>
+> Durante la digitazione, DataFlow può proporre nomi fornitore già presenti in altre RdO o nel Derisking. Se il nome è molto simile a uno esistente, prima del salvataggio può comparire un avviso non bloccante.
 
 Ogni fornitore aggiungerà **una colonna prezzo** nella griglia.
 
@@ -87,7 +89,7 @@ Dopo le colonne base, compaiono tre colonne in più:
 | Colonna | Contenuto |
 |---------|-----------|
 | **Cod. Grezzo** | Codice del materiale grezzo fornito dall'azienda |
-| **Dis. Grezzo** | Numero del disegno del grezzo |
+| **Allegato Grezzo** | Allegato o riferimento del grezzo |
 | **Mat. C/L** | Descrizione del materiale da lavorare |
 
 ### Inserimento prezzi
@@ -109,7 +111,7 @@ Se esiste già un file Excel con la lista articoli, è possibile importare le ri
 2. Selezionare il file Excel nella finestra di dialogo.
 3. Il sistema legge il file e inserisce le righe nella griglia.
 
-> Il file Excel deve avere il formato compatibile (lo stesso che si ottiene esportando da DataFlow). In caso di errore di formato, viene mostrato un messaggio con il problema riscontrato.
+> Il file Excel deve avere il formato compatibile (lo stesso che si ottiene con l'opzione **Esporta → Excel** di DataFlow). In caso di errore di formato, viene mostrato un messaggio con il problema riscontrato.
 
 ---
 
