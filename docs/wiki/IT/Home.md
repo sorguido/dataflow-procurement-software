@@ -8,20 +8,20 @@ DataFlow è un'applicazione desktop per la gestione delle attività dell'ufficio
 
 | # | Sezione | Argomento |
 |:---:|---------|-----------|
-| 1 | [Primi passi](01-Primi-passi.md) | Installazione, primo avvio, identità utente |
-| 2 | [Schermata principale](02-Schermata-principale.md) | Layout, barra degli strumenti, ricerca, filtri, tab |
-| 3 | [Creare una nuova RdO](03-Creare-una-nuova-RdO.md) | Tipi di RdO, inserimento articoli, importazione da Excel |
-| 4 | [Gestire una RdO esistente](04-Gestire-una-RdO-esistente.md) | Griglia prezzi, note, fornitori, allegati, ordini di acquisto |
-| 5 | [Analisi SQDC](05-Analisi-SQDC.md) | Pesi, punteggi, calcolo automatico costo, export |
-| 6 | [Value Stream Mapping](06-Value-Stream-Mapping.md) | Saving, Cost Avoidance, Derisking, eventi ripetitivi |
-| 7 | [KPI Dashboard](07-KPI-Dashboard.md) | Filtri temporali, carry-over, grafici, export Excel |
-| 8 | [Impostazioni e manutenzione](08-Impostazioni-e-manutenzione.md) | Database, backup, lingua |
-| 9 | [Lavoro multiutente](09-Lavoro-multiutente.md) | Condivisione database su rete, modalità sola lettura |
-| 10 | [Problemi comuni e soluzioni](10-Problemi-comuni-e-soluzioni.md) | Database bloccato, allegati mancanti, errori di importazione |
-| 11 | [Best practices](11-Best-practices.md) | Consigli operativi per uso quotidiano |
-| 12 | [Glossario](12-Glossario.md) | Termini procurement e termini applicativi |
-| 13 | [Log e diagnostica](13-Log-e-diagnostica.md) | Dove trovare i log, cosa significano |
-| 14 | [Supporto](14-Supporto.md) | Contatti e segnalazione bug |
+| 1 | [Primi passi](01-Primi-passi) | Installazione, primo avvio, identità utente |
+| 2 | [Schermata principale](02-Schermata-principale) | Layout, barra degli strumenti, ricerca, filtri, tab |
+| 3 | [Creare una nuova RdO](03-Creare-una-nuova-RdO) | Tipi di RdO, inserimento articoli, importazione da Excel |
+| 4 | [Gestire una RdO esistente](04-Gestire-una-RdO-esistente) | Griglia prezzi, note, fornitori, allegati, ordini di acquisto |
+| 5 | [Analisi SQDC](05-Analisi-SQDC) | Pesi, punteggi, calcolo automatico costo, export |
+| 6 | [Value Stream Mapping](06-Value-Stream-Mapping) | Saving, Cost Avoidance, Derisking, eventi ripetitivi |
+| 7 | [KPI Dashboard](07-KPI-Dashboard) | Filtri temporali, carry-over, grafici, export Excel |
+| 8 | [Impostazioni e manutenzione](08-Impostazioni-e-manutenzione) | Database, backup, lingua |
+| 9 | [Lavoro multiutente](09-Lavoro-multiutente) | Condivisione database su rete, modalità sola lettura |
+| 10 | [Problemi comuni e soluzioni](10-Problemi-comuni-e-soluzioni) | Database bloccato, allegati mancanti, errori di importazione |
+| 11 | [Best practices](11-Best-practices) | Consigli operativi per uso quotidiano |
+| 12 | [Glossario](12-Glossario) | Termini procurement e termini applicativi |
+| 13 | [Log e diagnostica](13-Log-e-diagnostica) | Dove trovare i log, cosa significano |
+| 14 | [Supporto](14-Supporto) | Contatti e segnalazione bug |
 
 ---
 
