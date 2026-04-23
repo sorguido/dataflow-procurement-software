@@ -82,3 +82,6 @@ In the context of DataFlow, this refers to the procurement value-tracking module
 
 **WAL (Write-Ahead Log)**  
 An operating mode of the SQLite database engine that allows multiple users to read simultaneously while one user writes. It ensures data consistency in shared multi-user environments without requiring a dedicated database server.
+
+---
+[← Previous page](EN-11-Best-Practices) | [Next page →](EN-13-Logs-and-Diagnostics)

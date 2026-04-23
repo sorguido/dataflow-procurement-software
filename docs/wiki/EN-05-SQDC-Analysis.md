@@ -102,3 +102,6 @@ The generated Excel file contains:
 ## Read-Only Behaviour
 
 If the RFQ belongs to another user, the SQDC window opens in read-only mode: you can review the saved weights and scores and export to Excel, but cannot make any changes.
+
+---
+[← Previous page](EN-04-Manage-an-Existing-RFQ) | [Next page →](EN-06-Value-Stream-Mapping)

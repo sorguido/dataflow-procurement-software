@@ -94,3 +94,6 @@ When submitting a bug report to technical support:
 4. Attach the entire `dataflow.log` file to the report — do not paste only a few lines, as the full context is necessary for diagnosis.
 
 See the [Support](14-Support.md) section for where to submit reports.
+
+---
+[← Previous page](EN-12-Glossary) | [Next page →](EN-14-Support)

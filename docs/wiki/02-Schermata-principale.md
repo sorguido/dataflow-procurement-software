@@ -151,3 +151,6 @@ Fare clic sull'intestazione di una colonna per ordinare la lista in modo crescen
 | Avviare una ricerca | Digitare nel campo di ricerca + **Invio** |
 | Aprire un elemento | **Doppio clic** sulla riga |
 | Aprire la guida | Pulsante **❓ Guida** |
+
+---
+[← Pagina precedente](01-Primi-passi) | [Pagina successiva →](03-Creare-una-nuova-RdO)

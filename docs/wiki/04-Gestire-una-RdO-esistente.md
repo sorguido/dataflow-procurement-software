@@ -170,3 +170,6 @@ Per generare una RdO stampabile:
 3. Fare clic su **Conferma Export PDF** e scegliere il file di destinazione.
 
 Il pulsante **📥 Export Excel** nella barra degli strumenti principale esporta invece **tutte** le RdO del database in un unico file.
+
+---
+[← Pagina precedente](03-Creare-una-nuova-RdO) | [Pagina successiva →](05-Analisi-SQDC)

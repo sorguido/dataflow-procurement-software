@@ -82,3 +82,6 @@ Nel contesto di DataFlow, indica il modulo di tracciamento delle attività di va
 
 **WAL (Write-Ahead Log)**  
 Modalità operativa del database SQLite che permette a più utenti di leggere simultaneamente mentre uno solo scrive. Garantisce la coerenza dei dati in ambienti multiutente senza richiedere un server dedicato.
+
+---
+[← Pagina precedente](11-Best-practices) | [Pagina successiva →](13-Log-e-diagnostica)

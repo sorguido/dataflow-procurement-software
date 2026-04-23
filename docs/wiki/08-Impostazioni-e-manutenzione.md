@@ -92,3 +92,6 @@ I log di diagnostica vengono scritti automaticamente in:
 - **Linux:** `~/.local/share/DataFlow/dataflow.log`
 
 Vedere la sezione [Log e diagnostica](13-Log-e-diagnostica.md) per maggiori dettagli.
+
+---
+[← Pagina precedente](07-KPI-Dashboard) | [Pagina successiva →](09-Lavoro-multiutente)

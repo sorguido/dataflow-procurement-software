@@ -151,3 +151,6 @@ Click a column header to sort the list in ascending order. Click again to revers
 | Start a search | Type in the search field + **Enter** |
 | Open an item | **Double-click** the row |
 | Open the help guide | **❓ Help** button |
+
+---
+[← Previous page](EN-01-Getting-Started) | [Next page →](EN-03-Create-a-New-RFQ)

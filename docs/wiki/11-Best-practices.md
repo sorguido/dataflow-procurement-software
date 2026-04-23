@@ -101,3 +101,6 @@ Una volta ogni 3–6 mesi, è utile:
 1. **Archiviare le RdO obsolete** ancora nei tab Attivi.
 2. **Verificare e aggiornare i fornitori potenziali** nel tab Derisking (eliminare i `Scartati` definitivi se non servono più storicamente, o tenerli per memoria storica).
 3. **Riesaminare gli eventi VSM** con % Realizzo ancora bassa: o aggiornarle se la negoziazione è diventata definitiva, o documentare perché il realizzo è rimasto parziale.
+
+---
+[← Pagina precedente](10-Problemi-comuni-e-soluzioni) | [Pagina successiva →](12-Glossario)

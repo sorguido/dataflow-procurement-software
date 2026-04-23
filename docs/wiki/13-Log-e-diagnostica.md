@@ -94,3 +94,6 @@ Quando si segnala un problema al supporto tecnico:
 4. Allegare il file `dataflow.log` alla segnalazione (non copiare solo poche righe: l'intero file è utile per il contesto).
 
 Vedere la sezione [Supporto](14-Supporto.md) per i recapiti di segnalazione.
+
+---
+[← Pagina precedente](12-Glossario) | [Pagina successiva →](14-Supporto)

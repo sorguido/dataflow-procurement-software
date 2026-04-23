@@ -153,3 +153,6 @@ Once a purchase order is issued as a result of the RFQ:
 5. Click **Close** to save.
 
 Multiple orders can be linked to the same RFQ (one per supplier or per delivery tranche).
+
+---
+[← Previous page](EN-02-Main-Screen) | [Next page →](EN-04-Manage-an-Existing-RFQ)

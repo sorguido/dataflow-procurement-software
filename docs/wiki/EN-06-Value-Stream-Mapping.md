@@ -191,3 +191,6 @@ When an event is edited, DataFlow **automatically recalculates and recreates** a
 ## Viewing Another User's Event
 
 Events belonging to other users are visible in the list but open in **read-only mode**. The window displays all data, but all fields are disabled and the only available button is **✖ Close**.
+
+---
+[← Previous page](EN-05-SQDC-Analysis) | [Next page →](EN-07-KPI-Dashboard)

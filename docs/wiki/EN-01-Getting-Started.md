@@ -75,3 +75,6 @@ To get familiar with the application, here is how to create your first Request f
 ## Subsequent Launches
 
 From the second launch onwards, DataFlow opens directly to the main screen without asking for your identity again. The application remembers the database location and the selected language and currency.
+
+---
+[Next page →](EN-02-Main-Screen)

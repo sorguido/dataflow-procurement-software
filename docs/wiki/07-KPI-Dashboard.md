@@ -161,3 +161,6 @@ Il file Excel generato contiene:
 ## Aggiornamento dei dati
 
 I dati nella finestra KPI riflettono lo stato del database al momento dell'apertura. Per aggiornare i valori dopo aver aggiunto nuovi eventi, chiudere e riaprire la finestra KPI, oppure cambiare il filtro temporale per forzare un ricalcolo.
+
+---
+[← Pagina precedente](06-Value-Stream-Mapping) | [Pagina successiva →](08-Impostazioni-e-manutenzione)

@@ -101,3 +101,6 @@ Every three to six months, it is good practice to:
 1. **Archive any obsolete RFQs** still sitting in the Active tabs.
 2. **Review and update potential suppliers** in the Derisking tab — remove definitively rejected suppliers if they are no longer needed for historical reference, or keep them for audit purposes.
 3. **Revisit Value Stream Mapping events with a persistently low % Realisation** — either update the figure if the negotiation has since been confirmed, or document why the realisation remained partial.
+
+---
+[← Previous page](EN-10-Common-Issues-and-Solutions) | [Next page →](EN-12-Glossary)

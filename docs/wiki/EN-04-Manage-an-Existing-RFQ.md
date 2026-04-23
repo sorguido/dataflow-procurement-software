@@ -170,3 +170,6 @@ To generate a printable RFQ document:
 3. Click **Confirm PDF Export** and choose the destination file.
 
 The **📥 Export Excel** button in the main toolbar exports **all** RFQs in the database into a single file.
+
+---
+[← Previous page](EN-03-Create-a-New-RFQ) | [Next page →](EN-05-SQDC-Analysis)

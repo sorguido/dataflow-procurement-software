@@ -53,3 +53,6 @@ Prima di installare un aggiornamento:
 1. Eseguire un **backup manuale del database** (⚙️ Impostazioni → 💾 Backup Manuale).
 2. Installare la nuova versione.
 3. Avviare DataFlow e verificare che i dati siano accessibili correttamente.
+
+---
+[← Pagina precedente](13-Log-e-diagnostica)

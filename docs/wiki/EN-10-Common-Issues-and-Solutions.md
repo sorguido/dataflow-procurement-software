@@ -107,3 +107,6 @@ To restore a previous backup:
 4. Restart DataFlow.
 
 > Before overwriting the current database with a backup, make sure you are not discarding data entered after the backup was taken. The operation cannot be undone once the old file is deleted.
+
+---
+[← Previous page](EN-09-Multi-User-Work) | [Next page →](EN-11-Best-Practices)

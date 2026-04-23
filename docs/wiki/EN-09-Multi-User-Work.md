@@ -99,3 +99,6 @@ If the network folder cannot be reached at startup, DataFlow cannot find the dat
 3. If necessary, work temporarily with a local copy of the database and re-align it manually afterwards.
 
 DataFlow does not automatically handle merge conflicts between two databases that have evolved independently.
+
+---
+[← Previous page](EN-08-Settings-and-Maintenance) | [Next page →](EN-10-Common-Issues-and-Solutions)

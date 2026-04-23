@@ -161,3 +161,6 @@ The generated Excel file contains:
 ## Refreshing Data
 
 The data in the KPI window reflects the state of the database at the time the window was opened. To update values after adding new events, close and reopen the KPI window, or change the time filter to force a recalculation.
+
+---
+[← Previous page](EN-06-Value-Stream-Mapping) | [Next page →](EN-08-Settings-and-Maintenance)
