@@ -11,12 +11,12 @@
     <DisplayName>DataFlow Procurement Software</DisplayName>
     <PublisherDisplayName>Guido Sorarù</PublisherDisplayName>
     <Description>DataFlow Procurement Software</Description>
-    <Logo>add_data\Logo_50x50.png</Logo>
+    <Logo>add_data\Logo_150x150.png</Logo>
   </Properties>
   <Capabilities>
     <rescap:Capability Name="runFullTrust" />
   </Capabilities>
-  <Identity Publisher="CN=767D10E0-BBBE-428C-AABD-25A5776E6EE0" Name="GuidoSorar.DataFlowProcurementSoftware" Version="2.0.1.0" ProcessorArchitecture="x64" />
+  <Identity Publisher="CN=767D10E0-BBBE-428C-AABD-25A5776E6EE0" Name="GuidoSorar.DataFlowProcurementSoftware" Version="2.2.0.0" ProcessorArchitecture="x64" />
   <Applications>
     <Application Id="DataFlow" EntryPoint="Windows.FullTrustApplication" Executable="dataflow.exe">
       <uap:VisualElements 
