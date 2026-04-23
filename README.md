@@ -4,7 +4,7 @@
 
 👨‍💼 Developed by a buyer for buyers, DataFlow offers a comprehensive platform to manage every stage of Requests for Quotation (RFQs), analyse supplier quotes, and measure procurement performance through dedicated KPI tracking.
 
-✨ What's new in version 2.1.0: Value Stream Mapping (VSM) module for tracking Savings, Cost Avoidances, and Derisking activities. New KPI Analysis window with charts and Excel export. Potential Supplier registry integrated in the Derisking workflow. Global search bar and modular dashboard architecture.
+✨ What's new in version 2.2.0: deeper modular service architecture, centralised runtime translation with `tr(...)`, improved dashboard search and contextual filters, RFQ PDF export with logo/template support, and refinements across VSM, KPI, Derisking, and settings workflows.
 
 🎯 The 'DataFlow' software is positioned as a niche tool and decision support tool that bridges the gap between basic management (Excel) and expensive ERP modules.
 
@@ -44,7 +44,7 @@ Enter prices item by item to obtain an immediate and transparent comparison betw
 Originally developed for Windows and also published on the [Microsoft Store](https://apps.microsoft.com/detail/9nt3bbg1w0k7?hl=en-EN&gl=EN), the project is now released as an open-source Linux edition under the **GNU GPLv3** license.
 
 The application is written in **Python** with a **Tkinter** GUI and uses **SQLite** as its local database engine.  
-The current Linux port includes cross-platform path handling, Linux window icon support, multilingual support (Italian and English), Excel import/export, attachment management, purchase order tracking, notes, SQDC analysis support, VSM event tracking, KPI analysis, and a potential supplier registry.  
+The current Linux port includes cross-platform path handling, Linux window icon support, multilingual support (Italian and English), Excel/PDF export, attachment management, purchase order tracking, notes, SQDC analysis support, VSM event tracking, KPI analysis, and a potential supplier registry.  
 The codebase includes a dedicated database manager with SQLite/WAL support and logic for aggregating data across multiple user databases.
 
 ---
@@ -62,7 +62,8 @@ The codebase includes a dedicated database manager with SQLite/WAL support and l
 - **VSM module**: track Saving, Cost Avoidance, and Derisking events
 - **KPI Analysis window**: aggregated metrics with charts and Excel export
 - **Potential Supplier registry**: manage and qualify new suppliers (Derisking workflow)
-- **Global search bar**: multi-field search across all main dashboard tabs
+- **RFQ PDF export**: export Requests for Quotation with persistent logo and editable language template
+- **Global search bar**: multi-field search with contextual filters across all main dashboard tabs
 - English and Italian language support
 - Linux-compatible port with fixes for platform-specific behaviour
 - Existing Windows distribution on Microsoft Store
@@ -74,7 +75,7 @@ The codebase includes a dedicated database manager with SQLite/WAL support and l
 ### RFQ Management
 Create, manage, and archive Requests for Quotation. Record supplier quotes item by item, attach documents, track purchase orders, and run SQDC analyses to support supplier selection decisions.
 
-### Value Stream Mapping (VSM) — New in 2.1.0
+### Value Stream Mapping (VSM) — Version 2.2.0
 Track negotiation outcomes as structured events directly from the main dashboard:
 
 - **Saving**: price reduction achieved through negotiation, with optional payment terms driver
@@ -83,7 +84,7 @@ Track negotiation outcomes as structured events directly from the main dashboard
 
 Each event generates monthly economic impact projections. OPEX-repetitive events propagate their effect over up to 24 months.
 
-### KPI Analysis — New in 2.1.0
+### KPI Analysis — Version 2.2.0
 A dedicated window provides aggregated procurement KPIs across four dimensions:
 
 - **RFQ KPIs**: volume, active/archived breakdown, supplier and product code coverage
@@ -91,13 +92,14 @@ A dedicated window provides aggregated procurement KPIs across four dimensions:
 - **Cost Avoidance KPIs**: avoided costs over time
 - **Derisking KPIs**: new suppliers introduced, qualification status distribution
 
-Filters by year or custom date range. Export to Excel available.
+Filters by period preset, year, or custom date range. Export to Excel available.
 
-### Potential Supplier Registry — New in 2.1.0
+### Potential Supplier Registry — Version 2.2.0
 Manage the lifecycle of potential new suppliers directly within the Derisking tab:
 
 - Record supplier name, category, contact details, and qualification status
 - Statuses: New, Under Evaluation, Qualified, Rejected
+- Supplier name suggestions and reusable category management
 - Integrated with the Derisking VSM workflow
 
 ---
@@ -122,7 +124,7 @@ Manage the lifecycle of potential new suppliers directly within the Derisking ta
 
 ## Project Status
 
-Version 2.1.0 marks the transition from a pure RFQ management tool to a broader procurement performance platform, adding structured tracking of negotiation outcomes and KPI measurement capabilities.
+Version 2.2.0 consolidates that transition with a more modular architecture, broader runtime translation coverage, improved dashboard search/filter handling, RFQ PDF export, and refinements across maintenance and export workflows.
 
 ---
 
@@ -138,8 +140,10 @@ Version 2.1.0 marks the transition from a pure RFQ management tool to a broader 
 - `openpyxl`
 - `Pillow`
 - `polib`
+- `reportlab`
 - `tkcalendar`
 - `tksheet`
+- `tkinterdnd2`
 
 ---
 
@@ -154,7 +158,7 @@ Version 2.1.0 marks the transition from a pure RFQ management tool to a broader 
 After downloading the package, give execution permissions:
 
 ```bash
-chmod +x DataFlow_2.1.0_Linux_x86_64.AppImage
+chmod +x DataFlow_2.2.0_Linux_x86_64.AppImage
 ```
 
 ### Windows Installation
@@ -197,8 +201,10 @@ python3 dataflow.py
 openpyxl
 Pillow
 polib
+reportlab
 tkcalendar
 tksheet
+tkinterdnd2
 ```
 
 ---

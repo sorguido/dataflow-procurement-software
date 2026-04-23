@@ -1,5 +1,90 @@
-# DataFlow 2.1.0
+# DataFlow 2.2.0
 @sorguido
+
+## v2.2.0
+
+DataFlow 2.2.0 – Feature Release
+
+---
+
+## 🆕 Added
+
+- **RFQ PDF export**: new export flow directly from the RFQ window
+  - ReportLab-based A4 multi-page document generation
+  - Optional persistent company logo for PDF exports
+  - External editable language-specific text templates with `{{TABLE}}` placeholder validation
+
+- **Dedicated export services**: Excel export logic extracted from `dataflow.py` into dedicated services
+  - RFQ export
+  - VSM export
+  - Derisking export
+  - Timestamped safe export filename generation
+
+- **Supplier name suggestion system**: reusable suggestion and soft-duplicate detection flow for supplier input fields
+  - Suggestions built from both RFQ supplier history and Derisking supplier registry
+  - Integrated in supplier editing and potential supplier dialogs
+
+- **Settings maintenance services**: dedicated support layer for operational maintenance flows
+  - Manual backup bundle copy including DB/WAL/SHM when available
+  - Daily auto-backup with timestamped retention
+  - DataFlow folder migration validation helpers and controlled restart lifecycle
+
+- **Sheet factory layer**: standalone builders for RFQ, VSM, and Derisking `tksheet` instances
+
+---
+
+## ✨ Improvements
+
+- Dashboard search and advanced filters aligned across RFQ, Saving, Cost Avoidance, and Derisking tabs
+- Global search now coexists more consistently with contextual filters and export flows
+- Runtime translation coverage consolidated around `tr(...)` and centralized normalization helpers for RFQ type, VSM action, and Derisking status
+- Main dialog flows standardized through reusable dialog components for message, confirmation, export language, splash, license, and identity prompts
+- KPI Analysis filters extended with rolling period presets (`1M`, `3M`, `12M`, `3Y`, `5Y`, `10Y`, `ALL`) and dedicated Derisking year handling
+- Derisking dashboard flow now uses dedicated supplier-sheet population and column auto-sizing logic
+- RFQ, VSM, KPI, and Derisking export flows aligned more closely with bilingual UI behaviour
+
+---
+
+## 🛠 Fixes
+
+- Search input now applies defensive sanitization and length validation before query execution
+- Dashboard row ownership checks are enforced through dedicated selection-policy helpers before enabling destructive actions
+- Notes loading now prefers `json.loads()` with fallback for legacy serialized content
+- Attachment drag-and-drop activation is guarded more safely when `tkdnd` / `tkinterdnd2` are unavailable in the runtime
+- Restart flow after settings changes is handled through dedicated lifecycle helpers for more reliable re-launch behaviour
+- DataFlow folder migration and backup flows include more conservative validation and copy safeguards
+
+---
+
+## ♻️ Refactoring
+
+- Large portions of `dataflow.py` operational logic extracted into dedicated services under `services/`
+- Dashboard logic split across controller, search, actions policy, selection policy, RFQ dashboard, VSM dashboard, and Derisking dashboard modules
+- Settings logic split into preferences, maintenance, location, and restart lifecycle services
+- RFQ PDF export split into dedicated export, logo, and template service modules
+- New `ui/sheet_factories.py` centralizes `tksheet` construction for dashboard views
+- New utility modules introduced for export filename generation and supplier-name normalization
+- `utils/i18n_utils.py` refactored into a centralized translation service with runtime initialization and domain-specific normalization helpers
+
+---
+
+## 📦 Packaging
+
+- Distribution packages updated for version 2.2.0:
+  - `AppImage`
+  - `.exe`
+- `requirements.txt` updated to include runtime dependencies required by the new export and drag-and-drop flows
+- Root PyInstaller specs updated to collect the modules and assets required by PDF export and multilingual runtime resources
+
+---
+
+## 🔒 Other
+
+- No breaking changes to the existing RFQ / VSM / Derisking user workflows
+- Database evolution remains conservative and migration-oriented for new fields and tables
+- Multi-user dashboard aggregation remains read-only for data belonging to other users
+
+---
 
 ## v2.1.0
 
@@ -82,7 +167,6 @@ DataFlow 2.1.0 – Feature Release
 ## 📦 Packaging
 
 - Distribution packages updated for version 2.1.0:
-  - `.deb`
   - `AppImage`
   - `.exe`
 - `dataflow.spec` updated to include new modules and assets introduced in this release
