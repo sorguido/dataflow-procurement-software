@@ -156,7 +156,7 @@ msgid "Realization %"
 msgstr "Realizzo %"
 
 msgid "Variance %"
-msgstr "Variance %"
+msgstr "Scostamento %"
 
 msgid "Repetitive"
 msgstr "Ripetitivo"

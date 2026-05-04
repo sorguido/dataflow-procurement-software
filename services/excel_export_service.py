@@ -358,12 +358,12 @@ def export_vsm_events_excel(*, parent, status, sheet_col_widths, events):
         if event_type == "Saving":
             headers = [
                 "Data", "Tipo", "Azione", "Descrizione",
-                "Saving Teorico", "Saving Effettivo", "Realizzo %", "Variance %", "Ripetitivo", "Utente",
+                "Saving Teorico", "Saving Effettivo", "Realizzo %", "Scostamento %", "Ripetitivo", "Utente",
             ]
         else:
             headers = [
                 "Data", "Tipo", "Azione", "Descrizione",
-                "CA Teorico", "CA Effettivo", "Realizzo %", "Variance %", "Ripetitivo", "Utente",
+                "CA Teorico", "CA Effettivo", "Realizzo %", "Scostamento %", "Ripetitivo", "Utente",
             ]
     else:
         if event_type == "Saving":
