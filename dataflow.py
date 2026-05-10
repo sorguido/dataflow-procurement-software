@@ -3281,13 +3281,17 @@ if __name__ == '__main__':
                     pass
                 return
 
-            # Salva subito l'accettazione
+            # Salva subito accettazione e lingua scelta prima di creare la dashboard.
+            selected_language = getattr(license_prompt, 'selected_language', 'English')
+            selected_language_code = 'it' if selected_language == 'Italiano' else 'en'
             try:
                 if 'Settings' not in config:
                     config['Settings'] = {}
                 config['Settings']['license_accepted'] = 'True'
+                config['Settings']['language'] = selected_language_code
                 with open(config_file, 'w', encoding='utf-8') as f:
                     config.write(f)
+                init_i18n()
             except Exception as e:
                 logger.warning(f"Impossibile salvare stato licenza: {e}")
 

@@ -525,9 +525,10 @@ class LicenseAcceptanceDialog(tk.Toplevel):
         super().__init__(parent)
         self.withdraw()
         self.accepted = False
+        self.selected_language = "English"
         self._url = url
         set_window_icon(self)
-        self.title(tr("License Agreement"))
+        self.title("License Agreement")
         self.transient(parent)
         self.resizable(False, False)
         self.grab_set()
@@ -543,18 +544,33 @@ class LicenseAcceptanceDialog(tk.Toplevel):
 
         ttk.Label(
             frame,
-            text=tr("To use DataFlow Procurement Software, you must accept the terms and conditions of use."),
+            text="To use DataFlow Procurement Software, you must accept the terms and conditions of use.",
             font=(None, 10),
             wraplength=380,
-            justify="left"
-        ).pack(pady=(0, 20))
+            justify="center"
+        ).pack(pady=(0, 15))
+
+        self.language_var = tk.StringVar(value="English")
+        language_frame = ttk.Frame(frame)
+        language_frame.pack(pady=(0, 20))
+
+        ttk.Label(language_frame, text="Interface language:").pack(pady=(0, 5))
+        language_combo = ttk.Combobox(
+            language_frame,
+            textvariable=self.language_var,
+            values=["English", "Italiano"],
+            state="readonly",
+            width=20
+        )
+        language_combo.pack()
+        language_combo.current(0)
 
         btn_frame = ttk.Frame(frame)
         btn_frame.pack()
 
-        ttk.Button(btn_frame, text=tr("📄 Read License"), command=self._on_license, width=18).pack(side="left", padx=5)
-        ttk.Button(btn_frame, text=tr("✅ Accept"), command=self._on_accept, width=12).pack(side="left", padx=5)
-        ttk.Button(btn_frame, text=tr("❌ Exit"), command=self._on_exit, width=12).pack(side="left", padx=5)
+        ttk.Button(btn_frame, text="Read License", command=self._on_license, width=18).pack(side="left", padx=5)
+        ttk.Button(btn_frame, text="Accept", command=self._on_accept, width=12).pack(side="left", padx=5)
+        ttk.Button(btn_frame, text="Exit", command=self._on_exit, width=12).pack(side="left", padx=5)
 
         center_window(self)
         self.deiconify()
@@ -565,6 +581,7 @@ class LicenseAcceptanceDialog(tk.Toplevel):
 
     def _on_accept(self):
         self.accepted = True
+        self.selected_language = self.language_var.get() or "English"
         self.grab_release()
         self.destroy()
 
