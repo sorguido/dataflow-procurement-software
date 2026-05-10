@@ -1266,8 +1266,8 @@ class DatabaseManager:
             
             # 4. Usa glob per ricerca ricorsiva partendo dalla Radice Condivisa
             # Cerca tutti i file dataflow_db_*.db (database SQLite degli utenti)
-            search_pattern = os.path.join(root_shared_dir, "**", "dataflow_db_*.db")
-            found_files = glob.glob(search_pattern, recursive=True)
+            search_pattern = os.path.join(root_shared_dir, "DataFlow_*", "Database", "dataflow_db_*.db")
+            found_files = glob.glob(search_pattern)
             
             # LOG: informazioni sui database trovati
             print(f"[DB Aggregation] Root shared dir: {root_shared_dir}")
@@ -2333,8 +2333,8 @@ class DatabaseManager:
             my_db_norm = os.path.normpath(os.path.abspath(my_db_full_path))
             user_df_dir = os.path.dirname(os.path.dirname(my_db_norm))
             root_shared_dir = os.path.dirname(user_df_dir)
-            search_pattern = os.path.join(root_shared_dir, "**", "dataflow_db_*.db")
-            found_files = glob.glob(search_pattern, recursive=True)
+            search_pattern = os.path.join(root_shared_dir, "DataFlow_*", "Database", "dataflow_db_*.db")
+            found_files = glob.glob(search_pattern)
             found_files = [os.path.normpath(os.path.abspath(f)) for f in found_files]
             print(f"[VSM Aggregation] Root: {root_shared_dir}, DB trovati: {len(found_files)}")
         except Exception as e:
@@ -2732,8 +2732,8 @@ class DatabaseManager:
             my_db_norm = os.path.normpath(os.path.abspath(my_db_full_path))
             user_df_dir = os.path.dirname(os.path.dirname(my_db_norm))
             root_shared_dir = os.path.dirname(user_df_dir)
-            search_pattern = os.path.join(root_shared_dir, "**", "dataflow_db_*.db")
-            found_files = glob.glob(search_pattern, recursive=True)
+            search_pattern = os.path.join(root_shared_dir, "DataFlow_*", "Database", "dataflow_db_*.db")
+            found_files = glob.glob(search_pattern)
             found_files = [os.path.normpath(os.path.abspath(f)) for f in found_files]
             print(f"[Supplier Aggregation] Root: {root_shared_dir}, DB trovati: {len(found_files)}")
         except Exception as e:
