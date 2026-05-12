@@ -1,5 +1,37 @@
-# DataFlow 2.2.0
+# DataFlow 2.3.0
 @sorguido
+
+## v2.3.0
+
+DataFlow 2.3.0 – Maintenance Release
+
+---
+
+## ✨ Improvements
+
+- First-run license acceptance now includes an interface language selector, so the initial language can be applied before the dashboard is created
+- Multi-user aggregation now scans only standard DataFlow user folders (`DataFlow_*/Database/dataflow_db_*.db`), avoiding broad recursive searches across the full shared root
+
+---
+
+## 🛠 Fixes
+
+- Italian VSM export labels now use **Scostamento %** instead of the untranslated **Variance %**
+
+---
+
+## 📦 Packaging
+
+- Application footer and MSIX package identity updated for version 2.3.0
+
+---
+
+## 🔒 Other
+
+- No database schema changes introduced in this release
+- Multi-user aggregation remains read-only for data belonging to other users
+
+---
 
 ## v2.2.0
 

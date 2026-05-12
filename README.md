@@ -4,7 +4,7 @@
 
 👨‍💼 Developed by a buyer for buyers, DataFlow offers a comprehensive platform to manage every stage of Requests for Quotation (RFQs), analyse supplier quotes, and measure procurement performance through dedicated KPI tracking.
 
-✨ What's new in version 2.2.0: deeper modular service architecture, centralised runtime translation with `tr(...)`, improved dashboard search and contextual filters, RFQ PDF export with logo/template support, and refinements across VSM, KPI, Derisking, and settings workflows.
+✨ What's new in version 2.3.0: first-run interface language selection, faster standard-layout multi-user aggregation, corrected Italian VSM export wording, and refreshed application/package version metadata.
 
 🎯 The 'DataFlow' software is positioned as a niche tool and decision support tool that bridges the gap between basic management (Excel) and expensive ERP modules.
 
@@ -75,7 +75,7 @@ The codebase includes a dedicated database manager with SQLite/WAL support and l
 ### RFQ Management
 Create, manage, and archive Requests for Quotation. Record supplier quotes item by item, attach documents, track purchase orders, and run SQDC analyses to support supplier selection decisions.
 
-### Value Stream Mapping (VSM) — Version 2.2.0
+### Value Stream Mapping (VSM)
 Track negotiation outcomes as structured events directly from the main dashboard:
 
 - **Saving**: price reduction achieved through negotiation, with optional payment terms driver
@@ -84,7 +84,7 @@ Track negotiation outcomes as structured events directly from the main dashboard
 
 Each event generates monthly economic impact projections. OPEX-repetitive events propagate their effect over up to 24 months.
 
-### KPI Analysis — Version 2.2.0
+### KPI Analysis
 A dedicated window provides aggregated procurement KPIs across four dimensions:
 
 - **RFQ KPIs**: volume, active/archived breakdown, supplier and product code coverage
@@ -94,7 +94,7 @@ A dedicated window provides aggregated procurement KPIs across four dimensions:
 
 Filters by period preset, year, or custom date range. Export to Excel available.
 
-### Potential Supplier Registry — Version 2.2.0
+### Potential Supplier Registry
 Manage the lifecycle of potential new suppliers directly within the Derisking tab:
 
 - Record supplier name, category, contact details, and qualification status
@@ -124,7 +124,7 @@ Manage the lifecycle of potential new suppliers directly within the Derisking ta
 
 ## Project Status
 
-Version 2.2.0 consolidates that transition with a more modular architecture, broader runtime translation coverage, improved dashboard search/filter handling, RFQ PDF export, and refinements across maintenance and export workflows.
+Version 2.3.0 is a conservative maintenance release focused on first-run language handling, multi-user aggregation performance, Italian VSM wording, and packaging/version alignment.
 
 ---
 
@@ -158,7 +158,7 @@ Version 2.2.0 consolidates that transition with a more modular architecture, bro
 After downloading the package, give execution permissions:
 
 ```bash
-chmod +x DataFlow_2.2.0_Linux_x86_64.AppImage
+chmod +x DataFlow_2.3.0_Linux_x86_64.AppImage
 ```
 
 ### Windows Installation
