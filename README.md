@@ -268,6 +268,6 @@ If in doubt, open an issue before starting work.
 ---
 
 📘 For a deeper understanding of the architecture and internal logic, refer to the technical manual:  
-[Technical Manual](docs/DATAFLOW_2.1.0_TECHNICAL_MANUAL.md)
+[Technical Manual](development/DATAFLOW_2.3.0_TECHNICAL_MANUAL.md)
 
 ---
