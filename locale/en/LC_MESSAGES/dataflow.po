@@ -868,8 +868,8 @@ msgstr "🔍 Search"
 msgid "🧹 Clear Filters"
 msgstr "🧹 Clear Filters"
 
-msgid "v.2.2.0 - Developed by "
-msgstr "v.2.2.0 - Developed by "
+msgid "v.2.3.0 - Developed by "
+msgstr "v.2.3.0 - Developed by "
 
 msgid " © 2025–2026 - Released under GNU GPLv3 license"
 msgstr " © 2025–2026 - Released under GNU GPLv3 license"
