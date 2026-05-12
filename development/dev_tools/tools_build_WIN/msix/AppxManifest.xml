@@ -16,7 +16,7 @@
   <Capabilities>
     <rescap:Capability Name="runFullTrust" />
   </Capabilities>
-  <Identity Publisher="CN=767D10E0-BBBE-428C-AABD-25A5776E6EE0" Name="GuidoSorar.DataFlowProcurementSoftware" Version="2.2.0.0" ProcessorArchitecture="x64" />
+  <Identity Publisher="CN=767D10E0-BBBE-428C-AABD-25A5776E6EE0" Name="GuidoSorar.DataFlowProcurementSoftware" Version="2.3.0.0" ProcessorArchitecture="x64" />
   <Applications>
     <Application Id="DataFlow" EntryPoint="Windows.FullTrustApplication" Executable="dataflow.exe">
       <uap:VisualElements 
