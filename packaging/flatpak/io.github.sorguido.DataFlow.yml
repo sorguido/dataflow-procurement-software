@@ -1,0 +1,62 @@
+# Draft Flatpak manifest for DataFlow.
+#
+# This is intentionally not Flathub-ready. It is a readable starting point for
+# local packaging experiments and keeps all application code unchanged.
+app-id: io.github.sorguido.DataFlow
+runtime: org.freedesktop.Platform
+runtime-version: "24.08"
+sdk: org.freedesktop.Sdk
+command: dataflow
+
+# TODO: Verify that org.freedesktop.Platform provides a usable Python runtime
+# with tkinter/_tkinter and Tcl/Tk. If not, this manifest must either bundle a
+# suitable Python/Tcl/Tk stack or move to a more appropriate base.
+
+finish-args:
+  # Tk is commonly safest on X11. Wayland support should be tested separately.
+  - --share=ipc
+  - --socket=x11
+  # TODO: Enable only after testing Tk behavior on Wayland.
+  # - --socket=wayland
+
+  # Allow portal access for browser/file opening where supported.
+  - --talk-name=org.freedesktop.portal.Desktop
+
+  # Keep filesystem permissions conservative for the first draft.
+  # TODO: DataFlow import/export/backup/attachments may require additional
+  # filesystem access or portal integration. Avoid broad permissions unless a
+  # test case proves they are needed.
+  # - --filesystem=xdg-documents:create
+  # - --filesystem=home
+
+modules:
+  - name: python-dependencies
+    buildsystem: simple
+    build-options:
+      # TODO: Local convenience only. Replace this with reproducible vendored
+      # sources before any Flathub-style submission.
+      build-args:
+        - --share=network
+    build-commands:
+      - python3 -m pip install --prefix=/app --no-cache-dir openpyxl==3.1.5 Pillow==12.1.1 reportlab==4.2.2 tkcalendar==1.6.1 tksheet==7.6.0 tkinterdnd2==0.4.2
+      # polib is intentionally omitted: current runtime uses compiled .mo files
+      # from locale/, while polib appears to be needed only by development tools.
+
+  - name: dataflow
+    buildsystem: simple
+    build-commands:
+      - install -Dm755 packaging/flatpak/run-dataflow.sh /app/bin/dataflow
+      - install -d /app/share/dataflow
+      - cp -a dataflow.py constants.py database_manager.py /app/share/dataflow/
+      - cp -a services database models ui utils add_data locale /app/share/dataflow/
+      - install -Dm644 LICENSE /app/share/licenses/io.github.sorguido.DataFlow/LICENSE
+      - install -Dm644 README.md /app/share/doc/io.github.sorguido.DataFlow/README.md
+      - install -Dm644 packaging/flatpak/io.github.sorguido.DataFlow.desktop /app/share/applications/io.github.sorguido.DataFlow.desktop
+      - install -Dm644 packaging/flatpak/io.github.sorguido.DataFlow.metainfo.xml /app/share/metainfo/io.github.sorguido.DataFlow.metainfo.xml
+      - install -Dm644 add_data/Logo_256x256.png /app/share/icons/hicolor/256x256/apps/io.github.sorguido.DataFlow.png
+    sources:
+      # Path is intended to resolve from this manifest directory to the repo root.
+      # If flatpak-builder is invoked differently, adjust the path locally.
+      - type: dir
+        path: ../..
+

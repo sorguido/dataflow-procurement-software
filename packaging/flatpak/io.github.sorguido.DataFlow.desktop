@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=DataFlow
+GenericName=Procurement Management
+Comment=Manage RFQs, procurement data, KPI analysis, and supplier documents
+Exec=dataflow
+Icon=io.github.sorguido.DataFlow
+Terminal=false
+Categories=Office;Finance;
+StartupNotify=true
+X-Flatpak=io.github.sorguido.DataFlow
+

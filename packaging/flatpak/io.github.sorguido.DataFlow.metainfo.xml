@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Draft AppStream metadata. Not ready for Flathub review. -->
+<component type="desktop-application">
+  <id>io.github.sorguido.DataFlow</id>
+  <name>DataFlow</name>
+  <summary>Desktop procurement and RFQ management tool</summary>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-only</project_license>
+
+  <description>
+    <p>
+      DataFlow is a desktop application for procurement teams. It helps manage
+      Requests for Quotation, supplier offers, attachments, purchase data,
+      KPI analysis, Value Stream Mapping events, and RFQ exports.
+    </p>
+    <p>
+      This Flatpak metadata is a packaging draft and still needs runtime,
+      sandbox, icon, screenshot, and AppStream validation before publication.
+    </p>
+  </description>
+
+  <launchable type="desktop-id">io.github.sorguido.DataFlow.desktop</launchable>
+  <provides>
+    <binary>dataflow</binary>
+  </provides>
+
+  <categories>
+    <category>Office</category>
+    <category>Finance</category>
+  </categories>
+
+  <url type="homepage">https://github.com/sorguido/dataflow-procurement-software</url>
+  <url type="bugtracker">https://github.com/sorguido/dataflow-procurement-software/issues</url>
+
+  <releases>
+    <release version="2.3.0" date="2026-05-25">
+      <description>
+        <p>Initial Flatpak packaging draft metadata.</p>
+      </description>
+    </release>
+  </releases>
+
+  <content_rating type="oars-1.1" />
+</component>
+
