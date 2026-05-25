@@ -57,17 +57,7 @@ modules:
         url: https://downloads.sourceforge.net/tcl/tk8.6.14-src.tar.gz
         sha256: 8ffdb720f47a6ca6107eac2dd877e30b0ef7fac14f3a84ebbd0b3612cee41a94
 
-  - name: python-dependencies
-    buildsystem: simple
-    build-options:
-      # TODO: Local convenience only. Replace this with reproducible vendored
-      # sources before any Flathub-style submission.
-      build-args:
-        - --share=network
-    build-commands:
-      - python3 -m pip install --prefix=/app --no-cache-dir openpyxl==3.1.5 Pillow==12.1.1 reportlab==4.2.2 tkcalendar==1.6.1 tksheet==7.6.0 tkinterdnd2==0.4.2
-      # polib is intentionally omitted: current runtime uses compiled .mo files
-      # from locale/, while polib appears to be needed only by development tools.
+  - python3-requirements.json
 
   - name: dataflow
     buildsystem: simple

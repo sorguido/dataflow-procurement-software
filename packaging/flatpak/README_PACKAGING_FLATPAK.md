@@ -58,10 +58,12 @@ Per installare localmente dopo la build:
 flatpak-builder --force-clean --user --install --install-deps-from=flathub build-flatpak packaging/flatpak/io.github.sorguido.DataFlow.yml
 ```
 
-La sezione `python-dependencies` del manifest usa temporaneamente `pip`.
-Questo e' comodo per una prova locale, ma non e' una soluzione pronta per
-Flathub. Uno step successivo dovrebbe sostituirla con moduli generati in modo
-riproducibile, ad esempio tramite `flatpak-pip-generator` o equivalente.
+Le dipendenze Python runtime non vengono piu installate con un `pip install`
+diretto nel manifest principale. Sono referenziate tramite
+`python3-requirements.json`, generato con `flatpak-pip-generator`, che contiene
+URL e SHA-256 dei sorgenti/wheel necessari. Questo mantiene il manifest piu
+riproducibile e rimuove la necessita del build arg `--share=network` per il
+modulo Python.
 
 ## Test ipotetici
 
@@ -146,7 +148,8 @@ introdurre cambi invasivi.
 
 ### Dipendenze Python
 
-Da `requirements.txt` sono considerate runtime:
+Da `requirements.txt` sono considerate runtime e incluse in
+`python3-requirements.json`:
 
 - `openpyxl==3.1.5`
 - `Pillow==12.1.1`
@@ -158,6 +161,18 @@ Da `requirements.txt` sono considerate runtime:
 `polib==1.2.0` non e' incluso nella bozza runtime perche risulta usato dal
 tool di sviluppo `development/dev_tools/compile_translations.py`, mentre
 l'app usa gia i file `.mo` presenti in `locale/`.
+
+Il manifest principale mantiene l'ordine:
+
+```text
+tcl
+tk
+python3-requirements.json
+dataflow
+```
+
+Questo e' intenzionale: Tcl/Tk bundled in `/app` devono essere costruiti prima
+delle dipendenze Python e prima dell'installazione dei file applicativi.
 
 ### File system e sandbox
 
@@ -218,7 +233,8 @@ Limiti noti:
 ## Cosa non e' ancora risolto
 
 - Verifica reale di `_tkinter` con Tcl/Tk 8.6.14 installati in `/app`.
-- Packaging riproducibile delle dipendenze Python senza accesso network in build.
+- Verifica periodica del modulo `python3-requirements.json` quando cambiano
+  versioni Python runtime o dipendenze.
 - Strategia definitiva per path dati sotto Flatpak.
 - Permessi filesystem minimi per import/export/backup/allegati.
 - Integrazione portali per apertura URL/file.
