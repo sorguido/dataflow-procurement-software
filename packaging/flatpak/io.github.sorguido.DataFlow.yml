@@ -8,9 +8,9 @@ runtime-version: "24.08"
 sdk: org.freedesktop.Sdk
 command: dataflow
 
-# TODO: Verify that org.freedesktop.Platform provides a usable Python runtime
-# with tkinter/_tkinter and Tcl/Tk. If not, this manifest must either bundle a
-# suitable Python/Tcl/Tk stack or move to a more appropriate base.
+# The Freedesktop runtime can provide a minimal Tk build that does not link
+# against Xft/fontconfig/freetype. DataFlow needs normal desktop font discovery,
+# so this draft bundles Tcl/Tk 8.6.14 in /app and the launcher prefers /app/lib.
 
 finish-args:
   # Tk is commonly safest on X11. Wayland support should be tested separately.
@@ -30,6 +30,33 @@ finish-args:
   # - --filesystem=home
 
 modules:
+  - name: tcl
+    buildsystem: simple
+    build-commands:
+      - cd unix && ./configure --prefix=/app --enable-shared --enable-threads --mandir=/app/share/man
+      - cd unix && make
+      - cd unix && make install
+      - chmod 755 /app/lib/libtcl8.6.so
+    sources:
+      - type: archive
+        url: https://downloads.sourceforge.net/tcl/tcl8.6.14-src.tar.gz
+        sha256: 5880225babf7954c58d4fb0f5cf6279104ce1cd6aa9b71e9a6322540e1c4de66
+
+  - name: tk
+    buildsystem: simple
+    build-commands:
+      # --enable-xft should make Tk use Xft/fontconfig/freetype instead of the
+      # tiny core-X11 font path that causes TkDefaultFont to become "fixed".
+      - cd unix && ./configure --prefix=/app --with-tcl=/app/lib --enable-shared --enable-threads --enable-xft --mandir=/app/share/man
+      - cd unix && make
+      - cd unix && make install
+      - chmod 755 /app/lib/libtk8.6.so
+      - sh -c 'ldd /app/lib/libtk8.6.so > /tmp/dataflow-tk-ldd.txt && grep -q libXft /tmp/dataflow-tk-ldd.txt && grep -q libfontconfig /tmp/dataflow-tk-ldd.txt && grep -q libfreetype /tmp/dataflow-tk-ldd.txt && grep -q libXrender /tmp/dataflow-tk-ldd.txt'
+    sources:
+      - type: archive
+        url: https://downloads.sourceforge.net/tcl/tk8.6.14-src.tar.gz
+        sha256: 8ffdb720f47a6ca6107eac2dd877e30b0ef7fac14f3a84ebbd0b3612cee41a94
+
   - name: python-dependencies
     buildsystem: simple
     build-options:
@@ -59,4 +86,3 @@ modules:
       # If flatpak-builder is invoked differently, adjust the path locally.
       - type: dir
         path: ../..
-

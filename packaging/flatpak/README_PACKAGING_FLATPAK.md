@@ -41,7 +41,8 @@ flatpak install flathub org.freedesktop.Platform//24.08 org.freedesktop.Sdk//24.
 ```
 
 Nota: questa bozza usa `org.freedesktop.Platform` e `org.freedesktop.Sdk`
-24.08 come base iniziale. La scelta va validata per Tkinter/Tcl/Tk.
+24.08 come base iniziale. Tcl/Tk 8.6.14 vengono compilati dentro `/app`
+per evitare il Tk minimale del runtime Freedesktop.
 
 ## Build ipotetica
 
@@ -102,17 +103,46 @@ Controlli manuali minimi:
 ### Tkinter, Tcl e Tk
 
 DataFlow usa Tkinter come GUI principale. Il runtime Flatpak scelto deve
-fornire Python con `_tkinter` funzionante e le librerie Tcl/Tk necessarie.
-Questo punto non e' risolto dal manifest in modo definitivo.
+fornire Python con `_tkinter` funzionante. In questa bozza Tcl/Tk non vengono
+presi dal runtime: il manifest compila Tcl 8.6.14 e Tk 8.6.14 dentro `/app`.
 
-Se `python3 -c "import tkinter"` fallisce nel sandbox, le opzioni realistiche
-sono:
+Il motivo e' diagnostico e pratico: il `libtk8.6.so` del runtime Freedesktop
+puo essere compilato senza Xft/fontconfig/freetype. In quel caso Tkinter parte,
+ma Tk vede pochi font core X11 e `TkDefaultFont` diventa spesso `fixed`.
+Compilando Tk nel bundle con `--enable-xft`, Tk dovrebbe collegarsi a:
+
+- `libXft`
+- `libfontconfig`
+- `libfreetype`
+- `libXrender`
+
+Il wrapper `run-dataflow.sh` prepende `/app/lib` a `LD_LIBRARY_PATH` e imposta
+`TCL_LIBRARY`/`TK_LIBRARY` solo se le directory installate esistono. Questo
+serve a far preferire a Python/_tkinter le librerie Tcl/Tk installate in `/app`
+rispetto a quelle del runtime.
+
+Per verificare che il Tk bundle sia quello corretto:
+
+```bash
+flatpak run --command=sh io.github.sorguido.DataFlow -c 'ldd /app/lib/libtk8.6.so | grep -E "libXft|libfontconfig|libfreetype|libXrender"'
+```
+
+Per verificare quale font predefinito vede Tk e quante famiglie font sono
+disponibili:
+
+```bash
+flatpak run --command=python3 io.github.sorguido.DataFlow -c 'import tkinter as tk; import tkinter.font as f; root=tk.Tk(); print("patchlevel:", root.tk.call("info", "patchlevel")); print("TkDefaultFont:", f.nametofont("TkDefaultFont").actual()); families=sorted(f.families()); print("font_count:", len(families)); print("sample:", families[:40]); root.destroy()'
+```
+
+Se `python3 -c "import tkinter"` fallisce nel sandbox anche con Tcl/Tk in
+`/app`, le opzioni realistiche sono:
 
 - cambiare runtime/base piu adatto;
-- includere Python/Tcl/Tk come dipendenze di build/runtime;
+- includere anche Python/_tkinter in modo controllato;
 - creare un runtime packaging piu specifico.
 
-Queste opzioni sono volutamente lasciate fuori da questa prima bozza.
+Queste opzioni sono volutamente lasciate fuori da questa bozza per non
+introdurre cambi invasivi.
 
 ### Dipendenze Python
 
@@ -158,9 +188,36 @@ introduce wrapper invasivi e si limita a documentare il rischio.
 sempre disponibili nel sandbox. L'app ha gia un fallback manuale tramite
 pulsante di selezione file.
 
+### Tcl/Tk bundle
+
+I sorgenti Tcl/Tk 8.6.14 sono scaricati da SourceForge con SHA-256 espliciti
+nel manifest. La build locale usa:
+
+```text
+Tcl: tcl8.6.14-src.tar.gz
+Tk:  tk8.6.14-src.tar.gz
+```
+
+Tk viene configurato con:
+
+```text
+--enable-xft
+```
+
+Limiti noti:
+
+- lo SHA-256 di Tk e' tratto dal tarball upstream ripubblicato come sorgente
+  Ubuntu/Launchpad; prima di una submission Flathub va ricontrollato contro
+  il download effettivo usato da `flatpak-builder`;
+- la build verifica `ldd /app/lib/libtk8.6.so` durante il modulo `tk`, ma va
+  comunque testata nel runtime installato;
+- `_tkinter` resta quello fornito dal runtime Python; questa bozza cambia solo
+  le librerie Tcl/Tk preferite a runtime;
+- Wayland non e' stato abilitato in questa fase.
+
 ## Cosa non e' ancora risolto
 
-- Verifica reale di Tkinter/Tcl/Tk nel runtime `org.freedesktop.Platform`.
+- Verifica reale di `_tkinter` con Tcl/Tk 8.6.14 installati in `/app`.
 - Packaging riproducibile delle dipendenze Python senza accesso network in build.
 - Strategia definitiva per path dati sotto Flatpak.
 - Permessi filesystem minimi per import/export/backup/allegati.
@@ -168,6 +225,8 @@ pulsante di selezione file.
 - Validazione AppStream completa per pubblicazione.
 - Set icone Linux completo in layout `hicolor`.
 - Eventuale test su Wayland rispetto a X11.
+- Conferma finale dei checksum sorgenti rispetto ai mirror effettivi usati da
+  `flatpak-builder`.
 
 ## Rollback
 
@@ -185,4 +244,3 @@ Per verificare che non siano stati toccati altri file:
 git status --short
 git diff --stat
 ```
-
