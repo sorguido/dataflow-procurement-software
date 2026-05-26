@@ -19,8 +19,6 @@ finish-args:
   # TODO: Enable only after testing Tk behavior on Wayland.
   # - --socket=wayland
 
-  # Allow portal access for browser/file opening where supported.
-  - --talk-name=org.freedesktop.portal.Desktop
 
   # Keep filesystem permissions conservative for the first draft.
   # TODO: DataFlow import/export/backup/attachments may require additional
