@@ -275,6 +275,33 @@ Limiti noti:
   le librerie Tcl/Tk preferite a runtime;
 - Wayland non e' stato abilitato in questa fase.
 
+## Stato lint Flatpak
+
+Il manifest è validato funzionalmente per il target attuale: bundle Flatpak distribuibile manualmente.
+
+Il controllo flatpak-builder-lint segnala intenzionalmente:
+
+    finish-args-home-filesystem-access
+
+Motivo: il manifest concede:
+
+    --filesystem=home
+
+Questa scelta è voluta. DataFlow deve mantenere il comportamento della versione desktop nativa: export Excel/PDF, backup database, allegati e cartelle scelte dall'utente devono scrivere nella vera home dell'utente host.
+
+Per un eventuale target Flathub, questo punto andrà rivalutato. Le opzioni future sono:
+
+- integrazione con portali desktop;
+- permessi più stretti su directory XDG specifiche;
+- richiesta di eccezione o giustificazione, se applicabile.
+
+Il warning seguente non viene trattato in questa fase:
+
+    runtime-update-available-to-org.freedesktop.Platform-25.08
+
+Il runtime 24.08 resta quello validato per Tcl/Tk, font, dipendenze Python, build e avvio applicazione.
+
+
 ## Cosa non e' ancora risolto
 
 - Verifica periodica del modulo `python3-requirements.json` quando cambiano
