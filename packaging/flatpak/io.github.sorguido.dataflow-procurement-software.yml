@@ -69,7 +69,9 @@ modules:
       - install -Dm644 README.md /app/share/doc/io.github.sorguido.dataflow-procurement-software/README.md
       - install -Dm644 packaging/flatpak/io.github.sorguido.dataflow-procurement-software.desktop /app/share/applications/io.github.sorguido.dataflow-procurement-software.desktop
       - install -Dm644 packaging/flatpak/io.github.sorguido.dataflow-procurement-software.metainfo.xml /app/share/metainfo/io.github.sorguido.dataflow-procurement-software.metainfo.xml
-      - install -Dm644 add_data/Logo_256x256.png /app/share/icons/hicolor/256x256/apps/io.github.sorguido.dataflow-procurement-software.png
+      - install -Dm644 packaging/flatpak/icons/io.github.sorguido.dataflow-procurement-software-64.png /app/share/icons/hicolor/64x64/apps/io.github.sorguido.dataflow-procurement-software.png
+      - install -Dm644 packaging/flatpak/icons/io.github.sorguido.dataflow-procurement-software-128.png /app/share/icons/hicolor/128x128/apps/io.github.sorguido.dataflow-procurement-software.png
+      - install -Dm644 packaging/flatpak/icons/io.github.sorguido.dataflow-procurement-software-256.png /app/share/icons/hicolor/256x256/apps/io.github.sorguido.dataflow-procurement-software.png
     sources:
       # Path is intended to resolve from this manifest directory to the repo root.
       # If flatpak-builder is invoked differently, adjust the path locally.
