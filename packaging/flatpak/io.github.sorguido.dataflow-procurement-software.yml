@@ -25,7 +25,8 @@ finish-args:
   # filesystem access or portal integration. Avoid broad permissions unless a
   # test case proves they are needed.
   # - --filesystem=xdg-documents:create
-  # - --filesystem=home
+  # DataFlow exports, backups and attachments must write to user-selected folders.
+  - --filesystem=home
 
 modules:
   - name: tcl
