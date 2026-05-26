@@ -6,6 +6,9 @@
   <summary>Desktop procurement and RFQ management tool</summary>
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>GPL-3.0-only</project_license>
+  <developer id="io.github.sorguido">
+    <name>Guido Sorarù</name>
+  </developer>
 
   <description>
     <p>
