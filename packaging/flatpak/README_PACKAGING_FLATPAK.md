@@ -1,12 +1,14 @@
-# DataFlow Flatpak packaging draft
+# DataFlow Flatpak packaging
 
 ## Scopo
 
-Questa cartella contiene una prima bozza di packaging Flatpak per DataFlow.
-Non modifica il layout del progetto e non richiede modifiche al codice
-applicativo Python.
+Questa cartella contiene il packaging Flatpak di DataFlow.
+Il packaging non modifica il layout del progetto e non richiede modifiche al
+codice applicativo Python.
 
-App-id provvisorio:
+Principio guida: il pacchetto si adatta a DataFlow, non DataFlow al pacchetto.
+
+App-id:
 
 ```text
 io.github.sorguido.dataflow-procurement-software
@@ -26,9 +28,9 @@ dataflow.py
 
 ## File inclusi
 
-- `io.github.sorguido.dataflow-procurement-software.yml`: manifest Flatpak iniziale.
+- `io.github.sorguido.dataflow-procurement-software.yml`: manifest Flatpak.
 - `io.github.sorguido.dataflow-procurement-software.desktop`: launcher desktop Linux.
-- `io.github.sorguido.dataflow-procurement-software.metainfo.xml`: metainfo/AppStream provvisorio.
+- `io.github.sorguido.dataflow-procurement-software.metainfo.xml`: metainfo/AppStream.
 - `run-dataflow.sh`: wrapper installato come `/app/bin/dataflow`.
 - `README_PACKAGING_FLATPAK.md`: note operative e limiti della bozza.
 
@@ -44,19 +46,49 @@ Nota: questa bozza usa `org.freedesktop.Platform` e `org.freedesktop.Sdk`
 24.08 come base iniziale. Tcl/Tk 8.6.14 vengono compilati dentro `/app`
 per evitare il Tk minimale del runtime Freedesktop.
 
-## Build ipotetica
+## Build locale
 
-Da root repository:
-
-```bash
-flatpak-builder --force-clean --user --install-deps-from=flathub build-flatpak packaging/flatpak/io.github.sorguido.dataflow-procurement-software.yml
-```
-
-Per installare localmente dopo la build:
+Da root repository, per buildare e installare localmente:
 
 ```bash
-flatpak-builder --force-clean --user --install --install-deps-from=flathub build-flatpak packaging/flatpak/io.github.sorguido.dataflow-procurement-software.yml
+rm -rf /tmp/dataflow-flatpak-build /tmp/dataflow-flatpak-state
+
+flatpak-builder \
+  --force-clean \
+  --user \
+  --install \
+  --state-dir=/tmp/dataflow-flatpak-state \
+  /tmp/dataflow-flatpak-build \
+  packaging/flatpak/io.github.sorguido.dataflow-procurement-software.yml
 ```
+
+Per generare un bundle `.flatpak` distribuibile manualmente:
+
+```bash
+rm -rf /tmp/dataflow-flatpak-build \
+       /tmp/dataflow-flatpak-state \
+       /tmp/dataflow-flatpak-repo \
+       /tmp/dataflow-flatpak-dist
+
+mkdir -p /tmp/dataflow-flatpak-dist
+
+flatpak-builder \
+  --force-clean \
+  --user \
+  --repo=/tmp/dataflow-flatpak-repo \
+  --state-dir=/tmp/dataflow-flatpak-state \
+  /tmp/dataflow-flatpak-build \
+  packaging/flatpak/io.github.sorguido.dataflow-procurement-software.yml
+
+flatpak build-bundle \
+  --runtime-repo=https://flathub.org/repo/flathub.flatpakrepo \
+  /tmp/dataflow-flatpak-repo \
+  /tmp/dataflow-flatpak-dist/DataFlow-2.3.0-x86_64.flatpak \
+  io.github.sorguido.dataflow-procurement-software
+```
+
+Il bundle non incorpora il runtime Freedesktop: `--runtime-repo` indica a
+Flatpak dove recuperarlo, normalmente da Flathub.
 
 Le dipendenze Python runtime non vengono piu installate con un `pip install`
 diretto nel manifest principale. Sono referenziate tramite
@@ -65,7 +97,7 @@ URL e SHA-256 dei sorgenti/wheel necessari. Questo mantiene il manifest piu
 riproducibile e rimuove la necessita del build arg `--share=network` per il
 modulo Python.
 
-## Test ipotetici
+## Test e smoke test
 
 Avvio dal sandbox:
 
@@ -176,20 +208,33 @@ delle dipendenze Python e prima dell'installazione dei file applicativi.
 
 ### File system e sandbox
 
-Il manifest mantiene permessi runtime prudenti. Non concede accesso ampio a
-`home` in questa prima bozza.
+DataFlow deve mantenere lo stesso comportamento della versione nativa Linux e
+Windows: export, backup, allegati e cartelle scelte dall'utente devono poter
+scrivere nella vera home dell'utente host.
 
-DataFlow oggi usa cartelle utente come:
+Per questo il manifest concede:
 
 ```text
-~/.local/share/DataFlow/
-~/DataFlow_<username>/
+--filesystem=home
 ```
 
-Nel sandbox Flatpak questo comportamento va testato con attenzione. Import,
-export, backup, allegati e scelta cartelle potrebbero richiedere portali o
-permessi filesystem aggiuntivi. Eventuali permessi temporanei sono commentati
-nel manifest o descritti qui, ma non vanno considerati una scelta definitiva.
+Questa scelta e' intenzionale. Una configurazione piu restrittiva basata solo
+su portali o su singole directory richiederebbe modifiche applicative o
+cambierebbe il comportamento atteso di DataFlow.
+
+Verifica permessi installati:
+
+```bash
+flatpak info --show-permissions io.github.sorguido.dataflow-procurement-software
+```
+
+Output atteso nel blocco `[Context]`:
+
+```text
+shared=ipc;
+sockets=x11;
+filesystems=home;
+```
 
 ### Apertura browser e file
 
@@ -232,12 +277,11 @@ Limiti noti:
 
 ## Cosa non e' ancora risolto
 
-- Verifica reale di `_tkinter` con Tcl/Tk 8.6.14 installati in `/app`.
 - Verifica periodica del modulo `python3-requirements.json` quando cambiano
   versioni Python runtime o dipendenze.
-- Strategia definitiva per path dati sotto Flatpak.
-- Permessi filesystem minimi per import/export/backup/allegati.
-- Integrazione portali per apertura URL/file.
+- Valutazione futura del runtime Freedesktop piu recente rispetto a `24.08`.
+- Integrazione portali per apertura URL/file, se necessaria in una fase
+  successiva.
 - Validazione AppStream completa per pubblicazione.
 - Set icone Linux completo in layout `hicolor`.
 - Eventuale test su Wayland rispetto a X11.
