@@ -9,7 +9,7 @@ applicativo Python.
 App-id provvisorio:
 
 ```text
-io.github.sorguido.DataFlow
+io.github.sorguido.dataflow-procurement-software
 ```
 
 Comando previsto nel sandbox:
@@ -26,9 +26,9 @@ dataflow.py
 
 ## File inclusi
 
-- `io.github.sorguido.DataFlow.yml`: manifest Flatpak iniziale.
-- `io.github.sorguido.DataFlow.desktop`: launcher desktop Linux.
-- `io.github.sorguido.DataFlow.metainfo.xml`: metainfo/AppStream provvisorio.
+- `io.github.sorguido.dataflow-procurement-software.yml`: manifest Flatpak iniziale.
+- `io.github.sorguido.dataflow-procurement-software.desktop`: launcher desktop Linux.
+- `io.github.sorguido.dataflow-procurement-software.metainfo.xml`: metainfo/AppStream provvisorio.
 - `run-dataflow.sh`: wrapper installato come `/app/bin/dataflow`.
 - `README_PACKAGING_FLATPAK.md`: note operative e limiti della bozza.
 
@@ -49,13 +49,13 @@ per evitare il Tk minimale del runtime Freedesktop.
 Da root repository:
 
 ```bash
-flatpak-builder --force-clean --user --install-deps-from=flathub build-flatpak packaging/flatpak/io.github.sorguido.DataFlow.yml
+flatpak-builder --force-clean --user --install-deps-from=flathub build-flatpak packaging/flatpak/io.github.sorguido.dataflow-procurement-software.yml
 ```
 
 Per installare localmente dopo la build:
 
 ```bash
-flatpak-builder --force-clean --user --install --install-deps-from=flathub build-flatpak packaging/flatpak/io.github.sorguido.DataFlow.yml
+flatpak-builder --force-clean --user --install --install-deps-from=flathub build-flatpak packaging/flatpak/io.github.sorguido.dataflow-procurement-software.yml
 ```
 
 Le dipendenze Python runtime non vengono piu installate con un `pip install`
@@ -70,19 +70,19 @@ modulo Python.
 Avvio dal sandbox:
 
 ```bash
-flatpak run io.github.sorguido.DataFlow
+flatpak run io.github.sorguido.dataflow-procurement-software
 ```
 
 Avvio con log dettagliato Flatpak:
 
 ```bash
-flatpak run --verbose io.github.sorguido.DataFlow
+flatpak run --verbose io.github.sorguido.dataflow-procurement-software
 ```
 
 Shell di debug nel sandbox:
 
 ```bash
-flatpak run --command=sh io.github.sorguido.DataFlow
+flatpak run --command=sh io.github.sorguido.dataflow-procurement-software
 ```
 
 Controlli manuali minimi:
@@ -126,14 +126,14 @@ rispetto a quelle del runtime.
 Per verificare che il Tk bundle sia quello corretto:
 
 ```bash
-flatpak run --command=sh io.github.sorguido.DataFlow -c 'ldd /app/lib/libtk8.6.so | grep -E "libXft|libfontconfig|libfreetype|libXrender"'
+flatpak run --command=sh io.github.sorguido.dataflow-procurement-software -c 'ldd /app/lib/libtk8.6.so | grep -E "libXft|libfontconfig|libfreetype|libXrender"'
 ```
 
 Per verificare quale font predefinito vede Tk e quante famiglie font sono
 disponibili:
 
 ```bash
-flatpak run --command=python3 io.github.sorguido.DataFlow -c 'import tkinter as tk; import tkinter.font as f; root=tk.Tk(); print("patchlevel:", root.tk.call("info", "patchlevel")); print("TkDefaultFont:", f.nametofont("TkDefaultFont").actual()); families=sorted(f.families()); print("font_count:", len(families)); print("sample:", families[:40]); root.destroy()'
+flatpak run --command=python3 io.github.sorguido.dataflow-procurement-software -c 'import tkinter as tk; import tkinter.font as f; root=tk.Tk(); print("patchlevel:", root.tk.call("info", "patchlevel")); print("TkDefaultFont:", f.nametofont("TkDefaultFont").actual()); families=sorted(f.families()); print("font_count:", len(families)); print("sample:", families[:40]); root.destroy()'
 ```
 
 Se `python3 -c "import tkinter"` fallisce nel sandbox anche con Tcl/Tk in

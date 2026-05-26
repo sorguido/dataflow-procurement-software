@@ -2,7 +2,7 @@
 #
 # This is intentionally not Flathub-ready. It is a readable starting point for
 # local packaging experiments and keeps all application code unchanged.
-app-id: io.github.sorguido.DataFlow
+app-id: io.github.sorguido.dataflow-procurement-software
 runtime: org.freedesktop.Platform
 runtime-version: "24.08"
 sdk: org.freedesktop.Sdk
@@ -64,11 +64,11 @@ modules:
       - install -d /app/share/dataflow
       - cp -a dataflow.py constants.py database_manager.py /app/share/dataflow/
       - cp -a services database models ui utils add_data locale /app/share/dataflow/
-      - install -Dm644 LICENSE /app/share/licenses/io.github.sorguido.DataFlow/LICENSE
-      - install -Dm644 README.md /app/share/doc/io.github.sorguido.DataFlow/README.md
-      - install -Dm644 packaging/flatpak/io.github.sorguido.DataFlow.desktop /app/share/applications/io.github.sorguido.DataFlow.desktop
-      - install -Dm644 packaging/flatpak/io.github.sorguido.DataFlow.metainfo.xml /app/share/metainfo/io.github.sorguido.DataFlow.metainfo.xml
-      - install -Dm644 add_data/Logo_256x256.png /app/share/icons/hicolor/256x256/apps/io.github.sorguido.DataFlow.png
+      - install -Dm644 LICENSE /app/share/licenses/io.github.sorguido.dataflow-procurement-software/LICENSE
+      - install -Dm644 README.md /app/share/doc/io.github.sorguido.dataflow-procurement-software/README.md
+      - install -Dm644 packaging/flatpak/io.github.sorguido.dataflow-procurement-software.desktop /app/share/applications/io.github.sorguido.dataflow-procurement-software.desktop
+      - install -Dm644 packaging/flatpak/io.github.sorguido.dataflow-procurement-software.metainfo.xml /app/share/metainfo/io.github.sorguido.dataflow-procurement-software.metainfo.xml
+      - install -Dm644 add_data/Logo_256x256.png /app/share/icons/hicolor/256x256/apps/io.github.sorguido.dataflow-procurement-software.png
     sources:
       # Path is intended to resolve from this manifest directory to the repo root.
       # If flatpak-builder is invoked differently, adjust the path locally.

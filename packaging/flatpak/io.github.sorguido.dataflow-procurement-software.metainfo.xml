@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Draft AppStream metadata. Not ready for Flathub review. -->
 <component type="desktop-application">
-  <id>io.github.sorguido.DataFlow</id>
+  <id>io.github.sorguido.dataflow-procurement-software</id>
   <name>DataFlow</name>
   <summary>Desktop procurement and RFQ management tool</summary>
   <metadata_license>CC0-1.0</metadata_license>
@@ -19,7 +19,7 @@
     </p>
   </description>
 
-  <launchable type="desktop-id">io.github.sorguido.DataFlow.desktop</launchable>
+  <launchable type="desktop-id">io.github.sorguido.dataflow-procurement-software.desktop</launchable>
   <provides>
     <binary>dataflow</binary>
   </provides>

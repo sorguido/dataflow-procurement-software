@@ -4,9 +4,9 @@ Name=DataFlow
 GenericName=Procurement Management
 Comment=Manage RFQs, procurement data, KPI analysis, and supplier documents
 Exec=dataflow
-Icon=io.github.sorguido.DataFlow
+Icon=io.github.sorguido.dataflow-procurement-software
 Terminal=false
 Categories=Office;Finance;
 StartupNotify=true
-X-Flatpak=io.github.sorguido.DataFlow
+X-Flatpak=io.github.sorguido.dataflow-procurement-software
 
