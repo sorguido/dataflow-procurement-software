@@ -236,6 +236,41 @@ sockets=x11;
 filesystems=home;
 ```
 
+#### Test permessi XDG senza accesso full-home
+
+E' stato eseguito un test temporaneo rimuovendo `--filesystem=home` e usando
+permessi piu stretti:
+
+- `--filesystem=xdg-documents:create`
+- `--filesystem=xdg-download:create`
+- `--filesystem=xdg-desktop:create`
+
+Risultato lint:
+
+- l'errore `finish-args-home-filesystem-access` scompare;
+- resta solo il warning runtime 25.08 gia documentato.
+
+Risultato funzionale:
+
+- il sandbox vede e scrive correttamente in `Documenti`, `Scaricati` e
+  `Scrivania`;
+- DataFlow avvia, ma non mantiene il comportamento desktop atteso;
+- viene creato un nuovo database alternativo/sandboxato;
+- una nuova RfQ creata durante il test non risulta persistente dopo il riavvio
+  dell'applicazione.
+
+Conclusione:
+
+per DataFlow 2.3.0 i soli permessi XDG non sono sufficienti. Senza modifiche
+applicative dedicate alla gestione dei path, database, configurazione runtime e
+file scelti dall'utente, `--filesystem=home` resta necessario per preservare il
+comportamento della versione desktop nativa.
+
+Per questo motivo l'errore lint `finish-args-home-filesystem-access` e'
+documentato e accettato per il bundle manuale DataFlow 2.3.0. Una eventuale
+variante Flathub piu sandbox-friendly richiede analisi separata e modifiche
+applicative esplicite.
+
 ### Apertura browser e file
 
 Il codice usa `webbrowser.open(...)` e in un caso `xdg-open`. In Flatpak la
