@@ -301,6 +301,27 @@ Il warning seguente non viene trattato in questa fase:
 
 Il runtime 24.08 resta quello validato per Tcl/Tk, font, dipendenze Python, build e avvio applicazione.
 
+Nota runtime 25.08:
+
+Un test temporaneo con org.freedesktop.Platform//25.08 e
+org.freedesktop.Sdk//25.08 ha completato correttamente la build, ma il runtime
+non e' stato adottato per DataFlow 2.3.0.
+
+Motivo tecnico:
+
+- 24.08 usa Python 3.12 e include tkinter / _tkinter;
+- 25.08 usa Python 3.13 ma nel runtime testato non espone tkinter / _tkinter;
+- DataFlow e' una desktop app Tkinter;
+- tkcalendar, tksheet e tkinterdnd2 dipendono a loro volta da Tkinter.
+
+Il bundle Tcl/Tk 8.6.14 compilato in /app risolve il problema delle librerie
+Tcl/Tk e dei font, ma non puo' sostituire il modulo Python _tkinter, che resta
+fornito dal runtime Python.
+
+Per questo motivo il warning runtime-update-available-to-org.freedesktop.Platform-25.08
+e' documentato e accettato per il bundle DataFlow 2.3.0 basato su 24.08.
+
+
 
 ## Cosa non e' ancora risolto
 
